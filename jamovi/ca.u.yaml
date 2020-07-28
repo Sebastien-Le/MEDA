@@ -1,0 +1,128 @@
+title: Correspondence Analysis
+name: CA
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    persistentItems: false
+    stretchFactor: 1
+    children:
+      - type: TargetLayoutBox
+        label: Active columns
+        children:
+          - type: VariablesListBox
+            name: activecol
+            isTarget: true
+      - type: TargetLayoutBox
+        label: Supplementary columns
+        children:
+          - type: VariablesListBox
+            name: illustrativecol
+            isTarget: true
+      - type: TargetLayoutBox
+        label: Row labels
+        children:
+          - type: VariablesListBox
+            name: indiv
+            maxItemCount: 1
+            isTarget: true			
+  - type: LayoutBox
+    margin: large
+    stretchFactor: 1
+    children:			
+      - type: Label
+        label: Graphic options
+        stretchFactor: 1
+        children:
+          - type: CollapseBox
+            label: Components to plot
+            collapsed: true
+            children:
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: abs
+                    format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: ord
+                    format: number						
+          - type: CollapseBox
+            label: Quality of representation
+            collapsed: true
+            children:
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: limcoscol
+                    format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: limcosrow
+                    format: number					
+          - type: CollapseBox
+            label: Representation of the ellipses
+            collapsed: true
+            children:
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: CheckBox
+                    name: ellipsecol
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: CheckBox
+                    name: ellipserow
+          - type: LayoutBox
+            margin: large
+            children:
+              - type: CheckBox
+                name: addillucol
+  - type: LayoutBox
+    margin: large
+    stretchFactor: 1
+    children:			
+      - type: Label
+        label: Numerical indicators
+        stretchFactor: 1
+        children:
+          - type: CollapseBox
+            label: Automatic description of the axes
+            collapsed: true
+            children:
+              - type: TextBox
+                name: nbfact
+                format: number
+

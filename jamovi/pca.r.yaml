@@ -1,0 +1,106 @@
+---
+name:  PCA
+title: Results of the Principal Component Analysis
+jrs:   '1.1'
+
+items:
+
+    - name: plotind
+      title: Representation of the individuals (and the categories)
+      type: Image
+      width:  800
+      height: 600
+      renderFun: .plotindividus
+
+    - name: plotvar
+      title: Representation of the variables
+      type: Image
+      width: 600
+      height: 600
+      renderFun: .plotvariables
+
+    - name: eigengroup
+      title: Eigenvalue decomposition
+      type: Group
+      items:
+        - name: eigen
+          title: 'Eigenvalue and (cumulative) percentage of variance'
+          type: Table
+          columns:
+            - name: component
+              title: ''
+              type: 'text'
+            - name: eigenvalue
+              title: 'Eigenvalue'
+              type: number
+            - name: purcent
+              title: '% of the variance'
+              type: number
+            - name: purcentcum
+              title: 'Cumulative %'
+              type: number
+
+    - name: descdesdim
+      title: Automatic description of the axes
+      type: Preformatted
+
+
+    - name: individus
+      title: Individual tables
+      type: Group
+      items: 
+        - name:  coordonnees
+          title: Coordinates table
+          visible: (coordind)
+          type:  Table
+          clearWith:
+            - nFactors
+          columns: []
+
+        - name:  contribution
+          title: Contributions table
+          visible: (contribind)
+          type:  Table
+          clearWith:
+            - nFactors
+          columns: []
+
+        - name:  cosinus
+          title: Cosinus table
+          visible: (cosind)
+          type:  Table
+          clearWith:
+            - nFactors
+          columns: []
+
+
+
+    - name: variables
+      title: Variable tables
+      type: Group
+      items: 
+        - name:  coordonnees
+          title: Coordinates table
+          visible: (coordvar)
+          type:  Table
+          clearWith:
+            - nFactors
+          columns: []
+
+        - name:  contribution
+          title: Contributions table
+          visible: (contribvar)
+          type:  Table
+          clearWith:
+            - nFactors
+          columns: []
+
+        - name:  cosinus
+          title: Cosinus table
+          visible: (cosvar)
+          type:  Table
+          clearWith:
+            - nFactors
+          columns: []
+
+...

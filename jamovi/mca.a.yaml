@@ -1,0 +1,124 @@
+---
+name:  MCA
+title: Multiple Correspondence Analysis
+menuGroup: MEDA
+menuSubgroup: Multivariate Analysis
+
+menuTitle: Multiple Correspondence Analysis
+menuSubtitle: MCA
+version: '1.0.0'
+jas: '1.2'
+
+options:
+    - name: data
+      type: Data
+
+    - name: actvars
+      title: Active variables
+      type: Variables
+      suggested:
+        - nominal
+        - ordinal
+      permitted:
+        - factor
+
+    - name: quantisup
+      title: Quantitative supplementary variables
+      type: Variables
+      suggested:
+        - continuous
+      permitted:
+        - numeric
+
+    - name: qualisup
+      title: Categorical supplementary variables
+      type: Variables
+      suggested:
+        - nominal
+        - ordinal
+      permitted:
+        - factor
+
+    - name: individus
+      title: Individual labels
+      type: Variable
+      suggested:
+        - nominal
+      permitted:
+        - factor
+
+    - name: nFactors
+      title: Number of factors
+      type: Integer
+      default: 5
+
+    - name: abs
+      title: X-axis
+      type: Integer
+      default: 1
+    
+    - name: ord
+      title: Y-axis
+      type: Integer
+      default: 2
+
+    - name: varmodqualisup
+      title : Supplementary categories
+      type: Bool
+      default: true
+
+    - name: varmodvar
+      title: Active categories
+      type: Bool
+      default: true
+
+    - name: proba
+      title: Significant threshold
+      type: Number
+      default: 0.05
+
+    - name: indcoord
+      title: Coordinates
+      type: Bool
+      default: false
+
+    - name: indcontrib
+      title: Contributions
+      type: Bool
+      default: false
+
+    - name: indcos
+      title: Cosinus
+      type: Bool
+      default: false
+
+    - name: varcoord
+      title: Coordinates
+      type: Bool
+      default: false
+
+    - name: varcontrib
+      title: Contributions
+      type: Bool
+      default: false
+
+    - name: varcos
+      title: Cosinus
+      type: Bool
+      default: false
+
+    - name: quantimod
+      title: Quantitative supplementary variables
+      type: Bool
+      default: false
+      
+    - name: ventil
+      title: Ventilation level
+      type: Number
+      default: 0.05
+      
+    - name: modality
+      title: Selection of catagories
+      type: String
+      default: cos2 10
+...

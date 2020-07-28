@@ -1,0 +1,131 @@
+---
+name:  PCA
+title: Principal Component Analysis
+menuGroup: MEDA
+
+menuSubgroup: Multivariate Analysis
+
+menuTitle: Principal Component Analysis
+menuSubtitle: PCA
+version: '1.0.0'
+jas: '1.2'
+
+options:
+    - name: data
+      type: Data
+
+    - name: actvars
+      title: Active variables
+      type: Variables
+      suggested:
+        - continuous
+      permitted:
+        - numeric
+
+    - name: quantisup
+      title: Quantitative supplementary variables
+      type: Variables
+      suggested:
+        - continuous
+      permitted:
+        - numeric
+
+    - name: qualisup
+      title: Categorical supplementary variables
+      type: Variables
+      suggested:
+        - nominal
+        - ordinal
+      permitted:
+        - factor
+
+    - name: individus
+      title: Individual labels
+      type: Variable
+      suggested:
+        - nominal
+      permitted:
+        - factor
+
+    - name: nFactors
+      title: Number of factors
+      type: Integer
+      default: 5
+
+    - name: norme
+      title: Standardization
+      type: Bool
+      default: true
+
+
+    - name: coordvar
+      title: Coordinates
+      type: Bool
+      default: false
+
+    - name: contribvar
+      title: Contributions
+      type: Bool
+      default: false
+
+    - name: cosvar
+      title: Cosine
+      type: Bool
+      default: false
+
+
+    - name: coordind
+      title: Coordinates
+      type: Bool
+      default: false
+
+    - name: contribind
+      title: Contributions
+      type: Bool
+      default: false
+
+    - name: cosind
+      title: Cosine
+      type: Bool
+      default: false
+
+
+    - name: proba
+      title: Significant threshold
+      type: Number
+      default: 0.05
+
+    - name: abs
+      title: X-axis
+      type: Integer
+      default: 1
+    
+    - name: ord
+      title: Y-axis
+      type: Integer
+      default: 2
+
+    - name: varact
+      title: Active variables
+      type: Bool
+      default: true
+
+    - name: varillus
+      title: Supplementary variables
+      type: Bool
+      default: true
+
+    - name: modact
+      title: Individuals
+      type: Bool
+      default: true
+
+    - name: modillus
+      title: Categorical supplementary variables
+      type: Bool
+      default: true
+
+    - name: habillage
+      title: Grouping variable
+      type: Integer
+...

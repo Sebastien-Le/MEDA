@@ -1,0 +1,39 @@
+---
+name:  catdes
+title: Categorical variable described by Categorical / Quantitative data
+menuGroup: MEDA
+menuSubgroup: Description of a Categorical variable
+
+menuTitle: By Categorical / Quantitative data
+version: '1.0.0'
+jas: '1.2'
+
+options:
+    - name: data
+      type: Data
+
+    - name: vartochar
+      title: Variable to characterized
+      type: Variable
+      suggested:
+
+        - nominal
+      permitted:
+        - factor
+
+    - name: descbyvar
+      title: Described by
+      type: Variables
+      suggested:
+
+        - continuous
+        - nominal
+      permitted:
+        - numeric
+        - factor
+
+    - name: threshold
+      title: Significant treshold
+      type: Number
+      default: 0.05
+...

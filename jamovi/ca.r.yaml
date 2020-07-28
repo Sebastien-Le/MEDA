@@ -1,0 +1,96 @@
+---
+name:  CA
+title: Results of the Correspondence Analysis
+
+jrs:   '1.1'
+
+items:
+
+    - name: plotirow
+      title: Representation of the rows
+      type: Image
+      width:  600
+      height: 500
+      renderFun: .plotrow
+
+    - name: ploticol
+      title: Representation of the columns
+      type: Image
+      width: 600
+      height: 500
+      renderFun: .plotcol
+
+    - name: plotell
+      title: Superimposed representation with ellipses
+      type: Image
+      width: 600
+      height: 500
+      renderFun: .plotell
+
+    - name: xsqgroup
+      title: Chi-squared test
+      type: Group
+      items:
+        - name: xsq
+          title: Pearson's Chi-squared test
+          type: Table
+          rows: 1
+          columns :
+            - name: xsquared
+              title: X-squared
+              type: number
+            - name: df
+              title: df
+              type: integer
+            - name: pvxsq
+              title: p-value
+              type: number
+              format: zto,pvalue
+
+    - name: eigengroup
+      title: Eigenvalue decomposition
+      type: Group
+      items:
+        - name: eigen
+          title: 'Eigenvalue and (cumulative) percentage of variance'
+          type: Table
+          columns:
+            - name: component
+              title: ''
+              type: 'text'
+            - name: eigenvalue
+              title: 'Eigenvalue'
+              type: number
+            - name: purcent
+              title: '% of the variance'
+              type: number
+            - name: purcentcum
+              title: 'Cumulative %'
+              type: number
+
+    - name: descofdimgroup
+      title: Automatic description of the axes
+      type: Group
+      items:
+        - name: descofdim
+          title: ''
+          type: Table
+          columns:
+            - name: dim
+              title: ''
+              type: text
+              combineBelow: true
+            - name: rowcol
+              title: ''
+              type: text
+              combineBelow: true
+            - name: cat
+              title: Category 
+              type: text
+            - name: coord
+              title: Coordinate
+              type: number
+
+
+
+...

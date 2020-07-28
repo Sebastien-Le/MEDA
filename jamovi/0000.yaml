@@ -1,0 +1,57 @@
+---
+title: Multivariate Exploratory Data Analysis
+name: MEDA
+version: 0.9.0
+jms: '1.0'
+authors:
+  - Thomas Leblay
+  - Fiona Tuffin
+  - Sébastien Lê
+maintainer: sebastien.le@agrocampus-ouest.fr
+date: '1970-01-01'
+type: R
+description: >-
+  This module allows you to perform multivariate exploratory analyses the french
+  way. In other words, you will be able to add supplementary information for a
+  better understanding of your results. Three main methods have been
+  implemented:  Principal Component Analysis, Correspondence Analysis and
+  Multiple Correspondence Analysis. Results are obtained thanks to the
+  FactoMineR package.
+analyses:
+  - title: Categorical variable described by Categorical / Quantitative data
+    name: catdes
+    ns: MEDA
+    menuGroup: MEDA
+    menuTitle: By Categorical / Quantitative data
+    menuSubgroup: Description of a Categorical variable
+  - title: Categorical variable described by Textual data
+    name: textual
+    ns: MEDA
+    menuGroup: MEDA
+    menuTitle: By Textual data
+    menuSubgroup: Description of a Categorical variable
+  - title: Principal Component Analysis
+    name: PCA
+    ns: MEDA
+    menuGroup: MEDA
+    menuTitle: Principal Component Analysis
+    menuSubgroup: Multivariate Analysis
+    menuSubtitle: PCA
+  - title: Correspondence Analysis
+    name: CA
+    ns: MEDA
+    menuGroup: MEDA
+    menuTitle: Correspondence Analysis
+    menuSubgroup: Multivariate Analysis
+    menuSubtitle: CA
+  - title: Multiple Correspondence Analysis
+    name: MCA
+    ns: MEDA
+    menuGroup: MEDA
+    menuTitle: Multiple Correspondence Analysis
+    menuSubgroup: Multivariate Analysis
+    menuSubtitle: MCA
+usesNative: true
+minApp: 1.0.8
+
+...

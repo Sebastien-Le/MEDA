@@ -1,0 +1,78 @@
+---
+name:  textual
+title: Results of the Categorical variable description
+jrs:   '1.1'
+
+items:
+    - name: textualgroup
+      title: Textual Data Analysis
+      type: Group
+      items:
+        - name: textual
+          title: Contingency table
+          type: Table
+          visible: (checkboxtextual)
+          clearWith: 
+            - individuals
+            - words
+          columns: []
+
+    - name: chideuxgroup
+      title: Chi-squared test
+      type: Group
+      items:
+        - name: chideux
+          title: Pearson's Chi-squared test
+          type: Table
+          visible: (checkboxchideux)
+          clearWith: 
+            - individuals
+            - words
+          rows: 1
+          columns: 
+            - name: value
+              title: X-squared
+              type: Integer
+            - name: df
+              title: df
+              type: Integer
+            - name: pvalue
+              title: p-value
+              format: zto,pvalue
+
+    - name: dfresgroup
+      title: Description of frequencies
+      type: Group
+      items:
+        - name: dfres
+          title: Description of the rows of the contingency table
+          type: Table
+          visible: (checkboxdf)
+          columns:
+            - name: component
+              title: ''
+              type: text
+              combineBelow: true
+            - name: word
+              title: Word
+              type: text
+            - name: internper
+              title: Intern %
+              type: Number
+            - name: globper
+              title: Global %
+              type: Number
+            - name: internfreq
+              title: Intern frequency
+              type: Number
+            - name: globfreq
+              title: Global frequency
+              type: Number
+            - name: pvaluedfres
+              title: p-value
+              format: zto,pvalue
+            - name: vtest
+              title: Vtest
+              type: Number
+
+...

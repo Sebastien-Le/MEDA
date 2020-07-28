@@ -1,0 +1,82 @@
+---
+name:  CA
+title: Correspondence Analysis
+
+menuGroup: MEDA
+
+menuSubgroup: Multivariate Analysis
+
+menuTitle: Correspondence Analysis
+menuSubtitle: CA
+
+version: '1.0.0'
+jas: '1.2'
+
+options:
+    - name: donnees
+      type: Data
+
+    - name: activecol
+      title: Active columns
+      type: Variables
+      suggested:
+        - continuous
+      permitted:
+        - numeric
+
+    - name: illustrativecol
+      title: Supplementary columns
+      type: Variables
+      suggested:
+        - continuous
+      permitted:
+        - numeric
+
+    - name: indiv
+      title: Row labels
+      type: Variable
+      suggested:
+        - nominal
+      permitted:
+        - factor
+
+    - name: nbfact
+      title: Number of factors
+      type: Integer
+      default: 2
+
+    - name: abs
+      title: X-axis
+      type: Integer
+      default: 1
+    
+    - name: ord
+      title: Y-axis
+      type: Integer
+      default: 2
+
+    - name: limcoscol
+      title: Columns
+      type: Number
+      default: 0
+
+    - name: limcosrow
+      title: Rows
+      type: Number
+      default: 0
+
+    - name: ellipsecol
+      title: Around columns
+      type: Bool
+      default: false
+
+    - name: ellipserow
+      title: Around rows
+      type: Bool
+      default: false
+
+    - name: addillucol
+      title: Add supplementary columns on the graphs
+      type: Bool
+      default: true
+...

@@ -1,0 +1,115 @@
+---
+name:  catdes
+title: Results of the Categorical variable description
+jrs:   '1.1'
+
+items:
+    - name: chigroup
+      title: Chi-squared test
+      type: Group
+      visible: false
+      items:
+        - name: chi
+          title: Link between the cluster variable and the categorical variables
+          type: Table
+          columns :
+            - name: varchi
+              title: ''
+              type: text
+            - name: chipv
+              title: p-value
+              type: number
+              format: zto,pvalue
+            - name: df
+              title: df
+              type: integer
+
+    - name: categgroup
+      title: Description by the categorical variables
+      type: Group
+      visible: false
+      items:
+        - name: categ
+          title: Description of each cluster by the categories
+          type: Table
+          columns :
+            - name: varcateg
+              title: ''
+              type: text
+              combineBelow: true
+            - name: vardesccateg
+              title: Category
+              type: text
+            - name: clamod
+              title: Cla/Mod
+              type: number
+            - name: modcla
+              title: Mod/Cla
+              type: number
+            - name: global
+              title: Global
+              type: number
+            - name: categpv
+              title: p-value
+              type: number
+              format: zto,pvalue
+            - name: vtest
+              title: Vtest
+              type: number
+
+    - name: qtvargroup
+      title: Global description by the quantitative variables
+      type: Group
+      visible: false
+      items:
+        - name: qtvar
+          title: Link between the cluster variable and the quantitative variables
+          type: Table
+          columns :
+            - name: varqtvar
+              title: ''
+              type: text
+            - name: scc
+              title: Square correlation coefficient
+              type: number
+            - name: qtvarpv
+              title: p-value
+              type: number
+              format: zto,pvalue
+
+    - name: qtgroup
+      title: Description by the quantitative variables
+      type: Group
+      visible: false
+      items:
+        - name: qt
+          title: Description of each cluster by the quantative variables
+          type: Table
+          columns :
+            - name: varqt
+              title: ''
+              type: text
+            - name: vardescqt
+              title: Variable
+              type: text
+            - name: vtestqt
+              title: Vtest
+              type: number
+            - name: meancateg
+              title: Mean in category
+              type: number
+            - name: overallmean
+              title: Overall mean
+              type: number
+            - name: sdcateg
+              title: sd in category
+              type: number
+            - name: overallsd
+              title: Overall sd
+              type: number
+            - name: qtpv
+              title: p-value
+              type: number
+              format: zto,pvalue
+
+...

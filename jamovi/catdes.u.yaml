@@ -1,0 +1,29 @@
+title: Categorical variable described by Categorical / Quantitative data
+name: catdes
+jus: '3.0'
+stage: 0
+compilerMode: aggressive
+children:
+  - type: VariableSupplier
+    persistentItems: false
+    stretchFactor: 1
+    children:
+      - type: TargetLayoutBox
+        label: Variable to characterized
+        children:
+          - type: VariablesListBox
+            name: vartochar
+            maxItemCount: 1
+            isTarget: true
+      - type: TargetLayoutBox
+        label: Described by
+        children:
+          - type: VariablesListBox
+            name: descbyvar
+            isTarget: true
+  - type: LayoutBox
+    margin: large
+    children:
+      - type: TextBox
+        name: threshold
+        format: number
