@@ -9,7 +9,7 @@ authors:
   - Maxime Saland
   - Sébastien Lê
 maintainer: sebastien.le@agrocampus-ouest.fr
-date: '1970-01-01'
+date: '2021-04-16'
 type: R
 description: >-
   This module allows you to perform multivariate exploratory analyses the french
@@ -61,6 +61,27 @@ analyses:
     menuTitle: By Columns / Rows (Contingency Table)
     menuSubgroup: Automatic Univariate Description
     menuSubtitle: 'FactoMineR::descfreq'
+datasets:
+  - name: beard_description
+    path: beard_description.omv
+    description: Textual description of beards
+    tags:
+      - CA
+      - descfreq
+  - name: decathlon
+    path: decathlon.omv
+    description: Athletes'performances at the decathlon
+    tags:
+      - PCA
+      - condes
+      - catdes
+  - name: gmo
+    path: gmo.omv
+    description: Genetically modified organisms
+    tags:
+      - MCA
+      - condes
+      - catdes
 usesNative: true
 minApp: 1.0.8
 
