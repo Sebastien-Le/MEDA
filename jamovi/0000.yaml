@@ -82,6 +82,13 @@ datasets:
       - MCA
       - condes
       - catdes
+  - name: music
+    path: music.omv
+    description: Relation between type of music and profession
+    tags:
+      - CA
+      - descfreq
+
 usesNative: true
 minApp: 1.0.8
 
