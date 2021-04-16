@@ -6,6 +6,7 @@ jms: '1.0'
 authors:
   - Thomas Leblay
   - Fiona Tuffin
+  - Maxime Saland
   - Sébastien Lê
 maintainer: sebastien.le@agrocampus-ouest.fr
 date: '1970-01-01'
