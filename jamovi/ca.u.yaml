@@ -9,34 +9,34 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Active columns
+        label: Active Columns
         children:
           - type: VariablesListBox
             name: activecol
             isTarget: true
       - type: TargetLayoutBox
-        label: Supplementary columns
+        label: Supplementary Columns
         children:
           - type: VariablesListBox
             name: illustrativecol
             isTarget: true
       - type: TargetLayoutBox
-        label: Row labels
+        label: Row Labels
         children:
           - type: VariablesListBox
             name: indiv
             maxItemCount: 1
-            isTarget: true			
+            isTarget: true
   - type: LayoutBox
     margin: large
     stretchFactor: 1
-    children:			
+    children:
       - type: Label
-        label: Graphic options
+        label: Graphic Options
         stretchFactor: 1
         children:
           - type: CollapseBox
-            label: Components to plot
+            label: Components to Plot
             collapsed: true
             children:
               - type: Label
@@ -58,9 +58,9 @@ children:
                 children:
                   - type: TextBox
                     name: ord
-                    format: number						
+                    format: number
           - type: CollapseBox
-            label: Quality of representation
+            label: Quality of Representation
             collapsed: true
             children:
               - type: Label
@@ -82,9 +82,9 @@ children:
                 children:
                   - type: TextBox
                     name: limcosrow
-                    format: number					
+                    format: number
           - type: CollapseBox
-            label: Representation of the ellipses
+            label: Representation of the Ellipses
             collapsed: true
             children:
               - type: Label
@@ -113,16 +113,15 @@ children:
   - type: LayoutBox
     margin: large
     stretchFactor: 1
-    children:			
+    children:
       - type: Label
-        label: Numerical indicators
+        label: Numerical Indicators
         stretchFactor: 1
         children:
           - type: CollapseBox
-            label: Automatic description of the axes
+            label: Automatic Description of the Axes
             collapsed: true
             children:
               - type: TextBox
                 name: nbfact
                 format: number
-

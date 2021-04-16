@@ -1,39 +1,39 @@
 ---
-name:  catdes
-title: Categorical variable described by Categorical / Quantitative data
+name: catdes
+title: Variable Described by Categorical / Quantitative Data
 menuGroup: MEDA
-menuSubgroup: Description of a Categorical variable
+menuSubgroup: Automatic Univariate Description
 
-menuTitle: By Categorical / Quantitative data
+menuTitle: By Categorical / Quantitative Data
+menuSubtitle: FactoMineR::catdes/condes
 version: '1.0.0'
 jas: '1.2'
 
 options:
-    - name: data
-      type: Data
+  - name: data
+    type: Data
 
-    - name: vartochar
-      title: Variable to characterized
-      type: Variable
-      suggested:
+  - name: vartochar
+    title: Variable to Characterize
+    type: Variable
+    suggested:
+      - continuous
+      - nominal
+    permitted:
+      - numeric
+      - factor
 
-        - nominal
-      permitted:
-        - factor
+  - name: descbyvar
+    title: Described by
+    type: Variables
+    suggested:
+      - continuous
+      - nominal
+    permitted:
+      - numeric
+      - factor
 
-    - name: descbyvar
-      title: Described by
-      type: Variables
-      suggested:
-
-        - continuous
-        - nominal
-      permitted:
-        - numeric
-        - factor
-
-    - name: threshold
-      title: Significant treshold
-      type: Number
-      default: 0.05
-...
+  - name: threshold
+    title: Significant threshold
+    type: Number
+    default: 0.05

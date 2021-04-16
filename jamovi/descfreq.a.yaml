@@ -1,0 +1,39 @@
+---
+name: descfreq
+title: Description of a Contingency Table
+menuGroup: MEDA
+menuSubgroup: Automatic Univariate Description
+menuTitle: By Columns / Rows (Contingency Table)
+menuSubtitle: FactoMineR::descfreq
+version: '1.0.0'
+jas: '1.2'
+
+options:
+  - name: data
+    type: Data
+
+  - name: rows
+    title: Rows
+    type: Variable
+    suggested:
+      - nominal
+    permitted:
+      - factor
+
+  - name: columns
+    title: Columns
+    type: Variables
+    suggested:
+      - continuous
+    permitted:
+      - numeric
+
+  - name: threshold
+    title: Significant threshold
+    type: Number
+    default: 0.05
+
+  - name: coldesc
+    title: Description of the columns
+    type: Bool
+    default: false

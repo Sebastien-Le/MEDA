@@ -9,25 +9,25 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Active variables
+        label: Active Variables
         children:
           - type: VariablesListBox
             name: actvars
             isTarget: true
       - type: TargetLayoutBox
-        label: Quantitative supplementary variables
+        label: Quantitative Supplementary Variables
         children:
           - type: VariablesListBox
             name: quantisup
             isTarget: true
       - type: TargetLayoutBox
-        label: Categorical supplementary variables
+        label: Categorical Supplementary Variables
         children:
           - type: VariablesListBox
             name: qualisup
             isTarget: true
       - type: TargetLayoutBox
-        label: Individual labels
+        label: Individual Labels
         children:
           - type: VariablesListBox
             name: individus
@@ -38,7 +38,7 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Random assignment for rare categories
+        label: Random Assignment for Rare Categories
         stretchFactor: 1
         children:
           - type: TextBox
@@ -49,11 +49,11 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Graphic options
+        label: Graphic Options
         stretchFactor: 1
         children:
           - type: CollapseBox
-            label: Components to plot
+            label: Components to Plot
             collapsed: true
             children:
               - type: Label
@@ -77,7 +77,7 @@ children:
                     name: ord
                     format: number
           - type: CollapseBox
-            label: Categories to plot
+            label: Categories to Plot
             collapsed: true
             children:
               - type: CheckBox
@@ -88,7 +88,7 @@ children:
               - type: CheckBox
                 name: varmodqualisup
           - type: CollapseBox
-            label: Quantitative supplementary variables
+            label: Quantitative Supplementary Variables
             collapsed: true
             children:
               - type: CheckBox
@@ -98,11 +98,11 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Numerical indicators
+        label: Numerical Indicators
         stretchFactor: 1
         children:
           - type: CollapseBox
-            label: Automatic description of the axis
+            label: Automatic Description of the Axis
             collapsed: true
             children:
               - type: Label
@@ -126,7 +126,7 @@ children:
                     name: nFactors
                     format: number
           - type: CollapseBox
-            label: Individual table options
+            label: Individual Table Options
             collapsed: true
             children:
               - type: LayoutBox
@@ -140,7 +140,7 @@ children:
                   - type: CheckBox
                     name: indcos
           - type: CollapseBox
-            label: Variable table options
+            label: Variable Table Options
             collapsed: true
             children:
               - type: LayoutBox

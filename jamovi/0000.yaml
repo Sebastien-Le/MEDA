@@ -18,39 +18,48 @@ description: >-
   Multiple Correspondence Analysis. Results are obtained thanks to the
   FactoMineR package.
 analyses:
-  - title: Categorical variable described by Categorical / Quantitative data
+  - title: Variable Described by Categorical / Quantitative Data
     name: catdes
     ns: MEDA
     menuGroup: MEDA
-    menuTitle: By Categorical / Quantitative data
-    menuSubgroup: Description of a Categorical variable
-  - title: Categorical variable described by Textual data
+    menuTitle: By Categorical / Quantitative Data
+    menuSubgroup: Automatic Univariate Description
+    menuSubtitle: 'FactoMineR::catdes/condes'
+  - title: Categorical Variable Described by Textual Data
     name: textual
     ns: MEDA
     menuGroup: MEDA
-    menuTitle: By Textual data
-    menuSubgroup: Description of a Categorical variable
+    menuTitle: By Textual Data
+    menuSubgroup: Automatic Univariate Description
+    menuSubtitle: 'FactoMineR::textual/descfreq'
   - title: Principal Component Analysis
     name: PCA
     ns: MEDA
     menuGroup: MEDA
     menuTitle: Principal Component Analysis
     menuSubgroup: Multivariate Analysis
-    menuSubtitle: PCA
+    menuSubtitle: 'FactoMineR::PCA'
   - title: Correspondence Analysis
     name: CA
     ns: MEDA
     menuGroup: MEDA
     menuTitle: Correspondence Analysis
     menuSubgroup: Multivariate Analysis
-    menuSubtitle: CA
+    menuSubtitle: 'FactoMineR::CA'
   - title: Multiple Correspondence Analysis
     name: MCA
     ns: MEDA
     menuGroup: MEDA
     menuTitle: Multiple Correspondence Analysis
     menuSubgroup: Multivariate Analysis
-    menuSubtitle: MCA
+    menuSubtitle: 'FactoMineR::MCA'
+  - title: Description of a Contingency Table
+    name: descfreq
+    ns: MEDA
+    menuGroup: MEDA
+    menuTitle: By Columns / Rows (Contingency Table)
+    menuSubgroup: Automatic Univariate Description
+    menuSubtitle: 'FactoMineR::descfreq'
 usesNative: true
 minApp: 1.0.8
 

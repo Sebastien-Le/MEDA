@@ -9,25 +9,25 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Active variables
+        label: Active Variables
         children:
           - type: VariablesListBox
             name: actvars
             isTarget: true
       - type: TargetLayoutBox
-        label: Quantitative supplementary variables
+        label: Quantitative Supplementary Variables
         children:
           - type: VariablesListBox
             name: quantisup
             isTarget: true
       - type: TargetLayoutBox
-        label: Categorical supplementary variables
+        label: Categorical Supplementary Variables
         children:
           - type: VariablesListBox
             name: qualisup
             isTarget: true
       - type: TargetLayoutBox
-        label: Individual labels
+        label: Individual Labels
         children:
           - type: VariablesListBox
             name: individus
@@ -38,7 +38,7 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Should the variables be standardized?
+        label: Should the Variables Be Standardized?
         stretchFactor: 1
         children:
           - type: CheckBox
@@ -48,11 +48,11 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Graphic options
+        label: Graphic Options
         stretchFactor: 1
         children:
           - type: CollapseBox
-            label: Components to plot
+            label: Components to Plot
             collapsed: true
             children:
               - type: Label
@@ -76,7 +76,7 @@ children:
                     name: ord
                     format: number
           - type: CollapseBox
-            label: Individual graphic options
+            label: Individual Graphic Options
             collapsed: true
             children:
               - type: CheckBox
@@ -87,7 +87,7 @@ children:
                 name: habillage
                 format: number
           - type: CollapseBox
-            label: Variable graphic options
+            label: Variable Graphic Options
             collapsed: true
             children:
               - name: varact
@@ -99,11 +99,11 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Numerical indicators
+        label: Numerical Indicators
         stretchFactor: 1
         children:
           - type: CollapseBox
-            label: Automatic description of the axes
+            label: Automatic Description of the Axes
             collapsed: true
             children:
               - type: Label
@@ -127,7 +127,7 @@ children:
                     name: nFactors
                     format: number
           - type: CollapseBox
-            label: Individual table options
+            label: Individual Table Options
             collapsed: true
             children:
               - type: LayoutBox
@@ -141,7 +141,7 @@ children:
                   - type: CheckBox
                     name: cosind
           - type: CollapseBox
-            label: Variable table options
+            label: Variable Table Options
             collapsed: true
             children:
               - type: LayoutBox

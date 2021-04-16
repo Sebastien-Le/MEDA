@@ -1,122 +1,118 @@
 ---
-name:  MCA
+name: MCA
 title: Results of the Multiple Correspondence Analysis
-jrs:   '1.1'
+jrs: '1.1'
 
 items:
-    - name: plotindiv
-      title: Representation of the individuals
-      type: Image
-      width:  700
-      height: 500
-      renderFun: .plotindiv
+  - name: plotindiv
+    title: Representation of the Individuals
+    type: Image
+    width: 700
+    height: 500
+    renderFun: .plotindiv
 
-    - name: plotvar
-      title: Representation of the variables
-      type: Image
-      width:  700
-      height: 500
-      renderFun: .plotvar
+  - name: plotvar
+    title: Representation of the Variables
+    type: Image
+    width: 700
+    height: 500
+    renderFun: .plotvar
 
-    - name: plotitemvar
-      title: Representation of the categories
-      type: Image
-      width:  700
-      height: 500
-      renderFun: .plotitemvar
+  - name: plotitemvar
+    title: Representation of the Categories
+    type: Image
+    width: 700
+    height: 500
+    renderFun: .plotitemvar
 
-    - name: plotquantisup
-      title: Representation of the supplementary variables
-      type: Image
-      visible: (quantimod)
-      width: 700
-      height: 500
-      renderFun: .plotquantisup
+  - name: plotquantisup
+    title: Representation of the Supplementary Variables
+    type: Image
+    visible: (quantimod)
+    width: 700
+    height: 500
+    renderFun: .plotquantisup
 
-    - name: eigengroup
-      title: Eigenvalue decomposition
-      type: Group
-      items:
-        - name: eigen
-          title: 'Eigenvalue and (cumulative) percentage of variance'
-          type: Table
-          columns:
-            - name: component
-              title: ''
-              type: 'text'
-            - name: eigenvalue
-              title: 'Eigenvalue'
-              type: number
-            - name: purcent
-              title: '% of the variance'
-              type: number
-            - name: purcentcum
-              title: 'Cumulative %'
-              type: number
+  - name: eigengroup
+    title: Eigenvalue Decomposition
+    type: Group
+    items:
+      - name: eigen
+        title: 'Eigenvalue and (Cumulative) Percentage of Variance'
+        type: Table
+        columns:
+          - name: component
+            title: ''
+            type: 'text'
+          - name: eigenvalue
+            title: 'Eigenvalue'
+            type: number
+          - name: purcent
+            title: '% of the variance'
+            type: number
+          - name: purcentcum
+            title: 'Cumulative %'
+            type: number
 
-    - name: dimdesc
-      title: Automatic description of the axes
-      type: Preformatted
+  - name: dimdesc
+    title: Automatic Description of the Axes
+    type: Preformatted
 
-    - name: individus
-      title: Individual tables
-      type: Group
-      items: 
-        - name:  coordonnees
-          title: Coordinates table
-          type:  Table
-          visible: (indcoord)
-          clearWith:
-            - nFactors
-          columns: []
+  - name: individus
+    title: Individual Tables
+    type: Group
+    items:
+      - name: coordonnees
+        title: Coordinates Table
+        type: Table
+        visible: (indcoord)
+        clearWith:
+          - nFactors
+        columns: []
 
-        - name:  contribution
-          title: Contributions table
-          type:  Table
-          visible: (indcontrib)
-          clearWith:
-            - nFactors
-          columns: []
+      - name: contribution
+        title: Contributions Table
+        type: Table
+        visible: (indcontrib)
+        clearWith:
+          - nFactors
+        columns: []
 
-        - name:  cosinus
-          title: Cosinus table
-          type:  Table
-          visible: (indcos)
-          clearWith:
-            - nFactors
-          columns: []
+      - name: cosinus
+        title: Cosinus Table
+        type: Table
+        visible: (indcos)
+        clearWith:
+          - nFactors
+        columns: []
 
+  - name: variables
+    title: Variable Tables
+    type: Group
+    items:
+      - name: coordonnees
+        title: Coordinates Table
+        type: Table
+        visible: (varcoord)
+        clearWith:
+          - actvars
+          - nFactors
+        columns: []
 
+      - name: contribution
+        title: Contributions Table
+        type: Table
+        visible: (varcontrib)
+        clearWith:
+          - actvars
+          - nFactors
+        columns: []
 
-    - name: variables
-      title: Variable tables
-      type: Group
-      items: 
-        - name:  coordonnees
-          title: Coordinates table
-          type:  Table
-          visible: (varcoord)
-          clearWith:
-            - actvars
-            - nFactors
-          columns: []
-
-        - name:  contribution
-          title: Contributions table
-          type:  Table
-          visible: (varcontrib)
-          clearWith:
-            - actvars
-            - nFactors
-          columns: []
-
-        - name:  cosinus
-          title: Cosinus table
-          type:  Table
-          visible: (varcos)
-          clearWith:
-            - actvars
-            - nFactors
-          columns: []
-
-...
+      - name: cosinus
+        title: Cosinus Table
+        type: Table
+        visible: (varcos)
+        clearWith:
+          - actvars
+          - nFactors
+        columns: []

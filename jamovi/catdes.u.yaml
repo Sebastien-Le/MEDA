@@ -1,4 +1,4 @@
-title: Categorical variable described by Categorical / Quantitative data
+title: Variable Described by Categorical / Quantitative Data
 name: catdes
 jus: '3.0'
 stage: 0
@@ -9,7 +9,7 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Variable to characterized
+        label: Variable to Characterize
         children:
           - type: VariablesListBox
             name: vartochar

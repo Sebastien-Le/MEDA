@@ -1,42 +1,46 @@
 ---
-name:  textual
-title: Categorical variable described by Textual data
+name: textual
+title: Categorical Variable Described by Textual Data
 menuGroup: MEDA
-menuSubgroup: Description of a Categorical variable
+menuSubgroup: Automatic Univariate Description
 
-menuTitle: By Textual data
+menuTitle: By Textual Data
+menuSubtitle: FactoMineR::textual/descfreq
 version: '1.0.0'
 jas: '1.2'
 
 options:
-    - name: data
-      type: Data
+  - name: data
+    type: Data
 
-    - name: individuals
-      title: Variable to characterize
-      type: Variable
+  - name: individuals
+    title: Variable to Characterize
+    type: Variable
+    suggested:
+      - nominal
+    permitted:
+      - factor
 
-    - name: words
-      title: Described by
-      type: Variable
+  - name: words
+    title: Described by
+    type: Variable
 
-    - name: checkboxtextual
-      title: Display the contingency table
-      type: Bool
-      default: true
-      
-    - name: checkboxchideux
-      title: Realize a Chi-squared test
-      type: Bool
-      default: true
+  - name: checkboxtextual
+    title: Display the contingency table
+    type: Bool
+    default: true
 
-    - name: checkboxdf
-      title: Display the description of frequencies
-      type: Bool
-      default: true
+  - name: checkboxchideux
+    title: Realize a Chi-squared test
+    type: Bool
+    default: true
 
-    - name: thres
-      title: Significant threshold
-      type: Number
-      default: 0.05
-...
+  - name: checkboxdf
+    title: Display the description of frequencies
+    type: Bool
+    default: true
+
+  - name: thres
+    title: Significant threshold
+    type: Number
+    default: 0.05

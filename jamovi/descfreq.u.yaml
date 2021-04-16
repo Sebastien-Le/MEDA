@@ -1,5 +1,5 @@
-title: Categorical Variable Described by Textual Data
-name: textual
+title: Description of a Contingency Table
+name: descfreq
 jus: '3.0'
 stage: 0
 compilerMode: aggressive
@@ -9,31 +9,26 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Variable to Characterize
+        label: Rows
         children:
           - type: VariablesListBox
-            name: individuals
+            name: rows
             maxItemCount: 1
             isTarget: true
       - type: TargetLayoutBox
-        label: Described by
+        label: Columns
         children:
           - type: VariablesListBox
-            name: words
-            maxItemCount: 1
+            name: columns
             isTarget: true
-  - type: LayoutBox
-    margin: large
-    children:
-      - type: CheckBox
-        name: checkboxtextual
-      - type: CheckBox
-        name: checkboxchideux
-      - type: CheckBox
-        name: checkboxdf
   - type: LayoutBox
     margin: large
     children:
       - type: TextBox
-        name: thres
+        name: threshold
         format: number
+  - type: LayoutBox
+    margin: large
+    children:
+      - type: CheckBox
+        name: coldesc
