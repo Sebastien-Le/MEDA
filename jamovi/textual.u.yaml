@@ -25,15 +25,6 @@ children:
   - type: LayoutBox
     margin: large
     children:
-      - type: CheckBox
-        name: checkboxtextual
-      - type: CheckBox
-        name: checkboxchideux
-      - type: CheckBox
-        name: checkboxdf
-  - type: LayoutBox
-    margin: large
-    children:
       - type: TextBox
         name: thres
         format: number

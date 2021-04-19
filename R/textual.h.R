@@ -8,9 +8,6 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             individuals = NULL,
             words = NULL,
-            checkboxtextual = TRUE,
-            checkboxchideux = TRUE,
-            checkboxdf = TRUE,
             thres = 0.05, ...) {
 
             super$initialize(
@@ -29,18 +26,6 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..words <- jmvcore::OptionVariable$new(
                 "words",
                 words)
-            private$..checkboxtextual <- jmvcore::OptionBool$new(
-                "checkboxtextual",
-                checkboxtextual,
-                default=TRUE)
-            private$..checkboxchideux <- jmvcore::OptionBool$new(
-                "checkboxchideux",
-                checkboxchideux,
-                default=TRUE)
-            private$..checkboxdf <- jmvcore::OptionBool$new(
-                "checkboxdf",
-                checkboxdf,
-                default=TRUE)
             private$..thres <- jmvcore::OptionNumber$new(
                 "thres",
                 thres,
@@ -48,24 +33,15 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 
             self$.addOption(private$..individuals)
             self$.addOption(private$..words)
-            self$.addOption(private$..checkboxtextual)
-            self$.addOption(private$..checkboxchideux)
-            self$.addOption(private$..checkboxdf)
             self$.addOption(private$..thres)
         }),
     active = list(
         individuals = function() private$..individuals$value,
         words = function() private$..words$value,
-        checkboxtextual = function() private$..checkboxtextual$value,
-        checkboxchideux = function() private$..checkboxchideux$value,
-        checkboxdf = function() private$..checkboxdf$value,
         thres = function() private$..thres$value),
     private = list(
         ..individuals = NA,
         ..words = NA,
-        ..checkboxtextual = NA,
-        ..checkboxchideux = NA,
-        ..checkboxdf = NA,
         ..thres = NA)
 )
 
@@ -98,7 +74,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             options=options,
                             name="textual",
                             title="Contingency Table",
-                            visible="(checkboxtextual)",
+                            visible="(individuals)",
                             clearWith=list(
                                 "individuals",
                                 "words"),
@@ -118,7 +94,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             options=options,
                             name="chideux",
                             title="Pearson's Chi-Squared Test",
-                            visible="(checkboxchideux)",
+                            visible="(individuals)",
                             clearWith=list(
                                 "individuals",
                                 "words"),
@@ -151,7 +127,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             options=options,
                             name="dfres",
                             title="Description of the Rows of the Contingency Table",
-                            visible="(checkboxdf)",
+                            visible="(individuals)",
                             columns=list(
                                 list(
                                     `name`="component", 
@@ -213,9 +189,6 @@ textualBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param data .
 #' @param individuals .
 #' @param words .
-#' @param checkboxtextual .
-#' @param checkboxchideux .
-#' @param checkboxdf .
 #' @param thres .
 #' @return A results object containing:
 #' \tabular{llllll}{
@@ -229,9 +202,6 @@ textual <- function(
     data,
     individuals,
     words,
-    checkboxtextual = TRUE,
-    checkboxchideux = TRUE,
-    checkboxdf = TRUE,
     thres = 0.05) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -250,9 +220,6 @@ textual <- function(
     options <- textualOptions$new(
         individuals = individuals,
         words = words,
-        checkboxtextual = checkboxtextual,
-        checkboxchideux = checkboxchideux,
-        checkboxdf = checkboxdf,
         thres = thres)
 
     analysis <- textualClass$new(

@@ -29,11 +29,6 @@ options:
       - numeric
 
   - name: threshold
-    title: Significant threshold
+    title: Significance threshold
     type: Number
     default: 0.05
-
-  - name: coldesc
-    title: Description of the columns
-    type: Bool
-    default: false

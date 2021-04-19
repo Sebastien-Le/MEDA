@@ -17,10 +17,12 @@ descfreqClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 
                 data <- private$.buildData()
                 
-                if (self$options$coldesc==FALSE) res.descfreq <- private$.descfreq(data)
-                else res.descfreq <- private$.descfreq(t(data))
+                res.descfreqrow <- private$.descfreq(data)
+                res.descfreqcol <- private$.descfreq(t(data))
                 
-                private$.printTables(res.descfreq)
+                private$.printRowTables(res.descfreqrow)
+                private$.printColTables(res.descfreqcol)
+                
             }
         },
         
@@ -30,9 +32,38 @@ descfreqClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             FactoMineR::descfreq(data, proba = threshold)
         },
         
-        .printTables = function(table) {
+        .printRowTables = function(table) {
             
-            desctable = self$results$descoftable
+            desctable = self$results$descoftablerow
+            
+            for (i in 1:length(names(table))) {
+                
+                rowcolnames = row.names(table[[names(table)[i]]])
+                
+                if (is.null(dim(table[[names(table)[i]]])[1])==TRUE) next    
+                
+                for (j in 1:dim(table[[names(table)[i]]])[1]) {
+                    
+                    desctable$addRow(rowKey=as.numeric(paste0(i,j)), value=NULL)
+                    
+                    row = list()
+                    row[["mod"]] = names(table)[i]
+                    row[["rowcol"]] = rowcolnames[j]
+                    row[["intern"]] = table[[names(table)[i]]][j,1]
+                    row[["glob"]] = table[[names(table)[i]]][j,2]
+                    row[["intfreq"]] = table[[names(table)[i]]][j,3]
+                    row[["globfreq"]] = table[[names(table)[i]]][j,4]
+                    row[["pvalue"]] = table[[names(table)[i]]][j,5]
+                    row[["vtest"]] = table[[names(table)[i]]][j,6]
+                    
+                    desctable$setRow(rowKey=as.numeric(paste0(i,j)),values=row)
+                }
+            }
+        },
+        
+        .printColTables = function(table) {
+            
+            desctable = self$results$descoftablecol
             
             for (i in 1:length(names(table))) {
                 

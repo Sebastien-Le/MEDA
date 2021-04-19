@@ -45,6 +45,11 @@ options:
     type: Integer
     default: 2
 
+  - name: proba
+    title: Significance threshold
+    type: Number
+    default: 0.05
+
   - name: abs
     title: X-axis
     type: Integer

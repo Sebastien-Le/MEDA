@@ -179,16 +179,16 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           modality_gui=self$options$modality
 
             if (modqualisup_gui==TRUE && modvar_gui==TRUE)
-            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind"), selectMod = paste(modality_gui))
+            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind"), selectMod = paste(modality_gui), title="Representation of the Categories")
 
             else if (modqualisup_gui==TRUE && modvar_gui==FALSE)
-            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind", "var"), selectMod = paste(modality_gui))
+            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind", "var"), selectMod = paste(modality_gui), title="Representation of the Categories")
 
             else if (modqualisup_gui==FALSE && modvar_gui==TRUE)
-            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind", "quali.sup"), selectMod = paste(modality_gui))
+            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind", "quali.sup"), selectMod = paste(modality_gui), title="Representation of the Categories")
 
             else
-            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind", "var", "quali.sup"), selectMod = paste(modality_gui))
+            plot=plot.MCA(res.mca, axes=c(abs, ord), choix="ind", invisible=c("ind", "var", "quali.sup"), selectMod = paste(modality_gui), title="Representation of the Categories")
 
           print(plot)
           TRUE

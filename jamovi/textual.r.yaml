@@ -11,7 +11,7 @@ items:
       - name: textual
         title: Contingency Table
         type: Table
-        visible: (checkboxtextual)
+        visible: (individuals)
         clearWith:
           - individuals
           - words
@@ -24,7 +24,7 @@ items:
       - name: chideux
         title: Pearson's Chi-Squared Test
         type: Table
-        visible: (checkboxchideux)
+        visible: (individuals)
         clearWith:
           - individuals
           - words
@@ -47,7 +47,7 @@ items:
       - name: dfres
         title: Description of the Rows of the Contingency Table
         type: Table
-        visible: (checkboxdf)
+        visible: (individuals)
         columns:
           - name: component
             title: ''

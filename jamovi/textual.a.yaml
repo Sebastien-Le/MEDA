@@ -25,22 +25,7 @@ options:
     title: Described by
     type: Variable
 
-  - name: checkboxtextual
-    title: Display the contingency table
-    type: Bool
-    default: true
-
-  - name: checkboxchideux
-    title: Realize a Chi-squared test
-    type: Bool
-    default: true
-
-  - name: checkboxdf
-    title: Display the description of frequencies
-    type: Bool
-    default: true
-
   - name: thres
-    title: Significant threshold
+    title: Significance threshold
     type: Number
     default: 0.05

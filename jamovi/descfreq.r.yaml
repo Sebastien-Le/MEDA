@@ -4,8 +4,40 @@ title: Description of the Contingency Table
 jrs: '1.1'
 
 items:
-  - name: descoftable
-    title: ''
+  - name: descoftablerow
+    title: Description of the Rows
+    type: Table
+    visible: (rows)
+    columns:
+      - name: mod
+        title: ''
+        type: text
+        combineBelow: true
+      - name: rowcol
+        title: ''
+        type: text
+      - name: intern
+        title: Intern %
+        type: number
+      - name: glob
+        title: Glob %
+        type: number
+      - name: intfreq
+        title: Intern freq
+        type: number
+      - name: globfreq
+        title: Glob freq
+        type: number
+      - name: pvalue
+        title: p.value
+        type: number
+        format: zto,pvalue
+      - name: vtest
+        title: v.test
+        type: number
+
+  - name: descoftablecol
+    title: Description of the Columns
     type: Table
     visible: (rows)
     columns:

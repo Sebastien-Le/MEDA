@@ -8,8 +8,7 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             rows = NULL,
             columns = NULL,
-            threshold = 0.05,
-            coldesc = FALSE, ...) {
+            threshold = 0.05, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -35,33 +34,27 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "threshold",
                 threshold,
                 default=0.05)
-            private$..coldesc <- jmvcore::OptionBool$new(
-                "coldesc",
-                coldesc,
-                default=FALSE)
 
             self$.addOption(private$..rows)
             self$.addOption(private$..columns)
             self$.addOption(private$..threshold)
-            self$.addOption(private$..coldesc)
         }),
     active = list(
         rows = function() private$..rows$value,
         columns = function() private$..columns$value,
-        threshold = function() private$..threshold$value,
-        coldesc = function() private$..coldesc$value),
+        threshold = function() private$..threshold$value),
     private = list(
         ..rows = NA,
         ..columns = NA,
-        ..threshold = NA,
-        ..coldesc = NA)
+        ..threshold = NA)
 )
 
 descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "descfreqResults",
     inherit = jmvcore::Group,
     active = list(
-        descoftable = function() private$.items[["descoftable"]]),
+        descoftablerow = function() private$.items[["descoftablerow"]],
+        descoftablecol = function() private$.items[["descoftablecol"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -71,8 +64,48 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Description of the Contingency Table")
             self$add(jmvcore::Table$new(
                 options=options,
-                name="descoftable",
-                title="",
+                name="descoftablerow",
+                title="Description of the Rows",
+                visible="(rows)",
+                columns=list(
+                    list(
+                        `name`="mod", 
+                        `title`="", 
+                        `type`="text", 
+                        `combineBelow`=TRUE),
+                    list(
+                        `name`="rowcol", 
+                        `title`="", 
+                        `type`="text"),
+                    list(
+                        `name`="intern", 
+                        `title`="Intern %", 
+                        `type`="number"),
+                    list(
+                        `name`="glob", 
+                        `title`="Glob %", 
+                        `type`="number"),
+                    list(
+                        `name`="intfreq", 
+                        `title`="Intern freq", 
+                        `type`="number"),
+                    list(
+                        `name`="globfreq", 
+                        `title`="Glob freq", 
+                        `type`="number"),
+                    list(
+                        `name`="pvalue", 
+                        `title`="p.value", 
+                        `type`="number", 
+                        `format`="zto,pvalue"),
+                    list(
+                        `name`="vtest", 
+                        `title`="v.test", 
+                        `type`="number"))))
+            self$add(jmvcore::Table$new(
+                options=options,
+                name="descoftablecol",
+                title="Description of the Columns",
                 visible="(rows)",
                 columns=list(
                     list(
@@ -137,25 +170,24 @@ descfreqBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param rows .
 #' @param columns .
 #' @param threshold .
-#' @param coldesc .
 #' @return A results object containing:
 #' \tabular{llllll}{
-#'   \code{results$descoftable} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$descoftablerow} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$descoftablecol} \tab \tab \tab \tab \tab a table \cr
 #' }
 #'
 #' Tables can be converted to data frames with \code{asDF} or \code{\link{as.data.frame}}. For example:
 #'
-#' \code{results$descoftable$asDF}
+#' \code{results$descoftablerow$asDF}
 #'
-#' \code{as.data.frame(results$descoftable)}
+#' \code{as.data.frame(results$descoftablerow)}
 #'
 #' @export
 descfreq <- function(
     data,
     rows,
     columns,
-    threshold = 0.05,
-    coldesc = FALSE) {
+    threshold = 0.05) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("descfreq requires jmvcore to be installed (restart may be required)")
@@ -173,8 +205,7 @@ descfreq <- function(
     options <- descfreqOptions$new(
         rows = rows,
         columns = columns,
-        threshold = threshold,
-        coldesc = coldesc)
+        threshold = threshold)
 
     analysis <- descfreqClass$new(
         options = options,

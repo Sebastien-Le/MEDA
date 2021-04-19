@@ -38,7 +38,7 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Should the Variables Be Standardized?
+        label: Standardization of the Variables
         stretchFactor: 1
         children:
           - type: CheckBox

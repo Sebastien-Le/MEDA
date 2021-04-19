@@ -73,7 +73,7 @@ options:
     default: true
 
   - name: proba
-    title: Significant threshold
+    title: Significance threshold
     type: Number
     default: 0.05
 

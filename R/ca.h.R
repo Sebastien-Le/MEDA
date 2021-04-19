@@ -10,6 +10,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             illustrativecol = NULL,
             indiv = NULL,
             nbfact = 2,
+            proba = 0.05,
             abs = 1,
             ord = 2,
             limcoscol = 0,
@@ -49,6 +50,10 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "nbfact",
                 nbfact,
                 default=2)
+            private$..proba <- jmvcore::OptionNumber$new(
+                "proba",
+                proba,
+                default=0.05)
             private$..abs <- jmvcore::OptionInteger$new(
                 "abs",
                 abs,
@@ -82,6 +87,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..illustrativecol)
             self$.addOption(private$..indiv)
             self$.addOption(private$..nbfact)
+            self$.addOption(private$..proba)
             self$.addOption(private$..abs)
             self$.addOption(private$..ord)
             self$.addOption(private$..limcoscol)
@@ -95,6 +101,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         illustrativecol = function() private$..illustrativecol$value,
         indiv = function() private$..indiv$value,
         nbfact = function() private$..nbfact$value,
+        proba = function() private$..proba$value,
         abs = function() private$..abs$value,
         ord = function() private$..ord$value,
         limcoscol = function() private$..limcoscol$value,
@@ -107,6 +114,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..illustrativecol = NA,
         ..indiv = NA,
         ..nbfact = NA,
+        ..proba = NA,
         ..abs = NA,
         ..ord = NA,
         ..limcoscol = NA,
@@ -279,6 +287,7 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param illustrativecol .
 #' @param indiv .
 #' @param nbfact .
+#' @param proba .
 #' @param abs .
 #' @param ord .
 #' @param limcoscol .
@@ -303,6 +312,7 @@ CA <- function(
     illustrativecol,
     indiv,
     nbfact = 2,
+    proba = 0.05,
     abs = 1,
     ord = 2,
     limcoscol = 0,
@@ -331,6 +341,7 @@ CA <- function(
         illustrativecol = illustrativecol,
         indiv = indiv,
         nbfact = nbfact,
+        proba = proba,
         abs = abs,
         ord = ord,
         limcoscol = limcoscol,

@@ -74,8 +74,9 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       .dimdesc = function(table) {
 
         nbfact_gui=self$options$nbfact
+        proba = self$options$proba
 
-        ddca = dimdesc(table, axes=1:nbfact_gui)
+        ddca = dimdesc(table, axes = 1:nbfact_gui, proba = proba)
 
         #Mise en place du tableau description of the axes
 

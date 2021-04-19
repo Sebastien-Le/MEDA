@@ -27,8 +27,3 @@ children:
       - type: TextBox
         name: threshold
         format: number
-  - type: LayoutBox
-    margin: large
-    children:
-      - type: CheckBox
-        name: coldesc

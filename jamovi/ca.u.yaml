@@ -71,7 +71,7 @@ children:
                 stretchFactor: 1
                 children:
                   - type: TextBox
-                    name: limcoscol
+                    name: limcosrow
                     format: number
               - type: Label
                 label: ''
@@ -81,7 +81,7 @@ children:
                 stretchFactor: 1
                 children:
                   - type: TextBox
-                    name: limcosrow
+                    name: limcoscol
                     format: number
           - type: CollapseBox
             label: Representation of the Ellipses
@@ -95,7 +95,7 @@ children:
                 stretchFactor: 1
                 children:
                   - type: CheckBox
-                    name: ellipsecol
+                    name: ellipserow
               - type: Label
                 label: ''
                 cell:
@@ -104,7 +104,7 @@ children:
                 stretchFactor: 1
                 children:
                   - type: CheckBox
-                    name: ellipserow
+                    name: ellipsecol
           - type: LayoutBox
             margin: large
             children:
@@ -122,6 +122,23 @@ children:
             label: Automatic Description of the Axes
             collapsed: true
             children:
-              - type: TextBox
-                name: nbfact
-                format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: proba
+                    format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: nbfact
+                    format: number
