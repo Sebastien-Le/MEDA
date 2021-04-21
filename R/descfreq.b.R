@@ -8,9 +8,10 @@ descfreqClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         .run = function() {
             
             ready <- TRUE
-            if (is.null(self$options$columns) || is.null(self$options$rows)){
+            if (is.null(self$options$columns) || length(self$options$columns)<2 || is.null(self$options$rows)){
                 return()
                 ready <- FALSE
+                private$.errorCheck()
             }
             
             if (ready) {
@@ -28,7 +29,7 @@ descfreqClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         
         ### Compute results ----
         .descfreq = function(data) {
-            threshold = self$options$threshold
+            threshold = self$options$threshold/100
             FactoMineR::descfreq(data, proba = threshold)
         },
         
@@ -91,6 +92,12 @@ descfreqClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         },
         
         ### Helpers functions ----
+        .errorCheck = function() {
+            if (length(self$options$columns)<2) {
+                jmvcore::reject("The number of columns is too low")
+            }
+        },
+        
         .buildData = function() {
             
             data=data.frame(self$data[,self$options$columns])

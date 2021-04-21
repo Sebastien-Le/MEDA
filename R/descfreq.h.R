@@ -8,7 +8,7 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             rows = NULL,
             columns = NULL,
-            threshold = 0.05, ...) {
+            threshold = 5, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -33,7 +33,7 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..threshold <- jmvcore::OptionNumber$new(
                 "threshold",
                 threshold,
-                default=0.05)
+                default=5)
 
             self$.addOption(private$..rows)
             self$.addOption(private$..columns)
@@ -95,7 +95,7 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         `type`="number"),
                     list(
                         `name`="pvalue", 
-                        `title`="p.value", 
+                        `title`="p", 
                         `type`="number", 
                         `format`="zto,pvalue"),
                     list(
@@ -135,7 +135,7 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         `type`="number"),
                     list(
                         `name`="pvalue", 
-                        `title`="p.value", 
+                        `title`="p", 
                         `type`="number", 
                         `format`="zto,pvalue"),
                     list(
@@ -187,7 +187,7 @@ descfreq <- function(
     data,
     rows,
     columns,
-    threshold = 0.05) {
+    threshold = 5) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("descfreq requires jmvcore to be installed (restart may be required)")

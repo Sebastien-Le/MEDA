@@ -103,7 +103,7 @@ textualClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       },
       
       .descfreq = function(res) {
-        threshold=self$options$thres
+        threshold=self$options$thres/100
         FactoMineR::descfreq(res$cont.table, proba = threshold)
       },
       

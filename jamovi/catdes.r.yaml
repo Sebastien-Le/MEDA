@@ -17,7 +17,7 @@ items:
             title: ''
             type: text
           - name: chipv
-            title: p-value
+            title: p
             type: number
             format: zto,pvalue
           - name: df
@@ -50,7 +50,7 @@ items:
             title: Global
             type: number
           - name: categpv
-            title: p-value
+            title: p
             type: number
             format: zto,pvalue
           - name: vtest
@@ -71,7 +71,7 @@ items:
             title: Estimate
             type: number
           - name: categpv
-            title: p-value
+            title: p
             type: number
             format: zto,pvalue
       - name: qualir2
@@ -82,11 +82,11 @@ items:
             title: ''
             type: text
           - name: r2
-            title: R2
+            title: R²
             type: number
             format: zto
           - name: r2pvalue
-            title: p.value
+            title: p
             type: number
             format: zto,pvalue
 
@@ -106,7 +106,7 @@ items:
             title: Square correlation coefficient
             type: number
           - name: qtvarpv
-            title: p-value
+            title: p
             type: number
             format: zto,pvalue
 
@@ -141,7 +141,7 @@ items:
             title: Overall sd
             type: number
           - name: qtpv
-            title: p-value
+            title: p
             type: number
             format: zto,pvalue
       - name: qtcor
@@ -155,6 +155,6 @@ items:
             title: Correlation
             type: number
           - name: corpvalue
-            title: p.value
+            title: p
             type: number
             format: zto,pvalue

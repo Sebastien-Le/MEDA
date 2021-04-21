@@ -15,6 +15,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           return()
           ready <- FALSE
         }
+        
         private$.errorCheck()
 
         if (ready) {
@@ -43,6 +44,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           imagequantisup$setState(res.mca)
 
         }
+        
       },
 
       #### Compute results ----
@@ -52,7 +54,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         quantisup_gui=self$options$quantisup
         qualisup_gui=self$options$qualisup
         nFactors_gui=self$options$nFactors
-        ventil=self$options$ventil
+        ventil=self$options$ventil/100
 
         if (is.null(quantisup_gui) == FALSE && is.null(qualisup_gui)== TRUE) {
           FactoMineR::MCA(data, quanti.sup=(length(actvars_gui)+1):(length(actvars_gui)+length(quantisup_gui)), ncp=nFactors_gui, level.ventil=ventil, graph=FALSE)
@@ -70,7 +72,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
       .dimdesc = function(table) {
 
-        proba_gui=self$options$proba
+        proba_gui=self$options$proba/100
         nFactors_gui=self$options$nFactors
 
         res=dimdesc(table, axes=1:nFactors_gui, proba = proba_gui)

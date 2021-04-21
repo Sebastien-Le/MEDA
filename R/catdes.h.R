@@ -8,7 +8,7 @@ catdesOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             vartochar = NULL,
             descbyvar = NULL,
-            threshold = 0.05, ...) {
+            threshold = 5, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -37,7 +37,7 @@ catdesOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..threshold <- jmvcore::OptionNumber$new(
                 "threshold",
                 threshold,
-                default=0.05)
+                default=5)
 
             self$.addOption(private$..vartochar)
             self$.addOption(private$..descbyvar)
@@ -90,7 +90,7 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="text"),
                                 list(
                                     `name`="chipv", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"),
                                 list(
@@ -138,7 +138,7 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="number"),
                                 list(
                                     `name`="categpv", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"),
                                 list(
@@ -165,7 +165,7 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="number"),
                                 list(
                                     `name`="categpv", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"))))
                         self$add(jmvcore::Table$new(
@@ -179,12 +179,12 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="text"),
                                 list(
                                     `name`="r2", 
-                                    `title`="R2", 
+                                    `title`="R\u00B2", 
                                     `type`="number", 
                                     `format`="zto"),
                                 list(
                                     `name`="r2pvalue", 
-                                    `title`="p.value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"))))}))$new(options=options))
             self$add(R6::R6Class(
@@ -213,7 +213,7 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="number"),
                                 list(
                                     `name`="qtvarpv", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"))))}))$new(options=options))
             self$add(R6::R6Class(
@@ -263,7 +263,7 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="number"),
                                 list(
                                     `name`="qtpv", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"))))
                         self$add(jmvcore::Table$new(
@@ -281,7 +281,7 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="number"),
                                 list(
                                     `name`="corpvalue", 
-                                    `title`="p.value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"))))}))$new(options=options))}))
 
@@ -328,7 +328,7 @@ catdes <- function(
     data,
     vartochar,
     descbyvar,
-    threshold = 0.05) {
+    threshold = 5) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("catdes requires jmvcore to be installed (restart may be required)")

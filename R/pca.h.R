@@ -18,7 +18,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             coordind = FALSE,
             contribind = FALSE,
             cosind = FALSE,
-            proba = 0.05,
+            proba = 5,
             abs = 1,
             ord = 2,
             varact = TRUE,
@@ -97,7 +97,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..proba <- jmvcore::OptionNumber$new(
                 "proba",
                 proba,
-                default=0.05)
+                default=5)
             private$..abs <- jmvcore::OptionInteger$new(
                 "abs",
                 abs,
@@ -406,7 +406,7 @@ PCA <- function(
     coordind = FALSE,
     contribind = FALSE,
     cosind = FALSE,
-    proba = 0.05,
+    proba = 5,
     abs = 1,
     ord = 2,
     varact = TRUE,

@@ -9,7 +9,7 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Active Columns
+        label: Active Columns (>1)
         children:
           - type: VariablesListBox
             name: activecol
@@ -31,13 +31,13 @@ children:
     margin: large
     stretchFactor: 1
     children:
-      - type: Label
+      - type: CollapseBox
         label: Graphic Options
+        collapsed: true
         stretchFactor: 1
         children:
-          - type: CollapseBox
+          - type: Label
             label: Components to Plot
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -59,9 +59,8 @@ children:
                   - type: TextBox
                     name: ord
                     format: number
-          - type: CollapseBox
+          - type: Label
             label: Quality of Representation
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -83,9 +82,8 @@ children:
                   - type: TextBox
                     name: limcoscol
                     format: number
-          - type: CollapseBox
+          - type: Label
             label: Representation of the Ellipses
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -114,13 +112,13 @@ children:
     margin: large
     stretchFactor: 1
     children:
-      - type: Label
+      - type: CollapseBox
         label: Numerical Indicators
+        collapsed: true
         stretchFactor: 1
         children:
-          - type: CollapseBox
+          - type: Label
             label: Automatic Description of the Axes
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -142,3 +140,29 @@ children:
                   - type: TextBox
                     name: nbfact
                     format: number
+          - type: Label
+            label: Row Table Options
+            children:
+              - type: LayoutBox
+                margin: large
+                stretchFactor: 1
+                children:
+                  - type: CheckBox
+                    name: coordrow
+                  - type: CheckBox
+                    name: contribrow
+                  - type: CheckBox
+                    name: cosrow
+          - type: Label
+            label: Column Table Options
+            children:
+              - type: LayoutBox
+                margin: large
+                stretchFactor: 1
+                children:
+                  - type: CheckBox
+                    name: coordcol
+                  - type: CheckBox
+                    name: contribcol
+                  - type: CheckBox
+                    name: coscol

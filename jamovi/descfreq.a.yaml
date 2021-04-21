@@ -21,7 +21,7 @@ options:
       - factor
 
   - name: columns
-    title: Columns
+    title: Columns (>1)
     type: Variables
     suggested:
       - continuous
@@ -29,6 +29,6 @@ options:
       - numeric
 
   - name: threshold
-    title: Significance threshold
+    title: Significance threshold (%)
     type: Number
-    default: 0.05
+    default: 5

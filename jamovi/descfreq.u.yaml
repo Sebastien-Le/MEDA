@@ -16,7 +16,7 @@ children:
             maxItemCount: 1
             isTarget: true
       - type: TargetLayoutBox
-        label: Columns
+        label: Columns (>1)
         children:
           - type: VariablesListBox
             name: columns

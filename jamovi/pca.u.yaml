@@ -9,7 +9,7 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Active Variables
+        label: Active Variables (>1)
         children:
           - type: VariablesListBox
             name: actvars
@@ -47,13 +47,13 @@ children:
     margin: large
     stretchFactor: 1
     children:
-      - type: Label
+      - type: CollapseBox
         label: Graphic Options
+        collapsed: true
         stretchFactor: 1
         children:
-          - type: CollapseBox
+          - type: Label
             label: Components to Plot
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -75,9 +75,8 @@ children:
                   - type: TextBox
                     name: ord
                     format: number
-          - type: CollapseBox
+          - type: Label
             label: Individual Graphic Options
-            collapsed: true
             children:
               - type: CheckBox
                 name: modact
@@ -86,9 +85,8 @@ children:
               - type: TextBox
                 name: habillage
                 format: number
-          - type: CollapseBox
+          - type: Label
             label: Variable Graphic Options
-            collapsed: true
             children:
               - name: varact
                 type: CheckBox
@@ -98,13 +96,13 @@ children:
     margin: large
     stretchFactor: 1
     children:
-      - type: Label
+      - type: CollapseBox
         label: Numerical Indicators
         stretchFactor: 1
+        collapsed: true
         children:
-          - type: CollapseBox
+          - type: Label
             label: Automatic Description of the Axes
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -126,9 +124,8 @@ children:
                   - type: TextBox
                     name: nFactors
                     format: number
-          - type: CollapseBox
+          - type: Label
             label: Individual Table Options
-            collapsed: true
             children:
               - type: LayoutBox
                 margin: large
@@ -140,9 +137,8 @@ children:
                     name: contribind
                   - type: CheckBox
                     name: cosind
-          - type: CollapseBox
+          - type: Label
             label: Variable Table Options
-            collapsed: true
             children:
               - type: LayoutBox
                 margin: large

@@ -15,7 +15,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             ord = 2,
             varmodqualisup = TRUE,
             varmodvar = TRUE,
-            proba = 0.05,
+            proba = 5,
             indcoord = FALSE,
             indcontrib = FALSE,
             indcos = FALSE,
@@ -23,7 +23,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             varcontrib = FALSE,
             varcos = FALSE,
             quantimod = FALSE,
-            ventil = 0.05,
+            ventil = 5,
             modality = "cos2 10", ...) {
 
             super$initialize(
@@ -85,7 +85,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..proba <- jmvcore::OptionNumber$new(
                 "proba",
                 proba,
-                default=0.05)
+                default=5)
             private$..indcoord <- jmvcore::OptionBool$new(
                 "indcoord",
                 indcoord,
@@ -117,7 +117,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..ventil <- jmvcore::OptionNumber$new(
                 "ventil",
                 ventil,
-                default=0.05)
+                default=5)
             private$..modality <- jmvcore::OptionString$new(
                 "modality",
                 modality,
@@ -418,7 +418,7 @@ MCA <- function(
     ord = 2,
     varmodqualisup = TRUE,
     varmodvar = TRUE,
-    proba = 0.05,
+    proba = 5,
     indcoord = FALSE,
     indcontrib = FALSE,
     indcos = FALSE,
@@ -426,7 +426,7 @@ MCA <- function(
     varcontrib = FALSE,
     varcos = FALSE,
     quantimod = FALSE,
-    ventil = 0.05,
+    ventil = 5,
     modality = "cos2 10") {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))

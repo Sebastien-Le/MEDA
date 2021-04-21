@@ -42,7 +42,7 @@ items:
             title: df
             type: integer
           - name: pvxsq
-            title: p-value
+            title: p
             type: number
             format: zto,pvalue
 
@@ -89,3 +89,59 @@ items:
           - name: coord
             title: Coordinate
             type: number
+
+  - name: rowgroup
+    title: Row Tables
+    type: Group
+    items:
+      - name: coordonnees
+        title: Coordinates Table
+        visible: (coordrow)
+        type: Table
+        clearWith:
+          - nbfact
+        columns: []
+
+      - name: contribution
+        title: Contributions Table
+        visible: (contribrow)
+        type: Table
+        clearWith:
+          - nbfact
+        columns: []
+
+      - name: cosinus
+        title: Cosinus Table
+        visible: (cosrow)
+        type: Table
+        clearWith:
+          - nbfact
+        columns: []
+
+  - name: colgroup
+    title: Column Tables
+    type: Group
+    items:
+      - name: coordonnees
+        title: Coordinates Table
+        visible: (coordcol)
+        type: Table
+        clearWith:
+          - nbfact
+        columns: []
+
+      - name: contribution
+        title: Contributions Table
+        visible: (contribcol)
+        type: Table
+        clearWith:
+          - nbfact
+        columns: []
+
+      - name: cosinus
+        title: Cosinus Table
+        visible: (coscol)
+        type: Table
+        clearWith:
+          - nbfact
+        columns: []

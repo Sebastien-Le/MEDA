@@ -26,6 +26,9 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           tab = private$.dimdesc(res.ca)
           private$.dodTable(tab)
           private$.printeigenTable(res.ca)
+          private$.printTables(res.ca, "coord")
+          private$.printTables(res.ca, "contrib")
+          private$.printTables(res.ca, "cos2")
 
           imagecol = self$results$ploticol
           imagecol$setState(res.ca)
@@ -74,7 +77,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       .dimdesc = function(table) {
 
         nbfact_gui=self$options$nbfact
-        proba = self$options$proba
+        proba = self$options$proba/100
 
         ddca = dimdesc(table, axes = 1:nbfact_gui, proba = proba)
 
@@ -134,6 +137,72 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           row[["coord"]]=tab[,4][i]
           self$results$descofdimgroup$descofdim$setRow(rowNo=i, values = row)
         }
+      },
+      
+      .printTables = function(table, quoi){
+        
+        col_gui=self$options$activecol
+        nbfact_gui=self$options$nbfact
+        if (is.null(self$options$indiv)==FALSE)
+          row_gui=self$data[[self$options$indiv]]
+        else
+          row_gui=c(1:nrow(self$data))
+        
+        if (quoi=="coord") {
+          quoivar=table$col$coord
+          quoiind=table$row$coord
+          tablevar=self$results$colgroup$coordonnees
+          tableind=self$results$rowgroup$coordonnees
+        }
+        
+        else if (quoi=="contrib") {
+          quoivar=table$col$contrib
+          quoiind=table$row$contrib
+          tablevar=self$results$colgroup$contribution
+          tableind=self$results$rowgroup$contribution
+        }
+        
+        else if (quoi=="cos2") {
+          quoivar=table$col$cos2
+          quoiind=table$row$cos2
+          tablevar=self$results$colgroup$cosinus
+          tableind=self$results$rowgroup$cosinus
+        }
+        
+        tableind$addColumn(name="row", title="", type="text")
+        for (i in seq(nrow(quoiind)))
+          tableind$addRow(rowKey=i, value=NULL)
+        
+        tablevar$addColumn(name="column", title="", type="text")
+        for (i in seq(nrow(quoivar)))
+          tablevar$addRow(rowKey=i, value=NULL)
+        
+        for (i in 1:nbfact_gui){
+          tablevar$addColumn(name=paste0("dim",i), title=paste0("Dim.", as.character(i)),type='number') #, superTitle='Facteurs'
+          tableind$addColumn(name=paste0("dim",i), title=paste0("Dim.", as.character(i)),type='number')
+        }
+        
+        for (var in seq_along(col_gui)) {
+          row=list()
+          row[["column"]]=rownames(quoivar)[var]
+          for (i in 1:nbfact_gui) {
+            row[[paste0("dim",i)]]=quoivar[var,i]
+          }
+          tablevar$setRow(rowNo=var, values=row)
+        }
+        
+        for (ind in 1:length(row_gui)) {
+          row=list()
+          if (is.null(self$options$indiv))
+            row[["row"]]= row_gui[ind]
+          else
+            row[["row"]]= rownames(quoiind)[ind]
+          for (i in 1:nbfact_gui){
+            row[[paste0("dim",i)]]=quoiind[ind,i]
+          }
+          tableind$setRow(rowNo=ind, values=row)
+        }
+        
       },
 
       .printeigenTable = function(table){

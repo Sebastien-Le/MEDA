@@ -66,7 +66,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
       .dimdesc = function(table) {
 
-        proba=self$options$proba
+        proba=self$options$proba/100
         nFactors=self$options$nFactors
 
         res=dimdesc(table, axes=1:nFactors, proba = proba)

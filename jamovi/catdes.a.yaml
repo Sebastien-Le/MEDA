@@ -34,6 +34,6 @@ options:
       - factor
 
   - name: threshold
-    title: Significance threshold
+    title: Significance threshold (%)
     type: Number
-    default: 0.05
+    default: 5

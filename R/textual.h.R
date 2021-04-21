@@ -8,7 +8,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             individuals = NULL,
             words = NULL,
-            thres = 0.05, ...) {
+            thres = 5, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -29,7 +29,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..thres <- jmvcore::OptionNumber$new(
                 "thres",
                 thres,
-                default=0.05)
+                default=5)
 
             self$.addOption(private$..individuals)
             self$.addOption(private$..words)
@@ -110,7 +110,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="Integer"),
                                 list(
                                     `name`="pvalue", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `format`="zto,pvalue"))))}))$new(options=options))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
@@ -156,7 +156,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="Number"),
                                 list(
                                     `name`="pvaluedfres", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `format`="zto,pvalue"),
                                 list(
                                     `name`="vtest", 
@@ -202,7 +202,7 @@ textual <- function(
     data,
     individuals,
     words,
-    thres = 0.05) {
+    thres = 5) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("textual requires jmvcore to be installed (restart may be required)")

@@ -37,7 +37,7 @@ items:
             title: df
             type: Integer
           - name: pvalue
-            title: p-value
+            title: p
             format: zto,pvalue
 
   - name: dfresgroup
@@ -69,7 +69,7 @@ items:
             title: Global frequency
             type: Number
           - name: pvaluedfres
-            title: p-value
+            title: p
             format: zto,pvalue
           - name: vtest
             title: Vtest

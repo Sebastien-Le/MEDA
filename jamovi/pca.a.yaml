@@ -15,7 +15,7 @@ options:
     type: Data
 
   - name: actvars
-    title: Active Variables
+    title: Active Variables (>1)
     type: Variables
     suggested:
       - continuous
@@ -88,9 +88,9 @@ options:
     default: false
 
   - name: proba
-    title: Significance threshold
+    title: Significance threshold (%)
     type: Number
-    default: 0.05
+    default: 5
 
   - name: abs
     title: X-axis

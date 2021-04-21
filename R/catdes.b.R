@@ -163,7 +163,7 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       .catdes = function(res) {
         
-        threshold=self$options$threshold
+        threshold=self$options$threshold/100
         
         FactoMineR::catdes(res, num.var=1, proba=threshold)
         
@@ -171,7 +171,7 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       .condes = function(res) {
         
-        threshold=self$options$threshold
+        threshold=self$options$threshold/100
         
         FactoMineR::condes(res, num.var=1, proba=threshold)
         

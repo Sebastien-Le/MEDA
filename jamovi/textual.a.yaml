@@ -26,6 +26,6 @@ options:
     type: Variable
 
   - name: thres
-    title: Significance threshold
+    title: Significance threshold (%)
     type: Number
-    default: 0.05
+    default: 5

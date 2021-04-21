@@ -29,7 +29,7 @@ items:
         title: Glob freq
         type: number
       - name: pvalue
-        title: p.value
+        title: p
         type: number
         format: zto,pvalue
       - name: vtest
@@ -61,7 +61,7 @@ items:
         title: Glob freq
         type: number
       - name: pvalue
-        title: p.value
+        title: p
         type: number
         format: zto,pvalue
       - name: vtest

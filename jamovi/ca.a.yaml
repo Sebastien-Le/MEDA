@@ -17,7 +17,7 @@ options:
     type: Data
 
   - name: activecol
-    title: Active Columns
+    title: Active Columns (>1)
     type: Variables
     suggested:
       - continuous
@@ -46,9 +46,9 @@ options:
     default: 2
 
   - name: proba
-    title: Significance threshold
+    title: Significance threshold (%)
     type: Number
-    default: 0.05
+    default: 5
 
   - name: abs
     title: X-axis
@@ -84,3 +84,33 @@ options:
     title: Add supplementary columns on the graphs
     type: Bool
     default: true
+
+  - name: coordcol
+    title: Coordinates
+    type: Bool
+    default: false
+
+  - name: contribcol
+    title: Contributions
+    type: Bool
+    default: false
+
+  - name: coscol
+    title: Cosinus
+    type: Bool
+    default: false
+
+  - name: coordrow
+    title: Coordinates
+    type: Bool
+    default: false
+
+  - name: contribrow
+    title: Contributions
+    type: Bool
+    default: false
+
+  - name: cosrow
+    title: Cosinus
+    type: Bool
+    default: false

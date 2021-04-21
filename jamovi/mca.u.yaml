@@ -9,7 +9,7 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Active Variables
+        label: Active Variables (>1)
         children:
           - type: VariablesListBox
             name: actvars
@@ -48,13 +48,13 @@ children:
     margin: large
     stretchFactor: 1
     children:
-      - type: Label
+      - type: CollapseBox
         label: Graphic Options
+        collapsed: true
         stretchFactor: 1
         children:
-          - type: CollapseBox
+          - type: Label
             label: Components to Plot
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -76,9 +76,8 @@ children:
                   - type: TextBox
                     name: ord
                     format: number
-          - type: CollapseBox
+          - type: Label
             label: Categories to Plot
-            collapsed: true
             children:
               - type: CheckBox
                 name: varmodvar
@@ -87,9 +86,8 @@ children:
                 format: string
               - type: CheckBox
                 name: varmodqualisup
-          - type: CollapseBox
+          - type: Label
             label: Quantitative Supplementary Variables
-            collapsed: true
             children:
               - type: CheckBox
                 name: quantimod
@@ -97,13 +95,13 @@ children:
     margin: large
     stretchFactor: 1
     children:
-      - type: Label
+      - type: CollapseBox
         label: Numerical Indicators
+        collapsed: true
         stretchFactor: 1
         children:
-          - type: CollapseBox
+          - type: Label
             label: Automatic Description of the Axis
-            collapsed: true
             children:
               - type: Label
                 label: ''
@@ -125,9 +123,8 @@ children:
                   - type: TextBox
                     name: nFactors
                     format: number
-          - type: CollapseBox
+          - type: Label
             label: Individual Table Options
-            collapsed: true
             children:
               - type: LayoutBox
                 margin: large
@@ -139,9 +136,8 @@ children:
                     name: indcontrib
                   - type: CheckBox
                     name: indcos
-          - type: CollapseBox
+          - type: Label
             label: Variable Table Options
-            collapsed: true
             children:
               - type: LayoutBox
                 margin: large

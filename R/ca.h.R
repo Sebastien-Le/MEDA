@@ -10,14 +10,20 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             illustrativecol = NULL,
             indiv = NULL,
             nbfact = 2,
-            proba = 0.05,
+            proba = 5,
             abs = 1,
             ord = 2,
             limcoscol = 0,
             limcosrow = 0,
             ellipsecol = FALSE,
             ellipserow = FALSE,
-            addillucol = TRUE, ...) {
+            addillucol = TRUE,
+            coordcol = FALSE,
+            contribcol = FALSE,
+            coscol = FALSE,
+            coordrow = FALSE,
+            contribrow = FALSE,
+            cosrow = FALSE, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -53,7 +59,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..proba <- jmvcore::OptionNumber$new(
                 "proba",
                 proba,
-                default=0.05)
+                default=5)
             private$..abs <- jmvcore::OptionInteger$new(
                 "abs",
                 abs,
@@ -82,6 +88,30 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "addillucol",
                 addillucol,
                 default=TRUE)
+            private$..coordcol <- jmvcore::OptionBool$new(
+                "coordcol",
+                coordcol,
+                default=FALSE)
+            private$..contribcol <- jmvcore::OptionBool$new(
+                "contribcol",
+                contribcol,
+                default=FALSE)
+            private$..coscol <- jmvcore::OptionBool$new(
+                "coscol",
+                coscol,
+                default=FALSE)
+            private$..coordrow <- jmvcore::OptionBool$new(
+                "coordrow",
+                coordrow,
+                default=FALSE)
+            private$..contribrow <- jmvcore::OptionBool$new(
+                "contribrow",
+                contribrow,
+                default=FALSE)
+            private$..cosrow <- jmvcore::OptionBool$new(
+                "cosrow",
+                cosrow,
+                default=FALSE)
 
             self$.addOption(private$..activecol)
             self$.addOption(private$..illustrativecol)
@@ -95,6 +125,12 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..ellipsecol)
             self$.addOption(private$..ellipserow)
             self$.addOption(private$..addillucol)
+            self$.addOption(private$..coordcol)
+            self$.addOption(private$..contribcol)
+            self$.addOption(private$..coscol)
+            self$.addOption(private$..coordrow)
+            self$.addOption(private$..contribrow)
+            self$.addOption(private$..cosrow)
         }),
     active = list(
         activecol = function() private$..activecol$value,
@@ -108,7 +144,13 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         limcosrow = function() private$..limcosrow$value,
         ellipsecol = function() private$..ellipsecol$value,
         ellipserow = function() private$..ellipserow$value,
-        addillucol = function() private$..addillucol$value),
+        addillucol = function() private$..addillucol$value,
+        coordcol = function() private$..coordcol$value,
+        contribcol = function() private$..contribcol$value,
+        coscol = function() private$..coscol$value,
+        coordrow = function() private$..coordrow$value,
+        contribrow = function() private$..contribrow$value,
+        cosrow = function() private$..cosrow$value),
     private = list(
         ..activecol = NA,
         ..illustrativecol = NA,
@@ -121,7 +163,13 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..limcosrow = NA,
         ..ellipsecol = NA,
         ..ellipserow = NA,
-        ..addillucol = NA)
+        ..addillucol = NA,
+        ..coordcol = NA,
+        ..contribcol = NA,
+        ..coscol = NA,
+        ..coordrow = NA,
+        ..contribrow = NA,
+        ..cosrow = NA)
 )
 
 CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
@@ -133,7 +181,9 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         plotell = function() private$.items[["plotell"]],
         xsqgroup = function() private$.items[["xsqgroup"]],
         eigengroup = function() private$.items[["eigengroup"]],
-        descofdimgroup = function() private$.items[["descofdimgroup"]]),
+        descofdimgroup = function() private$.items[["descofdimgroup"]],
+        rowgroup = function() private$.items[["rowgroup"]],
+        colgroup = function() private$.items[["colgroup"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -189,7 +239,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `type`="integer"),
                                 list(
                                     `name`="pvxsq", 
-                                    `title`="p-value", 
+                                    `title`="p", 
                                     `type`="number", 
                                     `format`="zto,pvalue"))))}))$new(options=options))
             self$add(R6::R6Class(
@@ -257,7 +307,81 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                 list(
                                     `name`="coord", 
                                     `title`="Coordinate", 
-                                    `type`="number"))))}))$new(options=options))}))
+                                    `type`="number"))))}))$new(options=options))
+            self$add(R6::R6Class(
+                inherit = jmvcore::Group,
+                active = list(
+                    coordonnees = function() private$.items[["coordonnees"]],
+                    contribution = function() private$.items[["contribution"]],
+                    cosinus = function() private$.items[["cosinus"]]),
+                private = list(),
+                public=list(
+                    initialize=function(options) {
+                        super$initialize(
+                            options=options,
+                            name="rowgroup",
+                            title="Row Tables")
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="coordonnees",
+                            title="Coordinates Table",
+                            visible="(coordrow)",
+                            clearWith=list(
+                                "nbfact"),
+                            columns=list()))
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="contribution",
+                            title="Contributions Table",
+                            visible="(contribrow)",
+                            clearWith=list(
+                                "nbfact"),
+                            columns=list()))
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="cosinus",
+                            title="Cosinus Table",
+                            visible="(cosrow)",
+                            clearWith=list(
+                                "nbfact"),
+                            columns=list()))}))$new(options=options))
+            self$add(R6::R6Class(
+                inherit = jmvcore::Group,
+                active = list(
+                    coordonnees = function() private$.items[["coordonnees"]],
+                    contribution = function() private$.items[["contribution"]],
+                    cosinus = function() private$.items[["cosinus"]]),
+                private = list(),
+                public=list(
+                    initialize=function(options) {
+                        super$initialize(
+                            options=options,
+                            name="colgroup",
+                            title="Column Tables")
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="coordonnees",
+                            title="Coordinates Table",
+                            visible="(coordcol)",
+                            clearWith=list(
+                                "nbfact"),
+                            columns=list()))
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="contribution",
+                            title="Contributions Table",
+                            visible="(contribcol)",
+                            clearWith=list(
+                                "nbfact"),
+                            columns=list()))
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="cosinus",
+                            title="Cosinus Table",
+                            visible="(coscol)",
+                            clearWith=list(
+                                "nbfact"),
+                            columns=list()))}))$new(options=options))}))
 
 CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "CABase",
@@ -295,6 +419,12 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param ellipsecol .
 #' @param ellipserow .
 #' @param addillucol .
+#' @param coordcol .
+#' @param contribcol .
+#' @param coscol .
+#' @param coordrow .
+#' @param contribrow .
+#' @param cosrow .
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$plotirow} \tab \tab \tab \tab \tab an image \cr
@@ -303,6 +433,12 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$xsqgroup$xsq} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$eigengroup$eigen} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$descofdimgroup$descofdim} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$rowgroup$coordonnees} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$rowgroup$contribution} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$rowgroup$cosinus} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$colgroup$coordonnees} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$colgroup$contribution} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$colgroup$cosinus} \tab \tab \tab \tab \tab a table \cr
 #' }
 #'
 #' @export
@@ -312,14 +448,20 @@ CA <- function(
     illustrativecol,
     indiv,
     nbfact = 2,
-    proba = 0.05,
+    proba = 5,
     abs = 1,
     ord = 2,
     limcoscol = 0,
     limcosrow = 0,
     ellipsecol = FALSE,
     ellipserow = FALSE,
-    addillucol = TRUE) {
+    addillucol = TRUE,
+    coordcol = FALSE,
+    contribcol = FALSE,
+    coscol = FALSE,
+    coordrow = FALSE,
+    contribrow = FALSE,
+    cosrow = FALSE) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("CA requires jmvcore to be installed (restart may be required)")
@@ -348,7 +490,13 @@ CA <- function(
         limcosrow = limcosrow,
         ellipsecol = ellipsecol,
         ellipserow = ellipserow,
-        addillucol = addillucol)
+        addillucol = addillucol,
+        coordcol = coordcol,
+        contribcol = contribcol,
+        coscol = coscol,
+        coordrow = coordrow,
+        contribrow = contribrow,
+        cosrow = cosrow)
 
     analysis <- CAClass$new(
         options = options,
