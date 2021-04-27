@@ -12,7 +12,7 @@ maintainer: sebastien.le@agrocampus-ouest.fr
 date: '2021-04-16'
 type: R
 description: >-
-  This module allows you to perform multivariate exploratory analyses the french
+  This module allows you to perform multivariate exploratory analyses the French
   way. In other words, you will be able to add supplementary information for a
   better understanding of your results. Three main methods have been
   implemented:  Principal Component Analysis, Correspondence Analysis and
