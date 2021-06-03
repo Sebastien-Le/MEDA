@@ -64,7 +64,7 @@ items:
         columns: []
 
       - name: cosinus
-        title: Cosinus Table
+        title: Cosine Table
         visible: (cosind)
         type: Table
         clearWith:
@@ -92,7 +92,7 @@ items:
         columns: []
 
       - name: cosinus
-        title: Cosinus Table
+        title: Cosine Table
         visible: (cosvar)
         type: Table
         clearWith:

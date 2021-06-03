@@ -290,7 +290,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="cosinus",
-                            title="Cosinus Table",
+                            title="Cosine Table",
                             visible="(cosind)",
                             clearWith=list(
                                 "nFactors"),
@@ -327,7 +327,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="cosinus",
-                            title="Cosinus Table",
+                            title="Cosine Table",
                             visible="(cosvar)",
                             clearWith=list(
                                 "nFactors"),

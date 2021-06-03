@@ -85,6 +85,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
         for (i in seq_along(eigen)) {
           row=list()
+          row[["component"]]=paste("Dim.",i)
           row[["eigenvalue"]]=eigen[i]
           row[["purcent"]]=purcent[i]
           row[["purcentcum"]]=purcentcum[i]

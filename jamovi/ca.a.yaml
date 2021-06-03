@@ -96,7 +96,7 @@ options:
     default: false
 
   - name: coscol
-    title: Cosinus
+    title: Cosine
     type: Bool
     default: false
 
@@ -111,6 +111,6 @@ options:
     default: false
 
   - name: cosrow
-    title: Cosinus
+    title: Cosine
     type: Bool
     default: false

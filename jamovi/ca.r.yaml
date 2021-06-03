@@ -111,7 +111,7 @@ items:
         columns: []
 
       - name: cosinus
-        title: Cosinus Table
+        title: Cosine Table
         visible: (cosrow)
         type: Table
         clearWith:
@@ -139,7 +139,7 @@ items:
         columns: []
 
       - name: cosinus
-        title: Cosinus Table
+        title: Cosine Table
         visible: (coscol)
         type: Table
         clearWith:

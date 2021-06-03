@@ -340,7 +340,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="cosinus",
-                            title="Cosinus Table",
+                            title="Cosine Table",
                             visible="(cosrow)",
                             clearWith=list(
                                 "nbfact"),
@@ -377,7 +377,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="cosinus",
-                            title="Cosinus Table",
+                            title="Cosine Table",
                             visible="(coscol)",
                             clearWith=list(
                                 "nbfact"),

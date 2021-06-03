@@ -9,6 +9,13 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
+        label: Row Labels
+        children:
+          - type: VariablesListBox
+            name: indiv
+            maxItemCount: 1
+            isTarget: true
+      - type: TargetLayoutBox
         label: Active Columns (>1)
         children:
           - type: VariablesListBox
@@ -19,13 +26,6 @@ children:
         children:
           - type: VariablesListBox
             name: illustrativecol
-            isTarget: true
-      - type: TargetLayoutBox
-        label: Row Labels
-        children:
-          - type: VariablesListBox
-            name: indiv
-            maxItemCount: 1
             isTarget: true
   - type: LayoutBox
     margin: large

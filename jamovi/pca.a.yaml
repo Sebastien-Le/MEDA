@@ -68,7 +68,7 @@ options:
     default: false
 
   - name: cosvar
-    title: Cosinus
+    title: Cosine
     type: Bool
     default: false
 
@@ -83,7 +83,7 @@ options:
     default: false
 
   - name: cosind
-    title: Cosinus
+    title: Cosine
     type: Bool
     default: false
 

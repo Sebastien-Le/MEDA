@@ -79,7 +79,7 @@ items:
         columns: []
 
       - name: cosinus
-        title: Cosinus Table
+        title: Cosine Table
         type: Table
         visible: (indcos)
         clearWith:
@@ -109,7 +109,7 @@ items:
         columns: []
 
       - name: cosinus
-        title: Cosinus Table
+        title: Cosine Table
         type: Table
         visible: (varcos)
         clearWith:
