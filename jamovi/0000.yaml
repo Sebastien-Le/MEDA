@@ -21,7 +21,7 @@ description: >-
   Results are obtained thanks to the FactoMineR package.
   These analyses are described in the <a
   href="https://sebastien-le.github.io/medasite/index.html"
-  target="_blank"> MEDA website</a>.
+  target="_blank">MEDA website</a>.
 analyses:
   - title: Variable Described by Categorical / Quantitative Data
     name: catdes
