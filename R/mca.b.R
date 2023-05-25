@@ -42,7 +42,9 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
           imagequantisup=self$results$plotquantisup
           imagequantisup$setState(res.mca)
-
+          
+          private$.output(res.mca)
+          
         }
         
       },
@@ -260,6 +262,26 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         if (length(self$options$actvars) < self$options$nFactors)
           jmvcore::reject(jmvcore::format('The number of factors is too low'))
 
+      },
+      
+      .output = function(res.mca) {
+        if (self$results$newvar$isNotFilled()) {
+          keys <- 1:self$options$nFactors
+          measureTypes <- rep("continuous", self$options$nFactors)
+          titles <- paste(("Dim."), keys)
+          descriptions <- character(length(keys))
+          self$results$newvar$set(
+            keys=keys,
+            titles=titles,
+            descriptions=descriptions,
+            measureTypes=measureTypes
+          )
+          for (i in 1:self$options$nFactors) {
+            scores <- as.numeric(res.mca$ind$coord[, i])
+            self$results$newvar$setValues(index=i, scores)
+          }
+          self$results$newvar$setRowNums(rownames(self$data))
+        }
       },
 
       .buildData = function() {

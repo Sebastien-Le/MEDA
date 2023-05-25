@@ -50,7 +50,7 @@ options:
   - name: nFactors
     title: Number of factors
     type: Integer
-    default: 5
+    default: 2
 
   - name: norme
     title: Scale to unit variance
@@ -125,3 +125,7 @@ options:
   - name: habillage
     title: Grouping variable
     type: Integer
+  
+  - name: newvar
+    title: Coordinates
+    type: Output

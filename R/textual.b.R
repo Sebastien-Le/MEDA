@@ -14,6 +14,9 @@ textualClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           
           data=self$data
           res.textual=private$.textual(data)
+
+          imagecol = self$results$plottext
+          imagecol$setState(res.textual)
           
           #Mise en place du tableau pour descfreq
           
@@ -94,19 +97,83 @@ textualClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           
           else return()
           
+          self$results$tc$setContent(res.textual$nb.words)
+
         }
       },
-      
       
       .textual = function(data) {
         FactoMineR::textual(data, num.text = 2, contingence.by = 1, sep.word = ";")
       },
       
       .descfreq = function(res) {
-        threshold=self$options$thres/100
+       threshold=self$options$thres/100
+
+       word.min <- self$options$lowfreq
+       word.max <- self$options$highfreq
+
+       if (word.min == 0 & word.max == 0) FactoMineR::descfreq(res$cont.table, proba = threshold)
+       else if (word.min!= 0 & word.max == 0) {
+        freq_min <- which(apply(res$cont.table, 2, sum) <= word.min) 
+        if (length(freq_min) != 0) {
+          res$cont.table <- res$cont.table[, -freq_min]
+          FactoMineR::descfreq(res$cont.table, proba = threshold)
+          }
+       }
+       else {
+        freq_min <- which(apply(res$cont.table, 2, sum) <= word.min) 
+        if (length(freq_min) != 0) {
+          res$cont.table <- res$cont.table[, -freq_min]
+          }
+        freq_max <- which(apply(res$cont.table, 2, sum)>word.max)
+        if (length(freq_max) != 0) {
+          res$cont.table <- res$cont.table[, -freq_max]
+          }
         FactoMineR::descfreq(res$cont.table, proba = threshold)
+      }
       },
-      
+
+      .plottextual= function(image, ...){
+
+        if (is.null(self$options$individuals) || is.null(self$options$words)){
+          return()
+        }
+      else {
+       res.textual=image$state
+
+       word.min <- self$options$lowfreq
+       word.max <- self$options$highfreq
+
+       if (word.min == 0 & word.max == 0){
+          res.ca = FactoMineR::CA(res.textual$cont.table)
+          plot=plot.CA(res.ca, title = "Representation of the Words and the Categories")
+          print(plot)
+          }
+        else if (word.min!= 0 & word.max == 0) {
+        freq_min <- which(apply(res.textual$cont.table, 2, sum) <= word.min) 
+        if (length(freq_min) != 0) {
+          res.textual$cont.table <- res.textual$cont.table[, -freq_min]
+          res.ca = FactoMineR::CA(res.textual$cont.table)
+          plot=plot.CA(res.ca, title = "Representation of the Words and the Categories")
+          print(plot)
+          }
+        }
+        else {
+        freq_min <- which(apply(res.textual$cont.table, 2, sum) <= word.min) 
+        if (length(freq_min) != 0) {
+          res.textual$cont.table <- res.textual$cont.table[, -freq_min]
+          }
+        freq_max <- which(apply(res.textual$cont.table, 2, sum)>word.max)
+        if (length(freq_max) != 0) {
+          res.textual$cont.table <- res.textual$cont.table[, -freq_max]
+          }
+        res.ca = FactoMineR::CA(res.textual$cont.table)
+        plot=plot.CA(res.ca, title = "Representation of the Words and the Categories")
+        print(plot)
+            }
+          }
+        },
+
       
       .populateTEXTUALTable = function(table) {
         
@@ -169,7 +236,6 @@ textualClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           row[["vtest"]]=tab[,8][i]
           self$results$dfresgroup$dfres$setRow(rowKey=i, values = row) #Méthode setRow
         }
-        
       }
       
     )

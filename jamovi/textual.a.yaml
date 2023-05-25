@@ -29,3 +29,13 @@ options:
     title: Significance threshold (%)
     type: Number
     default: 5
+
+  - name: lowfreq
+    title: Words lowest frequency
+    type: Number
+    default: 0
+
+  - name: highfreq
+    title: Words highest frequency
+    type: Number
+    default: 0

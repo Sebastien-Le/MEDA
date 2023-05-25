@@ -4,8 +4,12 @@ title: Results of the Categorical Variable Description
 jrs: '1.1'
 
 items:
+  - name: tc
+    title: Words and their Occurrences
+    type: Preformatted
+
   - name: textualgroup
-    title: Textual Data Analysis
+    title: Categories by Words Data Table
     type: Group
     items:
       - name: textual
@@ -41,7 +45,7 @@ items:
             format: zto,pvalue
 
   - name: dfresgroup
-    title: Description of Frequencies
+    title: Description of the Categories
     type: Group
     items:
       - name: dfres
@@ -73,4 +77,10 @@ items:
             format: zto,pvalue
           - name: vtest
             title: Vtest
-            type: Number
+            type: Number            
+  - name: plottext
+    title: Representation of the Words and the Categories
+    type: Image
+    width: 600
+    height: 500
+    renderFun: .plottextual

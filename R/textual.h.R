@@ -8,7 +8,9 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             individuals = NULL,
             words = NULL,
-            thres = 5, ...) {
+            thres = 5,
+            lowfreq = 0,
+            highfreq = 0, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -30,28 +32,44 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "thres",
                 thres,
                 default=5)
+            private$..lowfreq <- jmvcore::OptionNumber$new(
+                "lowfreq",
+                lowfreq,
+                default=0)
+            private$..highfreq <- jmvcore::OptionNumber$new(
+                "highfreq",
+                highfreq,
+                default=0)
 
             self$.addOption(private$..individuals)
             self$.addOption(private$..words)
             self$.addOption(private$..thres)
+            self$.addOption(private$..lowfreq)
+            self$.addOption(private$..highfreq)
         }),
     active = list(
         individuals = function() private$..individuals$value,
         words = function() private$..words$value,
-        thres = function() private$..thres$value),
+        thres = function() private$..thres$value,
+        lowfreq = function() private$..lowfreq$value,
+        highfreq = function() private$..highfreq$value),
     private = list(
         ..individuals = NA,
         ..words = NA,
-        ..thres = NA)
+        ..thres = NA,
+        ..lowfreq = NA,
+        ..highfreq = NA)
 )
 
 textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "textualResults",
     inherit = jmvcore::Group,
     active = list(
+        tc = function() private$.items[["tc"]],
         textualgroup = function() private$.items[["textualgroup"]],
         chideuxgroup = function() private$.items[["chideuxgroup"]],
-        dfresgroup = function() private$.items[["dfresgroup"]]),
+        dfresgroup = function() private$.items[["dfresgroup"]],
+        plottext = function() private$.items[["plottext"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -59,6 +77,10 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="",
                 title="Results of the Categorical Variable Description")
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="tc",
+                title="Words and their Occurrences"))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -69,7 +91,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         super$initialize(
                             options=options,
                             name="textualgroup",
-                            title="Textual Data Analysis")
+                            title="Categories by Words Data Table")
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="textual",
@@ -122,7 +144,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         super$initialize(
                             options=options,
                             name="dfresgroup",
-                            title="Description of Frequencies")
+                            title="Description of the Categories")
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="dfres",
@@ -161,7 +183,14 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                 list(
                                     `name`="vtest", 
                                     `title`="Vtest", 
-                                    `type`="Number"))))}))$new(options=options))}))
+                                    `type`="Number"))))}))$new(options=options))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plottext",
+                title="Representation of the Words and the Categories",
+                width=600,
+                height=500,
+                renderFun=".plottextual"))}))
 
 textualBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "textualBase",
@@ -190,11 +219,15 @@ textualBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param individuals .
 #' @param words .
 #' @param thres .
+#' @param lowfreq .
+#' @param highfreq .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$tc} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$textualgroup$textual} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$chideuxgroup$chideux} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$dfresgroup$dfres} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$plottext} \tab \tab \tab \tab \tab an image \cr
 #' }
 #'
 #' @export
@@ -202,7 +235,9 @@ textual <- function(
     data,
     individuals,
     words,
-    thres = 5) {
+    thres = 5,
+    lowfreq = 0,
+    highfreq = 0) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("textual requires jmvcore to be installed (restart may be required)")
@@ -220,7 +255,9 @@ textual <- function(
     options <- textualOptions$new(
         individuals = individuals,
         words = words,
-        thres = thres)
+        thres = thres,
+        lowfreq = lowfreq,
+        highfreq = highfreq)
 
     analysis <- textualClass$new(
         options = options,

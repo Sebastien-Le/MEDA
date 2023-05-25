@@ -7,6 +7,7 @@ authors:
   - Thomas Leblay
   - Fiona Tuffin
   - Maxime Saland
+  - Maïwen Faure
   - Sébastien Lê
 maintainer: sebastien.le@agrocampus-ouest.fr
 date: '2021-06-03'
@@ -14,14 +15,14 @@ type: R
 description: >-
   This module allows you to perform multivariate exploratory analyses the French
   way. In other words, you will be able to add supplementary information for a
-  better understanding of your results. Three main methods have been
-  implemented: Principal Component Analysis, Correspondence Analysis and
-  Multiple Correspondence Analysis. You can also get an automatic description of a variable based on the other
-  variables of the dataset (categorical/quantitative).
-  Results are obtained thanks to the FactoMineR package.
-  These analyses are described in the <a
-  href="https://sebastien-le.github.io/medasite/index.html"
-  target="_blank">MEDA website</a>.
+  better understanding of your results. Four main methods have been implemented:
+  Principal Component Analysis, Correspondence Analysis, Multiple Correspondence
+  Analysis and Multiple Factor Analysis. You can also get an automatic
+  description of a variable based on the other variables of the dataset
+  (categorical/quantitative). Results are obtained thanks to the FactoMineR
+  package. These analyses are described in the <a
+  href="https://sebastien-le.github.io/medasite/index.html" target="_blank">MEDA
+  website</a>.
 analyses:
   - title: Variable Described by Categorical / Quantitative Data
     name: catdes
@@ -37,6 +38,13 @@ analyses:
     menuTitle: By Textual Data
     menuSubgroup: Automatic Univariate Description
     menuSubtitle: 'FactoMineR::textual/descfreq'
+  - title: Description of a Contingency Table
+    name: descfreq
+    ns: MEDA
+    menuGroup: MEDA
+    menuTitle: By Columns / Rows (Contingency Table)
+    menuSubgroup: Automatic Univariate Description
+    menuSubtitle: 'FactoMineR::descfreq'
   - title: Principal Component Analysis
     name: PCA
     ns: MEDA
@@ -58,13 +66,13 @@ analyses:
     menuTitle: Multiple Correspondence Analysis
     menuSubgroup: Multivariate Analysis
     menuSubtitle: 'FactoMineR::MCA'
-  - title: Description of a Contingency Table
-    name: descfreq
+  - title: Multiple Factor Analysis
+    name: MFA
     ns: MEDA
     menuGroup: MEDA
-    menuTitle: By Columns / Rows (Contingency Table)
-    menuSubgroup: Automatic Univariate Description
-    menuSubtitle: 'FactoMineR::descfreq'
+    menuTitle: Multiple Factor Analysis
+    menuSubgroup: Multivariate Analysis
+    menuSubtitle: 'FactoMineR::MFA'
 datasets:
   - name: beard_description
     path: beard_description.omv
@@ -92,6 +100,12 @@ datasets:
     tags:
       - CA
       - descfreq
+  - name: wine
+    path: wine.omv
+    description: Famous wine data for MFA
+    tags:
+      - MFA
+      - PCA
 usesNative: true
 minApp: 1.0.8
 

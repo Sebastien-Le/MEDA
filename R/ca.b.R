@@ -38,6 +38,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
           imageell = self$results$plotell
           imageell$setState(res.ca)
+          
+          private$.output(res.ca)
 
         }
       },
@@ -313,6 +315,26 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         if (length(self$options$activecol) < self$options$nbfact)
           jmvcore::reject(jmvcore::format('The number of factors is too low'))
 
+      },
+      
+      .output = function(res.ca) {
+        if (self$results$newvar$isNotFilled()) {
+          keys <- 1:self$options$nbfact
+          measureTypes <- rep("continuous", self$options$nbfact)
+          titles <- paste(("Dim."), keys)
+          descriptions <- character(length(keys))
+          self$results$newvar$set(
+            keys=keys,
+            titles=titles,
+            descriptions=descriptions,
+            measureTypes=measureTypes
+          )
+          for (i in 1:self$options$nbfact) {
+            scores <- as.numeric(res.ca$row$coord[, i])
+            self$results$newvar$setValues(index=i, scores)
+          }
+          self$results$newvar$setRowNums(rownames(self$data))
+        }
       },
 
       .buildData = function() {

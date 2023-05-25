@@ -1,0 +1,72 @@
+---
+name: MFA
+title: Results of the Multiple Factor Analysis
+jrs: '1.1'
+
+items:
+  - name: plotgroup
+    title: Representation of the Groups
+    type: Image
+    width: 600
+    height: 600
+    renderFun: .plotgroups
+
+  - name: plotaxe
+    title: Representation of the Partial Axes
+    type: Image
+    width: 600
+    height: 600
+    renderFun: .plotaxes
+
+  - name: plotind
+    title: Representation of the Individuals (and the Categories)
+    type: Image
+    width: 800
+    height: 600
+    renderFun: .plotindividus
+
+  - name: plotvar
+    visible: (contivar)
+    title: Representation of the Variables
+    type: Image
+    width: 600
+    height: 600
+    renderFun: .plotvariables
+
+  - name: eigengroup
+    title: Eigenvalue Decomposition
+    type: Group
+    items:
+      - name: eigen
+        title: 'Eigenvalue and (Cumulative) Percentage of Variance'
+        type: Table
+        columns:
+          - name: component
+            title: ''
+            type: 'text'
+          - name: eigenvalue
+            title: 'Eigenvalue'
+            type: number
+          - name: purcent
+            title: '% of the variance'
+            type: number
+          - name: purcentcum
+            title: 'Cumulative %'
+            type: number  
+
+  - name: descdesdim
+    title: Automatic Description of the Axes
+    type: Preformatted
+
+  - name: newvar
+    type: Output
+    title: Coordinates
+    measureType: continuous
+    initInRun: true
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - nFactors
+      - norme

@@ -10,7 +10,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             quantisup = NULL,
             qualisup = NULL,
             individus = NULL,
-            nFactors = 5,
+            nFactors = 2,
             abs = 1,
             ord = 2,
             varmodqualisup = TRUE,
@@ -65,7 +65,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..nFactors <- jmvcore::OptionInteger$new(
                 "nFactors",
                 nFactors,
-                default=5)
+                default=2)
             private$..abs <- jmvcore::OptionInteger$new(
                 "abs",
                 abs,
@@ -122,6 +122,8 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "modality",
                 modality,
                 default="cos2 10")
+            private$..newvar <- jmvcore::OptionOutput$new(
+                "newvar")
 
             self$.addOption(private$..actvars)
             self$.addOption(private$..quantisup)
@@ -142,6 +144,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..quantimod)
             self$.addOption(private$..ventil)
             self$.addOption(private$..modality)
+            self$.addOption(private$..newvar)
         }),
     active = list(
         actvars = function() private$..actvars$value,
@@ -162,7 +165,8 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         varcos = function() private$..varcos$value,
         quantimod = function() private$..quantimod$value,
         ventil = function() private$..ventil$value,
-        modality = function() private$..modality$value),
+        modality = function() private$..modality$value,
+        newvar = function() private$..newvar$value),
     private = list(
         ..actvars = NA,
         ..quantisup = NA,
@@ -182,7 +186,8 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..varcos = NA,
         ..quantimod = NA,
         ..ventil = NA,
-        ..modality = NA)
+        ..modality = NA,
+        ..newvar = NA)
 )
 
 MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
@@ -196,7 +201,8 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         eigengroup = function() private$.items[["eigengroup"]],
         dimdesc = function() private$.items[["dimdesc"]],
         individus = function() private$.items[["individus"]],
-        variables = function() private$.items[["variables"]]),
+        variables = function() private$.items[["variables"]],
+        newvar = function() private$.items[["newvar"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -345,7 +351,20 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             clearWith=list(
                                 "actvars",
                                 "nFactors"),
-                            columns=list()))}))$new(options=options))}))
+                            columns=list()))}))$new(options=options))
+            self$add(jmvcore::Output$new(
+                options=options,
+                name="newvar",
+                title="Coordinates",
+                measureType="continuous",
+                initInRun=TRUE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "nFactors",
+                    "ventil")))}))
 
 MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "MCABase",
@@ -404,6 +423,7 @@ MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$variables$coordonnees} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$contribution} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$cosinus} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
 #' }
 #'
 #' @export
@@ -413,7 +433,7 @@ MCA <- function(
     quantisup,
     qualisup,
     individus,
-    nFactors = 5,
+    nFactors = 2,
     abs = 1,
     ord = 2,
     varmodqualisup = TRUE,

@@ -12,14 +12,16 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
         ready <- TRUE
         if (is.null(self$options$actvars) || length(self$options$actvars) < self$options$nFactors){
-          return()
+          #return()
           ready <- FALSE
         }
-        private$.errorCheck()
+        
+        #private$.errorCheck()
 
         if (ready) {
 
           data <- private$.buildData()
+          #private$.errorCheck()
           res.pca <- private$.PCA(data)
 
           dimdesc=private$.dimdesc(res.pca)
@@ -35,6 +37,8 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
           imagevar=self$results$plotvar
           imagevar$setState(res.pca)
+          
+          private$.output(res.pca)
         }
       },
 
@@ -238,8 +242,29 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       ### Helper functions ----
       .errorCheck = function() {
         if (length(self$options$actvars) < self$options$nFactors)
-          jmvcore::reject(jmvcore::format('The number of factors is too low'))
+          jmvcore::reject(jmvcore::format("The number of factors is too low"))
 
+      },
+      
+      .output = function(res.pca){
+        if (self$results$newvar$isNotFilled()) {
+          keys <- 1:self$options$nFactors
+          measureTypes <- rep("continuous", self$options$nFactors)
+          titles <- paste(("Dim."), keys)
+          descriptions <- character(length(keys))
+          self$results$newvar$set(
+            keys=keys,
+            titles=titles,
+            descriptions=descriptions,
+            measureTypes=measureTypes
+          )
+          for (i in 1:self$options$nFactors) {
+            scores <- as.numeric(res.pca$ind$coord[, i])
+            self$results$newvar$setValues(index=i, scores)
+          }
+          self$results$newvar$setRowNums(rownames(self$data))
+        }
+        
       },
 
       .buildData = function() {
@@ -257,7 +282,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         }
         else
           rownames(data)=c(1:nrow(data))
-
+        
         return(data)
       }
     )

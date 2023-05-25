@@ -1,5 +1,5 @@
-title: Principal Component Analysis
-name: PCA
+title: Multiple Factor Analysis
+name: MFA
 jus: '2.0'
 stage: 0
 compilerMode: tame
@@ -16,33 +16,37 @@ children:
             maxItemCount: 1
             isTarget: true
       - type: TargetLayoutBox
-        label: Active Variables (>1)
+        label: Continous Variables
         children:
           - type: VariablesListBox
-            name: actvars
+            name: quantivar
             isTarget: true
       - type: TargetLayoutBox
-        label: Quantitative Supplementary Variables
+        label: Categorical Variables
         children:
           - type: VariablesListBox
-            name: quantisup
-            isTarget: true
-      - type: TargetLayoutBox
-        label: Categorical Supplementary Variables
-        children:
-          - type: VariablesListBox
-            name: qualisup
+            name: qualivar
             isTarget: true
   - type: LayoutBox
     margin: large
     stretchFactor: 1
     children:
       - type: Label
-        label: Standardization of the Variables
+        label: Definition of the Groups
         stretchFactor: 1
         children:
-          - type: CheckBox
-            name: norme
+          - type: TextBox
+            name: groupdef
+            format: string
+          - type: TextBox
+            name: grouptype
+            format: string
+          - type: TextBox
+            name: groupname
+            format: string  
+          - type: TextBox
+            name: groupill
+            format: string
   - type: LayoutBox
     margin: large
     stretchFactor: 1
@@ -76,21 +80,11 @@ children:
                     name: ord
                     format: number
           - type: Label
-            label: Individual Graphic Options
-            children:
-              - type: CheckBox
-                name: modact
-              - type: CheckBox
-                name: modillus
-              - type: TextBox
-                name: habillage
-                format: number
-          - type: Label
             label: Variable Graphic Options
             children:
-              - name: varact
-                type: CheckBox
-              - name: varillus
+              - type: CheckBox
+                name: catevar
+              - name: contivar
                 type: CheckBox
   - type: LayoutBox
     margin: large
@@ -124,32 +118,6 @@ children:
                   - type: TextBox
                     name: nFactors
                     format: number
-          - type: Label
-            label: Individual Table Options
-            children:
-              - type: LayoutBox
-                margin: large
-                stretchFactor: 1
-                children:
-                  - type: CheckBox
-                    name: coordind
-                  - type: CheckBox
-                    name: contribind
-                  - type: CheckBox
-                    name: cosind
-          - type: Label
-            label: Variable Table Options
-            children:
-              - type: LayoutBox
-                margin: large
-                stretchFactor: 1
-                children:
-                  - type: CheckBox
-                    name: coordvar
-                  - type: CheckBox
-                    name: contribvar
-                  - type: CheckBox
-                    name: cosvar
           - type: Label
             label: Save
             children:

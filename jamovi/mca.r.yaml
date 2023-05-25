@@ -116,3 +116,16 @@ items:
           - actvars
           - nFactors
         columns: []
+  
+  - name: newvar
+    type: Output
+    title: Coordinates
+    measureType: continuous
+    initInRun: true
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - nFactors
+      - ventil

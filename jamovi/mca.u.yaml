@@ -149,3 +149,12 @@ children:
                     name: varcontrib
                   - type: CheckBox
                     name: varcos
+          - type: Label
+            label: Save
+            children:
+              - type: LayoutBox
+                margin: large
+                stretchFactor: 1
+                children:
+                  - type: Output
+                    name: newvar          

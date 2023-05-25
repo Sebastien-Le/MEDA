@@ -145,3 +145,14 @@ items:
         clearWith:
           - nbfact
         columns: []
+
+  - name: newvar
+    type: Output
+    title: Coordinates
+    measureType: continuous
+    initInRun: true
+    clearWith:
+      - activecol
+      - illustrativecol
+      - indiv
+      - nbfact

@@ -28,3 +28,15 @@ children:
       - type: TextBox
         name: thres
         format: number
+  - type: LayoutBox
+    margin: large
+    children:
+      - type: TextBox
+        name: lowfreq
+        format: number
+  - type: LayoutBox
+    margin: large
+    children:
+      - type: TextBox
+        name: highfreq
+        format: number

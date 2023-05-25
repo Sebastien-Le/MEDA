@@ -1,0 +1,94 @@
+---
+name: MFA
+title: Multiple Factor Analysis
+menuGroup: MEDA
+
+menuSubgroup: Multivariate Analysis
+
+menuTitle: Multiple Factor Analysis
+menuSubtitle: FactoMineR::MFA
+version: '1.0.0'
+jas: '1.2'
+
+options:
+  - name: data
+    type: Data
+
+  - name: quantivar
+    title: Active Variables
+    type: Variables
+    suggested:
+      - continuous
+    permitted:
+      - numeric
+
+  - name: qualivar
+    title: Categorical Variables
+    type: Variables
+    suggested:
+      - nominal
+      - ordinal
+    permitted:
+      - factor
+
+  - name: individus
+    title: Individual Labels
+    type: Variable
+    suggested:
+      - nominal
+    permitted:
+      - factor
+
+  - name: nFactors
+    title: Number of factors
+    type: Integer
+    default: 2
+
+  - name: groupdef
+    title: Groups definition
+    type: String
+    default: "Ex: 2,3"
+
+  - name: groupill
+    title: Supplementary groups
+    type: String
+    default: "Ex: 2,3"
+
+  - name: groupname
+    title: Groups name
+    type: String
+    default: "Ex: senso,physico"  
+
+  - name: grouptype
+    title: Groups type
+    type: String
+    default: "Ex: s,n"
+
+  - name: proba
+    title: Significance threshold (%)
+    type: Number
+    default: 5
+
+  - name: abs
+    title: X-axis
+    type: Integer
+    default: 1
+
+  - name: ord
+    title: Y-axis
+    type: Integer
+    default: 2
+
+  - name: contivar
+    title: Continuous variables (if "s")
+    type: Bool
+    default: false
+
+  - name: catevar
+    title: Categorical variables (if "n")
+    type: Bool
+    default: false
+
+  - name: newvar
+    title: Coordinates
+    type: Output

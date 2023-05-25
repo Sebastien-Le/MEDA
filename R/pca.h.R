@@ -10,7 +10,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             quantisup = NULL,
             qualisup = NULL,
             individus = NULL,
-            nFactors = 5,
+            nFactors = 2,
             norme = TRUE,
             coordvar = FALSE,
             contribvar = FALSE,
@@ -65,7 +65,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..nFactors <- jmvcore::OptionInteger$new(
                 "nFactors",
                 nFactors,
-                default=5)
+                default=2)
             private$..norme <- jmvcore::OptionBool$new(
                 "norme",
                 norme,
@@ -125,6 +125,8 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..habillage <- jmvcore::OptionInteger$new(
                 "habillage",
                 habillage)
+            private$..newvar <- jmvcore::OptionOutput$new(
+                "newvar")
 
             self$.addOption(private$..actvars)
             self$.addOption(private$..quantisup)
@@ -146,6 +148,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..modact)
             self$.addOption(private$..modillus)
             self$.addOption(private$..habillage)
+            self$.addOption(private$..newvar)
         }),
     active = list(
         actvars = function() private$..actvars$value,
@@ -167,7 +170,8 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         varillus = function() private$..varillus$value,
         modact = function() private$..modact$value,
         modillus = function() private$..modillus$value,
-        habillage = function() private$..habillage$value),
+        habillage = function() private$..habillage$value,
+        newvar = function() private$..newvar$value),
     private = list(
         ..actvars = NA,
         ..quantisup = NA,
@@ -188,7 +192,8 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..varillus = NA,
         ..modact = NA,
         ..modillus = NA,
-        ..habillage = NA)
+        ..habillage = NA,
+        ..newvar = NA)
 )
 
 PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
@@ -200,7 +205,8 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         eigengroup = function() private$.items[["eigengroup"]],
         descdesdim = function() private$.items[["descdesdim"]],
         individus = function() private$.items[["individus"]],
-        variables = function() private$.items[["variables"]]),
+        variables = function() private$.items[["variables"]],
+        newvar = function() private$.items[["newvar"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -331,7 +337,20 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             visible="(cosvar)",
                             clearWith=list(
                                 "nFactors"),
-                            columns=list()))}))$new(options=options))}))
+                            columns=list()))}))$new(options=options))
+            self$add(jmvcore::Output$new(
+                options=options,
+                name="newvar",
+                title="Coordinates",
+                measureType="continuous",
+                initInRun=TRUE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "nFactors",
+                    "norme")))}))
 
 PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "PCABase",
@@ -389,6 +408,7 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$variables$coordonnees} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$contribution} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$cosinus} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
 #' }
 #'
 #' @export
@@ -398,7 +418,7 @@ PCA <- function(
     quantisup,
     qualisup,
     individus,
-    nFactors = 5,
+    nFactors = 2,
     norme = TRUE,
     coordvar = FALSE,
     contribvar = FALSE,
