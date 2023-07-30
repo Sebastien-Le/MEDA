@@ -9,6 +9,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             activecol = NULL,
             illustrativecol = NULL,
             indiv = NULL,
+            tuto = TRUE,
             nbfact = 2,
             proba = 5,
             abs = 1,
@@ -23,7 +24,10 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             coscol = FALSE,
             coordrow = FALSE,
             contribrow = FALSE,
-            cosrow = FALSE, ...) {
+            cosrow = FALSE,
+            ncp = 5,
+            graphclassif = FALSE,
+            nbclust = -1, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -52,6 +56,10 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nominal"),
                 permitted=list(
                     "factor"))
+            private$..tuto <- jmvcore::OptionBool$new(
+                "tuto",
+                tuto,
+                default=TRUE)
             private$..nbfact <- jmvcore::OptionInteger$new(
                 "nbfact",
                 nbfact,
@@ -112,12 +120,27 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "cosrow",
                 cosrow,
                 default=FALSE)
+            private$..ncp <- jmvcore::OptionInteger$new(
+                "ncp",
+                ncp,
+                default=5)
+            private$..graphclassif <- jmvcore::OptionBool$new(
+                "graphclassif",
+                graphclassif,
+                default=FALSE)
             private$..newvar <- jmvcore::OptionOutput$new(
                 "newvar")
+            private$..nbclust <- jmvcore::OptionInteger$new(
+                "nbclust",
+                nbclust,
+                default=-1)
+            private$..newvar2 <- jmvcore::OptionOutput$new(
+                "newvar2")
 
             self$.addOption(private$..activecol)
             self$.addOption(private$..illustrativecol)
             self$.addOption(private$..indiv)
+            self$.addOption(private$..tuto)
             self$.addOption(private$..nbfact)
             self$.addOption(private$..proba)
             self$.addOption(private$..abs)
@@ -133,12 +156,17 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..coordrow)
             self$.addOption(private$..contribrow)
             self$.addOption(private$..cosrow)
+            self$.addOption(private$..ncp)
+            self$.addOption(private$..graphclassif)
             self$.addOption(private$..newvar)
+            self$.addOption(private$..nbclust)
+            self$.addOption(private$..newvar2)
         }),
     active = list(
         activecol = function() private$..activecol$value,
         illustrativecol = function() private$..illustrativecol$value,
         indiv = function() private$..indiv$value,
+        tuto = function() private$..tuto$value,
         nbfact = function() private$..nbfact$value,
         proba = function() private$..proba$value,
         abs = function() private$..abs$value,
@@ -154,11 +182,16 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         coordrow = function() private$..coordrow$value,
         contribrow = function() private$..contribrow$value,
         cosrow = function() private$..cosrow$value,
-        newvar = function() private$..newvar$value),
+        ncp = function() private$..ncp$value,
+        graphclassif = function() private$..graphclassif$value,
+        newvar = function() private$..newvar$value,
+        nbclust = function() private$..nbclust$value,
+        newvar2 = function() private$..newvar2$value),
     private = list(
         ..activecol = NA,
         ..illustrativecol = NA,
         ..indiv = NA,
+        ..tuto = NA,
         ..nbfact = NA,
         ..proba = NA,
         ..abs = NA,
@@ -174,13 +207,18 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..coordrow = NA,
         ..contribrow = NA,
         ..cosrow = NA,
-        ..newvar = NA)
+        ..ncp = NA,
+        ..graphclassif = NA,
+        ..newvar = NA,
+        ..nbclust = NA,
+        ..newvar2 = NA)
 )
 
 CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "CAResults",
     inherit = jmvcore::Group,
     active = list(
+        instructions = function() private$.items[["instructions"]],
         plotirow = function() private$.items[["plotirow"]],
         ploticol = function() private$.items[["ploticol"]],
         plotell = function() private$.items[["plotell"]],
@@ -189,14 +227,24 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         descofdimgroup = function() private$.items[["descofdimgroup"]],
         rowgroup = function() private$.items[["rowgroup"]],
         colgroup = function() private$.items[["colgroup"]],
-        newvar = function() private$.items[["newvar"]]),
+        plotclassif = function() private$.items[["plotclassif"]],
+        newvar = function() private$.items[["newvar"]],
+        newvar2 = function() private$.items[["newvar2"]]),
     private = list(),
     public=list(
         initialize=function(options) {
             super$initialize(
                 options=options,
                 name="",
-                title="Results of the Correspondence Analysis")
+                title="Results of the Correspondence Analysis",
+                refs=list(
+                    "factominer",
+                    "explo"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="instructions",
+                title="Instructions",
+                visible="(tuto)"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotirow",
@@ -290,7 +338,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         super$initialize(
                             options=options,
                             name="descofdimgroup",
-                            title="Automatic Description of the Axes")
+                            title="Automatic Description of the Dimensions")
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="descofdim",
@@ -388,6 +436,14 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             clearWith=list(
                                 "nbfact"),
                             columns=list()))}))$new(options=options))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotclassif",
+                title="Representation of the Rows According to Clusters",
+                visible="(graphclassif)",
+                width=600,
+                height=500,
+                renderFun=".plotclassif"))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar",
@@ -398,7 +454,20 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "activecol",
                     "illustrativecol",
                     "indiv",
-                    "nbfact")))}))
+                    "nbfact")))
+            self$add(jmvcore::Output$new(
+                options=options,
+                name="newvar2",
+                title="Coordinates",
+                measureType="continuous",
+                initInRun=TRUE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "nFactors",
+                    "norme")))}))
 
 CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "CABase",
@@ -427,6 +496,7 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param activecol .
 #' @param illustrativecol .
 #' @param indiv .
+#' @param tuto .
 #' @param nbfact .
 #' @param proba .
 #' @param abs .
@@ -442,8 +512,12 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param coordrow .
 #' @param contribrow .
 #' @param cosrow .
+#' @param ncp .
+#' @param graphclassif .
+#' @param nbclust .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotirow} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$ploticol} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotell} \tab \tab \tab \tab \tab an image \cr
@@ -456,7 +530,9 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$colgroup$coordonnees} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$colgroup$contribution} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$colgroup$cosinus} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$plotclassif} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
+#'   \code{results$newvar2} \tab \tab \tab \tab \tab an output \cr
 #' }
 #'
 #' @export
@@ -465,6 +541,7 @@ CA <- function(
     activecol,
     illustrativecol,
     indiv,
+    tuto = TRUE,
     nbfact = 2,
     proba = 5,
     abs = 1,
@@ -479,7 +556,10 @@ CA <- function(
     coscol = FALSE,
     coordrow = FALSE,
     contribrow = FALSE,
-    cosrow = FALSE) {
+    cosrow = FALSE,
+    ncp = 5,
+    graphclassif = FALSE,
+    nbclust = -1) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("CA requires jmvcore to be installed (restart may be required)")
@@ -500,6 +580,7 @@ CA <- function(
         activecol = activecol,
         illustrativecol = illustrativecol,
         indiv = indiv,
+        tuto = tuto,
         nbfact = nbfact,
         proba = proba,
         abs = abs,
@@ -514,7 +595,10 @@ CA <- function(
         coscol = coscol,
         coordrow = coordrow,
         contribrow = contribrow,
-        cosrow = cosrow)
+        cosrow = cosrow,
+        ncp = ncp,
+        graphclassif = graphclassif,
+        nbclust = nbclust)
 
     analysis <- CAClass$new(
         options = options,

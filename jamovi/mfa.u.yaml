@@ -7,6 +7,10 @@ children:
   - type: VariableSupplier
     persistentItems: false
     stretchFactor: 1
+    permitted:
+      - numeric
+      - factor
+      - id
     children:
       - type: TargetLayoutBox
         label: Individual Labels
@@ -16,7 +20,7 @@ children:
             maxItemCount: 1
             isTarget: true
       - type: TargetLayoutBox
-        label: Continous Variables
+        label: Quantitative Variables
         children:
           - type: VariablesListBox
             name: quantivar
@@ -32,21 +36,35 @@ children:
     stretchFactor: 1
     children:
       - type: Label
+        label: Instructions
+        stretchFactor: 1
+        children:
+          - type: CheckBox
+            name: tuto            
+  - type: LayoutBox
+    margin: large
+    stretchFactor: 1
+    children:
+      - type: Label
         label: Definition of the Groups
         stretchFactor: 1
         children:
           - type: TextBox
             name: groupdef
             format: string
+            stretchFactor: 2
           - type: TextBox
             name: grouptype
             format: string
+            stretchFactor: 2
           - type: TextBox
             name: groupname
-            format: string  
+            format: string
+            stretchFactor: 2
           - type: TextBox
             name: groupill
             format: string
+            stretchFactor: 2
   - type: LayoutBox
     margin: large
     stretchFactor: 1
@@ -79,13 +97,6 @@ children:
                   - type: TextBox
                     name: ord
                     format: number
-          - type: Label
-            label: Variable Graphic Options
-            children:
-              - type: CheckBox
-                name: catevar
-              - name: contivar
-                type: CheckBox
   - type: LayoutBox
     margin: large
     stretchFactor: 1
@@ -96,7 +107,7 @@ children:
         collapsed: true
         children:
           - type: Label
-            label: Automatic Description of the Axes
+            label: Automatic Description of the Dimensions
             children:
               - type: Label
                 label: ''
@@ -121,9 +132,63 @@ children:
           - type: Label
             label: Save
             children:
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: ncp
+                    format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: Output
+                    name: newvar
+  - type: LayoutBox
+    margin: large
+    stretchFactor: 1
+    children:
+      - type: CollapseBox
+        label: Clustering
+        stretchFactor: 1
+        collapsed: true
+        children:
+          - type: Label
+            label: Clustering Graphic Options
+            children:
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: CheckBox
+                    name: graphclassif
+                    format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: nbclust
+                    format: number
+          - type: Label
+            label: Save
+            children:
               - type: LayoutBox
                 margin: large
                 stretchFactor: 1
                 children:
                   - type: Output
-                    name: newvar
+                    name: newvar2        

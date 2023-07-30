@@ -9,16 +9,18 @@ MFAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             quantivar = NULL,
             qualivar = NULL,
             individus = NULL,
+            tuto = TRUE,
             nFactors = 2,
-            groupdef = "Ex: 2,3",
-            groupill = "Ex: 2,3",
-            groupname = "Ex: senso,physico",
-            grouptype = "Ex: s,n",
+            groupdef = "Ex: 5,3,10,9,2,2",
+            grouptype = "Ex: s,s,s,s,s,n",
+            groupill = "Ex: 5,6",
+            groupname = "Ex: olf,vis,olfag,gust,ens,orig",
             proba = 5,
             abs = 1,
             ord = 2,
-            contivar = FALSE,
-            catevar = FALSE, ...) {
+            ncp = 5,
+            graphclassif = FALSE,
+            nbclust = -1, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -48,6 +50,10 @@ MFAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nominal"),
                 permitted=list(
                     "factor"))
+            private$..tuto <- jmvcore::OptionBool$new(
+                "tuto",
+                tuto,
+                default=TRUE)
             private$..nFactors <- jmvcore::OptionInteger$new(
                 "nFactors",
                 nFactors,
@@ -55,19 +61,19 @@ MFAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..groupdef <- jmvcore::OptionString$new(
                 "groupdef",
                 groupdef,
-                default="Ex: 2,3")
-            private$..groupill <- jmvcore::OptionString$new(
-                "groupill",
-                groupill,
-                default="Ex: 2,3")
-            private$..groupname <- jmvcore::OptionString$new(
-                "groupname",
-                groupname,
-                default="Ex: senso,physico")
+                default="Ex: 5,3,10,9,2,2")
             private$..grouptype <- jmvcore::OptionString$new(
                 "grouptype",
                 grouptype,
-                default="Ex: s,n")
+                default="Ex: s,s,s,s,s,n")
+            private$..groupill <- jmvcore::OptionString$new(
+                "groupill",
+                groupill,
+                default="Ex: 5,6")
+            private$..groupname <- jmvcore::OptionString$new(
+                "groupname",
+                groupname,
+                default="Ex: olf,vis,olfag,gust,ens,orig")
             private$..proba <- jmvcore::OptionNumber$new(
                 "proba",
                 proba,
@@ -80,82 +86,110 @@ MFAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "ord",
                 ord,
                 default=2)
-            private$..contivar <- jmvcore::OptionBool$new(
-                "contivar",
-                contivar,
-                default=FALSE)
-            private$..catevar <- jmvcore::OptionBool$new(
-                "catevar",
-                catevar,
-                default=FALSE)
+            private$..ncp <- jmvcore::OptionInteger$new(
+                "ncp",
+                ncp,
+                default=5)
             private$..newvar <- jmvcore::OptionOutput$new(
                 "newvar")
+            private$..graphclassif <- jmvcore::OptionBool$new(
+                "graphclassif",
+                graphclassif,
+                default=FALSE)
+            private$..nbclust <- jmvcore::OptionInteger$new(
+                "nbclust",
+                nbclust,
+                default=-1)
+            private$..newvar2 <- jmvcore::OptionOutput$new(
+                "newvar2")
 
             self$.addOption(private$..quantivar)
             self$.addOption(private$..qualivar)
             self$.addOption(private$..individus)
+            self$.addOption(private$..tuto)
             self$.addOption(private$..nFactors)
             self$.addOption(private$..groupdef)
+            self$.addOption(private$..grouptype)
             self$.addOption(private$..groupill)
             self$.addOption(private$..groupname)
-            self$.addOption(private$..grouptype)
             self$.addOption(private$..proba)
             self$.addOption(private$..abs)
             self$.addOption(private$..ord)
-            self$.addOption(private$..contivar)
-            self$.addOption(private$..catevar)
+            self$.addOption(private$..ncp)
             self$.addOption(private$..newvar)
+            self$.addOption(private$..graphclassif)
+            self$.addOption(private$..nbclust)
+            self$.addOption(private$..newvar2)
         }),
     active = list(
         quantivar = function() private$..quantivar$value,
         qualivar = function() private$..qualivar$value,
         individus = function() private$..individus$value,
+        tuto = function() private$..tuto$value,
         nFactors = function() private$..nFactors$value,
         groupdef = function() private$..groupdef$value,
+        grouptype = function() private$..grouptype$value,
         groupill = function() private$..groupill$value,
         groupname = function() private$..groupname$value,
-        grouptype = function() private$..grouptype$value,
         proba = function() private$..proba$value,
         abs = function() private$..abs$value,
         ord = function() private$..ord$value,
-        contivar = function() private$..contivar$value,
-        catevar = function() private$..catevar$value,
-        newvar = function() private$..newvar$value),
+        ncp = function() private$..ncp$value,
+        newvar = function() private$..newvar$value,
+        graphclassif = function() private$..graphclassif$value,
+        nbclust = function() private$..nbclust$value,
+        newvar2 = function() private$..newvar2$value),
     private = list(
         ..quantivar = NA,
         ..qualivar = NA,
         ..individus = NA,
+        ..tuto = NA,
         ..nFactors = NA,
         ..groupdef = NA,
+        ..grouptype = NA,
         ..groupill = NA,
         ..groupname = NA,
-        ..grouptype = NA,
         ..proba = NA,
         ..abs = NA,
         ..ord = NA,
-        ..contivar = NA,
-        ..catevar = NA,
-        ..newvar = NA)
+        ..ncp = NA,
+        ..newvar = NA,
+        ..graphclassif = NA,
+        ..nbclust = NA,
+        ..newvar2 = NA)
 )
 
 MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "MFAResults",
     inherit = jmvcore::Group,
     active = list(
+        instructions = function() private$.items[["instructions"]],
         plotgroup = function() private$.items[["plotgroup"]],
         plotaxe = function() private$.items[["plotaxe"]],
         plotind = function() private$.items[["plotind"]],
+        plotcat = function() private$.items[["plotcat"]],
         plotvar = function() private$.items[["plotvar"]],
         eigengroup = function() private$.items[["eigengroup"]],
         descdesdim = function() private$.items[["descdesdim"]],
-        newvar = function() private$.items[["newvar"]]),
+        plotclassif = function() private$.items[["plotclassif"]],
+        newvar = function() private$.items[["newvar"]],
+        newvar2 = function() private$.items[["newvar2"]]),
     private = list(),
     public=list(
         initialize=function(options) {
             super$initialize(
                 options=options,
                 name="",
-                title="Results of the Multiple Factor Analysis")
+                title="Results of the Multiple Factor Analysis",
+                refs=list(
+                    "factominer",
+                    "mfa",
+                    "explo"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="instructions",
+                title="Instructions",
+                visible="(tuto)"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotgroup",
@@ -173,17 +207,25 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotind",
-                title="Representation of the Individuals (and the Categories)",
+                title="Representation of the Individuals",
                 width=800,
                 height=600,
                 renderFun=".plotindividus"))
             self$add(jmvcore::Image$new(
                 options=options,
-                name="plotvar",
-                visible="(contivar)",
-                title="Representation of the Variables",
-                width=600,
+                name="plotcat",
+                title="Representation of the Categories",
+                visible=FALSE,
+                width=800,
                 height=600,
+                renderFun=".plotcategory"))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotvar",
+                title="Representation of the Variables",
+                visible=FALSE,
+                width=700,
+                height=700,
                 renderFun=".plotvariables"))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
@@ -220,7 +262,15 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="descdesdim",
-                title="Automatic Description of the Axes"))
+                title="Automatic Description of the Dimensions"))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotclassif",
+                title="Representation of the Individuals According to Clusters",
+                visible="(graphclassif)",
+                width=800,
+                height=600,
+                renderFun=".plotclassif"))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar",
@@ -232,7 +282,18 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "quantisup",
                     "qualisup",
                     "individus",
-                    "nFactors",
+                    "norme")))
+            self$add(jmvcore::Output$new(
+                options=options,
+                name="newvar2",
+                title="Coordinates",
+                measureType="continuous",
+                initInRun=TRUE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
                     "norme")))}))
 
 MFABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
@@ -262,25 +323,31 @@ MFABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param quantivar .
 #' @param qualivar .
 #' @param individus .
+#' @param tuto .
 #' @param nFactors .
 #' @param groupdef .
+#' @param grouptype .
 #' @param groupill .
 #' @param groupname .
-#' @param grouptype .
 #' @param proba .
 #' @param abs .
 #' @param ord .
-#' @param contivar .
-#' @param catevar .
+#' @param ncp .
+#' @param graphclassif .
+#' @param nbclust .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotgroup} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotaxe} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotind} \tab \tab \tab \tab \tab an image \cr
+#'   \code{results$plotcat} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$eigengroup$eigen} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$descdesdim} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$plotclassif} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
+#'   \code{results$newvar2} \tab \tab \tab \tab \tab an output \cr
 #' }
 #'
 #' @export
@@ -289,16 +356,18 @@ MFA <- function(
     quantivar,
     qualivar,
     individus,
+    tuto = TRUE,
     nFactors = 2,
-    groupdef = "Ex: 2,3",
-    groupill = "Ex: 2,3",
-    groupname = "Ex: senso,physico",
-    grouptype = "Ex: s,n",
+    groupdef = "Ex: 5,3,10,9,2,2",
+    grouptype = "Ex: s,s,s,s,s,n",
+    groupill = "Ex: 5,6",
+    groupname = "Ex: olf,vis,olfag,gust,ens,orig",
     proba = 5,
     abs = 1,
     ord = 2,
-    contivar = FALSE,
-    catevar = FALSE) {
+    ncp = 5,
+    graphclassif = FALSE,
+    nbclust = -1) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("MFA requires jmvcore to be installed (restart may be required)")
@@ -320,16 +389,18 @@ MFA <- function(
         quantivar = quantivar,
         qualivar = qualivar,
         individus = individus,
+        tuto = tuto,
         nFactors = nFactors,
         groupdef = groupdef,
+        grouptype = grouptype,
         groupill = groupill,
         groupname = groupname,
-        grouptype = grouptype,
         proba = proba,
         abs = abs,
         ord = ord,
-        contivar = contivar,
-        catevar = catevar)
+        ncp = ncp,
+        graphclassif = graphclassif,
+        nbclust = nbclust)
 
     analysis <- MFAClass$new(
         options = options,

@@ -39,8 +39,13 @@ options:
     permitted:
       - factor
 
+  - name: tuto
+    title: Read me before running
+    type: Bool
+    default: true      
+
   - name: nbfact
-    title: Number of factors
+    title: Number of dimensions
     type: Integer
     default: 2
 
@@ -114,6 +119,25 @@ options:
     type: Bool
     default: false
 
+  - name: ncp
+    title: Number of components
+    type: Integer
+    default: 5
+
+  - name: graphclassif
+    title: Representation of the clusters
+    type: Bool
+    default: false
+
   - name: newvar
     title: Coordinates
+    type: Output
+
+  - name: nbclust
+    title: Number of clusters
+    type: Integer
+    default: -1
+
+  - name: newvar2
+    title: Cluster variable
     type: Output

@@ -10,6 +10,7 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             quantisup = NULL,
             qualisup = NULL,
             individus = NULL,
+            tuto = TRUE,
             nFactors = 2,
             abs = 1,
             ord = 2,
@@ -24,7 +25,10 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             varcos = FALSE,
             quantimod = FALSE,
             ventil = 5,
-            modality = "cos2 10", ...) {
+            modality = "cos2 10",
+            ncp = 5,
+            graphclassif = FALSE,
+            nbclust = -1, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -62,6 +66,10 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nominal"),
                 permitted=list(
                     "factor"))
+            private$..tuto <- jmvcore::OptionBool$new(
+                "tuto",
+                tuto,
+                default=TRUE)
             private$..nFactors <- jmvcore::OptionInteger$new(
                 "nFactors",
                 nFactors,
@@ -122,13 +130,28 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "modality",
                 modality,
                 default="cos2 10")
+            private$..ncp <- jmvcore::OptionInteger$new(
+                "ncp",
+                ncp,
+                default=5)
+            private$..graphclassif <- jmvcore::OptionBool$new(
+                "graphclassif",
+                graphclassif,
+                default=FALSE)
             private$..newvar <- jmvcore::OptionOutput$new(
                 "newvar")
+            private$..nbclust <- jmvcore::OptionInteger$new(
+                "nbclust",
+                nbclust,
+                default=-1)
+            private$..newvar2 <- jmvcore::OptionOutput$new(
+                "newvar2")
 
             self$.addOption(private$..actvars)
             self$.addOption(private$..quantisup)
             self$.addOption(private$..qualisup)
             self$.addOption(private$..individus)
+            self$.addOption(private$..tuto)
             self$.addOption(private$..nFactors)
             self$.addOption(private$..abs)
             self$.addOption(private$..ord)
@@ -144,13 +167,18 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..quantimod)
             self$.addOption(private$..ventil)
             self$.addOption(private$..modality)
+            self$.addOption(private$..ncp)
+            self$.addOption(private$..graphclassif)
             self$.addOption(private$..newvar)
+            self$.addOption(private$..nbclust)
+            self$.addOption(private$..newvar2)
         }),
     active = list(
         actvars = function() private$..actvars$value,
         quantisup = function() private$..quantisup$value,
         qualisup = function() private$..qualisup$value,
         individus = function() private$..individus$value,
+        tuto = function() private$..tuto$value,
         nFactors = function() private$..nFactors$value,
         abs = function() private$..abs$value,
         ord = function() private$..ord$value,
@@ -166,12 +194,17 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         quantimod = function() private$..quantimod$value,
         ventil = function() private$..ventil$value,
         modality = function() private$..modality$value,
-        newvar = function() private$..newvar$value),
+        ncp = function() private$..ncp$value,
+        graphclassif = function() private$..graphclassif$value,
+        newvar = function() private$..newvar$value,
+        nbclust = function() private$..nbclust$value,
+        newvar2 = function() private$..newvar2$value),
     private = list(
         ..actvars = NA,
         ..quantisup = NA,
         ..qualisup = NA,
         ..individus = NA,
+        ..tuto = NA,
         ..nFactors = NA,
         ..abs = NA,
         ..ord = NA,
@@ -187,13 +220,18 @@ MCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..quantimod = NA,
         ..ventil = NA,
         ..modality = NA,
-        ..newvar = NA)
+        ..ncp = NA,
+        ..graphclassif = NA,
+        ..newvar = NA,
+        ..nbclust = NA,
+        ..newvar2 = NA)
 )
 
 MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "MCAResults",
     inherit = jmvcore::Group,
     active = list(
+        instructions = function() private$.items[["instructions"]],
         plotindiv = function() private$.items[["plotindiv"]],
         plotvar = function() private$.items[["plotvar"]],
         plotitemvar = function() private$.items[["plotitemvar"]],
@@ -202,14 +240,24 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         dimdesc = function() private$.items[["dimdesc"]],
         individus = function() private$.items[["individus"]],
         variables = function() private$.items[["variables"]],
-        newvar = function() private$.items[["newvar"]]),
+        plotclassif = function() private$.items[["plotclassif"]],
+        newvar = function() private$.items[["newvar"]],
+        newvar2 = function() private$.items[["newvar2"]]),
     private = list(),
     public=list(
         initialize=function(options) {
             super$initialize(
                 options=options,
                 name="",
-                title="Results of the Multiple Correspondence Analysis")
+                title="Results of the Multiple Correspondence Analysis",
+                refs=list(
+                    "factominer",
+                    "explo"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="instructions",
+                title="Instructions",
+                visible="(tuto)"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotindiv",
@@ -274,7 +322,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="dimdesc",
-                title="Automatic Description of the Axes"))
+                title="Automatic Description of the Dimensions"))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -352,6 +400,14 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                 "actvars",
                                 "nFactors"),
                             columns=list()))}))$new(options=options))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotclassif",
+                title="Representation of the Rows According to Clusters",
+                visible="(graphclassif)",
+                width=700,
+                height=500,
+                renderFun=".plotclassif"))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar",
@@ -364,7 +420,20 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "qualisup",
                     "individus",
                     "nFactors",
-                    "ventil")))}))
+                    "ventil")))
+            self$add(jmvcore::Output$new(
+                options=options,
+                name="newvar2",
+                title="Coordinates",
+                measureType="continuous",
+                initInRun=TRUE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "nFactors",
+                    "norme")))}))
 
 MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "MCABase",
@@ -394,6 +463,7 @@ MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param quantisup .
 #' @param qualisup .
 #' @param individus .
+#' @param tuto .
 #' @param nFactors .
 #' @param abs .
 #' @param ord .
@@ -409,8 +479,12 @@ MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param quantimod .
 #' @param ventil .
 #' @param modality .
+#' @param ncp .
+#' @param graphclassif .
+#' @param nbclust .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotindiv} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotitemvar} \tab \tab \tab \tab \tab an image \cr
@@ -423,7 +497,9 @@ MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$variables$coordonnees} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$contribution} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$cosinus} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$plotclassif} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
+#'   \code{results$newvar2} \tab \tab \tab \tab \tab an output \cr
 #' }
 #'
 #' @export
@@ -433,6 +509,7 @@ MCA <- function(
     quantisup,
     qualisup,
     individus,
+    tuto = TRUE,
     nFactors = 2,
     abs = 1,
     ord = 2,
@@ -447,7 +524,10 @@ MCA <- function(
     varcos = FALSE,
     quantimod = FALSE,
     ventil = 5,
-    modality = "cos2 10") {
+    modality = "cos2 10",
+    ncp = 5,
+    graphclassif = FALSE,
+    nbclust = -1) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("MCA requires jmvcore to be installed (restart may be required)")
@@ -473,6 +553,7 @@ MCA <- function(
         quantisup = quantisup,
         qualisup = qualisup,
         individus = individus,
+        tuto = tuto,
         nFactors = nFactors,
         abs = abs,
         ord = ord,
@@ -487,7 +568,10 @@ MCA <- function(
         varcos = varcos,
         quantimod = quantimod,
         ventil = ventil,
-        modality = modality)
+        modality = modality,
+        ncp = ncp,
+        graphclassif = graphclassif,
+        nbclust = nbclust)
 
     analysis <- MCAClass$new(
         options = options,

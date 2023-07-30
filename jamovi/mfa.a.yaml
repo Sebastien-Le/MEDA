@@ -39,30 +39,35 @@ options:
     permitted:
       - factor
 
+  - name: tuto
+    title: Read me before running
+    type: Bool
+    default: true
+
   - name: nFactors
-    title: Number of factors
+    title: Number of dimensions
     type: Integer
     default: 2
 
   - name: groupdef
     title: Groups definition
     type: String
-    default: "Ex: 2,3"
-
-  - name: groupill
-    title: Supplementary groups
-    type: String
-    default: "Ex: 2,3"
-
-  - name: groupname
-    title: Groups name
-    type: String
-    default: "Ex: senso,physico"  
+    default: "Ex: 5,3,10,9,2,2"
 
   - name: grouptype
     title: Groups type
     type: String
-    default: "Ex: s,n"
+    default: "Ex: s,s,s,s,s,n"
+
+  - name: groupill
+    title: Supplementary groups
+    type: String
+    default: "Ex: 5,6"
+
+  - name: groupname
+    title: Groups name
+    type: String
+    default: "Ex: olf,vis,olfag,gust,ens,orig"
 
   - name: proba
     title: Significance threshold (%)
@@ -79,16 +84,25 @@ options:
     type: Integer
     default: 2
 
-  - name: contivar
-    title: Continuous variables (if "s")
-    type: Bool
-    default: false
-
-  - name: catevar
-    title: Categorical variables (if "n")
-    type: Bool
-    default: false
+  - name: ncp
+    title: Number of components
+    type: Integer
+    default: 5
 
   - name: newvar
     title: Coordinates
+    type: Output
+
+  - name: graphclassif
+    title: Representation of the clusters
+    type: Bool
+    default: false
+
+  - name: nbclust
+    title: Number of clusters
+    type: Integer
+    default: -1
+
+  - name: newvar2
+    title: Cluster variable
     type: Output

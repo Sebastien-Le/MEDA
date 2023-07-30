@@ -47,10 +47,10 @@ options:
     permitted:
       - factor
 
-  - name: nFactors
-    title: Number of factors
-    type: Integer
-    default: 2
+  - name: tuto
+    title: Read me before running
+    type: Bool
+    default: true
 
   - name: norme
     title: Scale to unit variance
@@ -92,6 +92,11 @@ options:
     type: Number
     default: 5
 
+  - name: nFactors
+    title: Number of dimensions
+    type: Integer
+    default: 2
+
   - name: abs
     title: X-axis
     type: Integer
@@ -112,7 +117,7 @@ options:
     type: Bool
     default: true
 
-  - name: modact
+  - name: indact
     title: Individuals
     type: Bool
     default: true
@@ -125,7 +130,26 @@ options:
   - name: habillage
     title: Grouping variable
     type: Integer
+
+  - name: ncp
+    title: Number of components
+    type: Integer
+    default: 5
   
   - name: newvar
     title: Coordinates
+    type: Output
+
+  - name: graphclassif
+    title: Representation of the clusters
+    type: Bool
+    default: false    
+
+  - name: nbclust
+    title: Number of clusters
+    type: Integer
+    default: -1
+
+  - name: newvar2
+    title: Cluster variable
     type: Output

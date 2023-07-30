@@ -2,15 +2,23 @@
 name: catdes
 title: Results of the Variable Description
 jrs: '1.1'
+refs: 
+    - factominer
+    - explo
 
 items:
+  - name: instructions
+    title: Instructions
+    visible: (tuto)
+    type: Html
+    
   - name: chigroup
     title: Chi-Squared Test
     type: Group
     visible: false
     items:
       - name: chi
-        title: Link Between the Cluster Variable and the Categorical Variables
+        title: Link Between the 'Cluster' Variable and the Categorical Variables
         type: Table
         columns:
           - name: varchi
@@ -30,7 +38,7 @@ items:
     visible: false
     items:
       - name: categquali
-        title: Description of Each Cluster by the Categories
+        title: Description of Each 'Cluster' by the Categories
         type: Table
         columns:
           - name: varcateg
@@ -56,6 +64,21 @@ items:
           - name: vtest
             title: Vtest
             type: number
+      - name: qualir2
+        title: Link with the Qualitative Variables
+        type: Table
+        columns:
+          - name: varr2
+            title: ''
+            type: text
+          - name: r2
+            title: R²
+            type: number
+            format: zto
+          - name: r2pvalue
+            title: p
+            type: number
+            format: zto,pvalue      
       - name: categquanti
         title: Description of the Quantitative Variable by the Categories
         type: Table
@@ -74,29 +97,14 @@ items:
             title: p
             type: number
             format: zto,pvalue
-      - name: qualir2
-        title: Link with the Qualitative Variables
-        type: Table
-        columns:
-          - name: varr2
-            title: ''
-            type: text
-          - name: r2
-            title: R²
-            type: number
-            format: zto
-          - name: r2pvalue
-            title: p
-            type: number
-            format: zto,pvalue
-
+      
   - name: qtvargroup
     title: Global Description by the Quantitative Variables
     type: Group
     visible: false
     items:
       - name: qtvar
-        title: Link Between the Cluster Variable and the Quantitative Variables
+        title: Link Between the 'Cluster' Variable and the Quantitative Variables
         type: Table
         columns:
           - name: varqtvar
@@ -116,7 +124,7 @@ items:
     visible: false
     items:
       - name: qt
-        title: Description of Each Cluster by the Quantative Variables
+        title: Description of Each 'Cluster' by the Quantative Variables
         type: Table
         columns:
           - name: varqt

@@ -2,8 +2,16 @@
 name: MCA
 title: Results of the Multiple Correspondence Analysis
 jrs: '1.1'
+refs: 
+    - factominer
+    - explo
 
 items:
+  - name: instructions
+    title: Instructions
+    visible: (tuto)
+    type: Html
+
   - name: plotindiv
     title: Representation of the Individuals
     type: Image
@@ -55,7 +63,7 @@ items:
             type: number
 
   - name: dimdesc
-    title: Automatic Description of the Axes
+    title: Automatic Description of the Dimensions
     type: Preformatted
 
   - name: individus
@@ -116,7 +124,15 @@ items:
           - actvars
           - nFactors
         columns: []
-  
+
+  - name: plotclassif
+    title: Representation of the Rows According to Clusters
+    visible: (graphclassif)
+    type: Image
+    width: 700
+    height: 500
+    renderFun: .plotclassif
+
   - name: newvar
     type: Output
     title: Coordinates
@@ -129,3 +145,16 @@ items:
       - individus
       - nFactors
       - ventil
+
+  - name: newvar2
+    type: Output
+    title: Coordinates
+    measureType: continuous
+    initInRun: true
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - nFactors
+      - norme

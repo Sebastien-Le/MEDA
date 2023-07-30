@@ -33,6 +33,11 @@ options:
       - numeric
       - factor
 
+  - name: tuto
+    title: Read me before running
+    type: Bool
+    default: true      
+
   - name: threshold
     title: Significance threshold (%)
     type: Number

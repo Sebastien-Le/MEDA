@@ -10,7 +10,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             quantisup = NULL,
             qualisup = NULL,
             individus = NULL,
-            nFactors = 2,
+            tuto = TRUE,
             norme = TRUE,
             coordvar = FALSE,
             contribvar = FALSE,
@@ -19,13 +19,17 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             contribind = FALSE,
             cosind = FALSE,
             proba = 5,
+            nFactors = 2,
             abs = 1,
             ord = 2,
             varact = TRUE,
             varillus = TRUE,
-            modact = TRUE,
+            indact = TRUE,
             modillus = TRUE,
-            habillage = NULL, ...) {
+            habillage = NULL,
+            ncp = 5,
+            graphclassif = FALSE,
+            nbclust = -1, ...) {
 
             super$initialize(
                 package="MEDA",
@@ -62,10 +66,10 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nominal"),
                 permitted=list(
                     "factor"))
-            private$..nFactors <- jmvcore::OptionInteger$new(
-                "nFactors",
-                nFactors,
-                default=2)
+            private$..tuto <- jmvcore::OptionBool$new(
+                "tuto",
+                tuto,
+                default=TRUE)
             private$..norme <- jmvcore::OptionBool$new(
                 "norme",
                 norme,
@@ -98,6 +102,10 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "proba",
                 proba,
                 default=5)
+            private$..nFactors <- jmvcore::OptionInteger$new(
+                "nFactors",
+                nFactors,
+                default=2)
             private$..abs <- jmvcore::OptionInteger$new(
                 "abs",
                 abs,
@@ -114,9 +122,9 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "varillus",
                 varillus,
                 default=TRUE)
-            private$..modact <- jmvcore::OptionBool$new(
-                "modact",
-                modact,
+            private$..indact <- jmvcore::OptionBool$new(
+                "indact",
+                indact,
                 default=TRUE)
             private$..modillus <- jmvcore::OptionBool$new(
                 "modillus",
@@ -125,14 +133,28 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..habillage <- jmvcore::OptionInteger$new(
                 "habillage",
                 habillage)
+            private$..ncp <- jmvcore::OptionInteger$new(
+                "ncp",
+                ncp,
+                default=5)
             private$..newvar <- jmvcore::OptionOutput$new(
                 "newvar")
+            private$..graphclassif <- jmvcore::OptionBool$new(
+                "graphclassif",
+                graphclassif,
+                default=FALSE)
+            private$..nbclust <- jmvcore::OptionInteger$new(
+                "nbclust",
+                nbclust,
+                default=-1)
+            private$..newvar2 <- jmvcore::OptionOutput$new(
+                "newvar2")
 
             self$.addOption(private$..actvars)
             self$.addOption(private$..quantisup)
             self$.addOption(private$..qualisup)
             self$.addOption(private$..individus)
-            self$.addOption(private$..nFactors)
+            self$.addOption(private$..tuto)
             self$.addOption(private$..norme)
             self$.addOption(private$..coordvar)
             self$.addOption(private$..contribvar)
@@ -141,21 +163,26 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..contribind)
             self$.addOption(private$..cosind)
             self$.addOption(private$..proba)
+            self$.addOption(private$..nFactors)
             self$.addOption(private$..abs)
             self$.addOption(private$..ord)
             self$.addOption(private$..varact)
             self$.addOption(private$..varillus)
-            self$.addOption(private$..modact)
+            self$.addOption(private$..indact)
             self$.addOption(private$..modillus)
             self$.addOption(private$..habillage)
+            self$.addOption(private$..ncp)
             self$.addOption(private$..newvar)
+            self$.addOption(private$..graphclassif)
+            self$.addOption(private$..nbclust)
+            self$.addOption(private$..newvar2)
         }),
     active = list(
         actvars = function() private$..actvars$value,
         quantisup = function() private$..quantisup$value,
         qualisup = function() private$..qualisup$value,
         individus = function() private$..individus$value,
-        nFactors = function() private$..nFactors$value,
+        tuto = function() private$..tuto$value,
         norme = function() private$..norme$value,
         coordvar = function() private$..coordvar$value,
         contribvar = function() private$..contribvar$value,
@@ -164,20 +191,25 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         contribind = function() private$..contribind$value,
         cosind = function() private$..cosind$value,
         proba = function() private$..proba$value,
+        nFactors = function() private$..nFactors$value,
         abs = function() private$..abs$value,
         ord = function() private$..ord$value,
         varact = function() private$..varact$value,
         varillus = function() private$..varillus$value,
-        modact = function() private$..modact$value,
+        indact = function() private$..indact$value,
         modillus = function() private$..modillus$value,
         habillage = function() private$..habillage$value,
-        newvar = function() private$..newvar$value),
+        ncp = function() private$..ncp$value,
+        newvar = function() private$..newvar$value,
+        graphclassif = function() private$..graphclassif$value,
+        nbclust = function() private$..nbclust$value,
+        newvar2 = function() private$..newvar2$value),
     private = list(
         ..actvars = NA,
         ..quantisup = NA,
         ..qualisup = NA,
         ..individus = NA,
-        ..nFactors = NA,
+        ..tuto = NA,
         ..norme = NA,
         ..coordvar = NA,
         ..contribvar = NA,
@@ -186,34 +218,50 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..contribind = NA,
         ..cosind = NA,
         ..proba = NA,
+        ..nFactors = NA,
         ..abs = NA,
         ..ord = NA,
         ..varact = NA,
         ..varillus = NA,
-        ..modact = NA,
+        ..indact = NA,
         ..modillus = NA,
         ..habillage = NA,
-        ..newvar = NA)
+        ..ncp = NA,
+        ..newvar = NA,
+        ..graphclassif = NA,
+        ..nbclust = NA,
+        ..newvar2 = NA)
 )
 
 PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "PCAResults",
     inherit = jmvcore::Group,
     active = list(
+        instructions = function() private$.items[["instructions"]],
         plotind = function() private$.items[["plotind"]],
         plotvar = function() private$.items[["plotvar"]],
         eigengroup = function() private$.items[["eigengroup"]],
         descdesdim = function() private$.items[["descdesdim"]],
         individus = function() private$.items[["individus"]],
         variables = function() private$.items[["variables"]],
-        newvar = function() private$.items[["newvar"]]),
+        plotclassif = function() private$.items[["plotclassif"]],
+        newvar = function() private$.items[["newvar"]],
+        newvar2 = function() private$.items[["newvar2"]]),
     private = list(),
     public=list(
         initialize=function(options) {
             super$initialize(
                 options=options,
                 name="",
-                title="Results of the Principal Component Analysis")
+                title="Results of the Principal Component Analysis",
+                refs=list(
+                    "factominer",
+                    "explo"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="instructions",
+                title="Instructions",
+                visible="(tuto)"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotind",
@@ -263,7 +311,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="descdesdim",
-                title="Automatic Description of the Axes"))
+                title="Automatic Description of the Dimensions"))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -338,9 +386,30 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             clearWith=list(
                                 "nFactors"),
                             columns=list()))}))$new(options=options))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotclassif",
+                title="Representation of the Individuals According to Clusters",
+                visible="(graphclassif)",
+                width=800,
+                height=600,
+                renderFun=".plotclassif"))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar",
+                title="Coordinates",
+                measureType="continuous",
+                initInRun=TRUE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "nFactors",
+                    "norme")))
+            self$add(jmvcore::Output$new(
+                options=options,
+                name="newvar2",
                 title="Coordinates",
                 measureType="continuous",
                 initInRun=TRUE,
@@ -380,7 +449,7 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param quantisup .
 #' @param qualisup .
 #' @param individus .
-#' @param nFactors .
+#' @param tuto .
 #' @param norme .
 #' @param coordvar .
 #' @param contribvar .
@@ -389,15 +458,20 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param contribind .
 #' @param cosind .
 #' @param proba .
+#' @param nFactors .
 #' @param abs .
 #' @param ord .
 #' @param varact .
 #' @param varillus .
-#' @param modact .
+#' @param indact .
 #' @param modillus .
 #' @param habillage .
+#' @param ncp .
+#' @param graphclassif .
+#' @param nbclust .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotind} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$eigengroup$eigen} \tab \tab \tab \tab \tab a table \cr
@@ -408,7 +482,9 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$variables$coordonnees} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$contribution} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$variables$cosinus} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$plotclassif} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
+#'   \code{results$newvar2} \tab \tab \tab \tab \tab an output \cr
 #' }
 #'
 #' @export
@@ -418,7 +494,7 @@ PCA <- function(
     quantisup,
     qualisup,
     individus,
-    nFactors = 2,
+    tuto = TRUE,
     norme = TRUE,
     coordvar = FALSE,
     contribvar = FALSE,
@@ -427,13 +503,17 @@ PCA <- function(
     contribind = FALSE,
     cosind = FALSE,
     proba = 5,
+    nFactors = 2,
     abs = 1,
     ord = 2,
     varact = TRUE,
     varillus = TRUE,
-    modact = TRUE,
+    indact = TRUE,
     modillus = TRUE,
-    habillage) {
+    habillage,
+    ncp = 5,
+    graphclassif = FALSE,
+    nbclust = -1) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("PCA requires jmvcore to be installed (restart may be required)")
@@ -458,7 +538,7 @@ PCA <- function(
         quantisup = quantisup,
         qualisup = qualisup,
         individus = individus,
-        nFactors = nFactors,
+        tuto = tuto,
         norme = norme,
         coordvar = coordvar,
         contribvar = contribvar,
@@ -467,13 +547,17 @@ PCA <- function(
         contribind = contribind,
         cosind = cosind,
         proba = proba,
+        nFactors = nFactors,
         abs = abs,
         ord = ord,
         varact = varact,
         varillus = varillus,
-        modact = modact,
+        indact = indact,
         modillus = modillus,
-        habillage = habillage)
+        habillage = habillage,
+        ncp = ncp,
+        graphclassif = graphclassif,
+        nbclust = nbclust)
 
     analysis <- PCAClass$new(
         options = options,
