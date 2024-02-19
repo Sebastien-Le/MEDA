@@ -1,7 +1,7 @@
 ---
 title: Multivariate Exploratory Data Analysis
 name: MEDA
-version: 1.0.0
+version: 1.5.0
 jms: '1.0'
 authors:
   - Thomas Leblay
@@ -9,18 +9,19 @@ authors:
   - Maxime Saland
   - Maïwen Faure
   - Sébastien Lê
-maintainer: sebastien.le@agrocampus-ouest.fr
-date: '2021-06-03'
+maintainer: Sébastien Lê <sebastien.le@agrocampus-ouest.fr>
+date: '2023-26-07'
 type: R
 description: >-
   This module allows you to perform multivariate exploratory analyses the French
   way. In other words, you will be able to add supplementary information for a
   better understanding of your results. Four main methods have been implemented:
   Principal Component Analysis, Correspondence Analysis, Multiple Correspondence
-  Analysis and Multiple Factor Analysis. You can also get an automatic
-  description of a variable based on the other variables of the dataset
-  (categorical/quantitative). Results are obtained thanks to the FactoMineR
-  package. These analyses are described in the <a
+  Analysis and Multiple Factor Analysis. After running these 4 methods,
+  unsupervised clustering can also be performed on the compoenents. You can also
+  get an automatic description of a variable based on the other variables of the
+  dataset (categorical/quantitative). Results are obtained thanks to the
+  FactoMineR package. These analyses are described in the <a
   href="https://sebastien-le.github.io/medasite/index.html" target="_blank">MEDA
   website</a>.
 analyses:
@@ -79,7 +80,7 @@ datasets:
     description: Textual description of beards
     tags:
       - CA
-      - descfreq
+      - textual
   - name: decathlon
     path: decathlon.omv
     description: Athletes'performances at the decathlon

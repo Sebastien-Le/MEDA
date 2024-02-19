@@ -5,6 +5,57 @@ textualClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     "textualClass",
     inherit = textualBase,
     private = list(
+    #---------------------------------------------  
+    #### Init + run functions ----
+
+        .init = function() {
+            if (is.null(self$options$words)) {
+              if (self$options$tuto==TRUE){
+                self$results$instructions$setVisible(visible = TRUE)
+              }
+            }
+            
+            self$results$instructions$setContent(
+            "<html>
+            <head>
+            </head>
+            <body>
+            <div class='justified-text'>
+            <p><b>What you should know before analyzing textual data in jamovi</b></p>
+            <p>______________________________________________________________________________</p>
+            <p> The MEDA module allows for basic textual data analysis, where observations are described 
+            by a qualitative variable and words separated by semicolons.</p>
+
+            <p> The aim is to characterise the qualitative variable by identifying the words that represent and distinguish 
+            its different categories or modalities. This analysis provides valuable insights into the unique 
+            terms associated with each category, thereby enhancing our understanding of the data and its patterns.</p>
+
+            <p> Open the <b>beard_description</b> dataset. This dataset contains descriptions of a set of 
+            8 beard pictures provided by various assessors using words. In this dataset, the variable 
+            that needs to be characterized or analyzed is the Stimuli variable, which represents the beard pictures. 
+            The descriptions provided by the assessors are stored in the Description variable. 
+            The goal of the analysis is to understand and characterize the different beard stimuli 
+            based on the words used in the Description variable.</p>
+
+            <p> The first result proposed by the interface allows to identify 2 thresholds on the basis of which words are selected.
+            Once these thresholds have been chosen by the user, 2 results are proposed. 
+            The first is an analysis of the characteristic words for each modality, either over- or under-represented. 
+            The second is a graphical representation of the modalities and words resulting from correspondence analysis.</p>
+
+            <p> By default, the 2 thresholds are set to 0, <I>i.e.</I> all words are retained. 
+            If you set the Lowest frequency words field to 3, you will see that Beard 3 has been associated with words such as hipster, and on the contrary, 
+            the word young has not been used to characterise this beard.</p>
+
+
+            <p>______________________________________________________________________________</p>
+            
+            </div>
+            </body>
+            </html>"
+            )
+            
+        },
+
       .run = function() {
         
         if (is.null(self$options$individuals) || is.null(self$options$words)) 

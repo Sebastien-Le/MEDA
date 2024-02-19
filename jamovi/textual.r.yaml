@@ -2,8 +2,16 @@
 name: textual
 title: Results of the Categorical Variable Description
 jrs: '1.1'
+refs: 
+    - factominer
+    - explo
 
 items:
+  - name: instructions
+    title: Instructions
+    visible: (tuto)
+    type: Html
+    
   - name: tc
     title: Words and their Occurrences
     type: Preformatted

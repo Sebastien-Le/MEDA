@@ -38,6 +38,16 @@ children:
     stretchFactor: 1
     children:
       - type: Label
+        label: Instructions
+        stretchFactor: 1
+        children:
+          - type: CheckBox
+            name: tuto                        
+  - type: LayoutBox
+    margin: large
+    stretchFactor: 1
+    children:
+      - type: Label
         label: Random Assignment for Rare Categories
         stretchFactor: 1
         children:
@@ -83,6 +93,7 @@ children:
                 name: varmodvar
               - type: TextBox
                 name: modality
+                stretchFactor: 2
                 format: string
               - type: CheckBox
                 name: varmodqualisup
@@ -101,7 +112,7 @@ children:
         stretchFactor: 1
         children:
           - type: Label
-            label: Automatic Description of the Axis
+            label: Automatic Description of the Dimensions
             children:
               - type: Label
                 label: ''
@@ -152,9 +163,63 @@ children:
           - type: Label
             label: Save
             children:
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: ncp
+                    format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: Output
+                    name: newvar     
+  - type: LayoutBox
+    margin: large
+    stretchFactor: 1
+    children:
+      - type: CollapseBox
+        label: Clustering
+        stretchFactor: 1
+        collapsed: true
+        children:
+          - type: Label
+            label: Clustering Graphic Options
+            children:
+              - type: Label
+                label: ''
+                cell:
+                  column: 0
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: CheckBox
+                    name: graphclassif
+                    format: number
+              - type: Label
+                label: ''
+                cell:
+                  column: 1
+                  row: 0
+                stretchFactor: 1
+                children:
+                  - type: TextBox
+                    name: nbclust
+                    format: number
+          - type: Label
+            label: Save
+            children:
               - type: LayoutBox
                 margin: large
                 stretchFactor: 1
                 children:
                   - type: Output
-                    name: newvar          
+                    name: newvar2      

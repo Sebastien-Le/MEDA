@@ -2,8 +2,16 @@
 name: PCA
 title: Results of the Principal Component Analysis
 jrs: '1.1'
+refs: 
+    - factominer
+    - explo
 
 items:
+  - name: instructions
+    title: Instructions
+    visible: (tuto)
+    type: Html
+  
   - name: plotind
     title: Representation of the Individuals (and the Categories)
     type: Image
@@ -40,7 +48,11 @@ items:
             type: number
 
   - name: descdesdim
-    title: Automatic Description of the Axes
+    title: Automatic Description of the Dimensions
+    type: Preformatted
+
+  - name: code
+    title: R code
     type: Preformatted
 
   - name: individus
@@ -98,7 +110,29 @@ items:
         clearWith:
           - nFactors
         columns: []
+  
+  - name: plotclassif
+    title: Representation of the Individuals According to Clusters
+    visible: (graphclassif)
+    type: Image
+    width: 800
+    height: 600
+    renderFun: .plotclassif
+
   - name: newvar
+    type: Output
+    title: Coordinates
+    measureType: continuous
+    initInRun: true
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - nFactors
+      - norme
+
+  - name: newvar2
     type: Output
     title: Coordinates
     measureType: continuous

@@ -1,10 +1,17 @@
 ---
 name: CA
 title: Results of the Correspondence Analysis
-
 jrs: '1.1'
+refs: 
+    - factominer
+    - explo
 
 items:
+  - name: instructions
+    title: Instructions
+    visible: (tuto)
+    type: Html
+    
   - name: plotirow
     title: Representation of the Rows
     type: Image
@@ -68,7 +75,7 @@ items:
             type: number
 
   - name: descofdimgroup
-    title: Automatic Description of the Axes
+    title: Automatic Description of the Dimensions
     type: Group
     items:
       - name: descofdim
@@ -89,6 +96,10 @@ items:
           - name: coord
             title: Coordinate
             type: number
+
+  - name: code
+    title: R code
+    type: Preformatted              
 
   - name: rowgroup
     title: Row Tables
@@ -146,6 +157,14 @@ items:
           - nbfact
         columns: []
 
+  - name: plotclassif
+    title: Representation of the Rows According to Clusters
+    visible: (graphclassif)
+    type: Image
+    width: 600
+    height: 500
+    renderFun: .plotclassif
+
   - name: newvar
     type: Output
     title: Coordinates
@@ -156,3 +175,16 @@ items:
       - illustrativecol
       - indiv
       - nbfact
+
+  - name: newvar2
+    type: Output
+    title: Coordinates
+    measureType: continuous
+    initInRun: true
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - nFactors
+      - norme

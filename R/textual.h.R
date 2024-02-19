@@ -8,6 +8,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             individuals = NULL,
             words = NULL,
+            tuto = TRUE,
             thres = 5,
             lowfreq = 0,
             highfreq = 0, ...) {
@@ -28,6 +29,10 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..words <- jmvcore::OptionVariable$new(
                 "words",
                 words)
+            private$..tuto <- jmvcore::OptionBool$new(
+                "tuto",
+                tuto,
+                default=TRUE)
             private$..thres <- jmvcore::OptionNumber$new(
                 "thres",
                 thres,
@@ -43,6 +48,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 
             self$.addOption(private$..individuals)
             self$.addOption(private$..words)
+            self$.addOption(private$..tuto)
             self$.addOption(private$..thres)
             self$.addOption(private$..lowfreq)
             self$.addOption(private$..highfreq)
@@ -50,12 +56,14 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     active = list(
         individuals = function() private$..individuals$value,
         words = function() private$..words$value,
+        tuto = function() private$..tuto$value,
         thres = function() private$..thres$value,
         lowfreq = function() private$..lowfreq$value,
         highfreq = function() private$..highfreq$value),
     private = list(
         ..individuals = NA,
         ..words = NA,
+        ..tuto = NA,
         ..thres = NA,
         ..lowfreq = NA,
         ..highfreq = NA)
@@ -65,6 +73,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "textualResults",
     inherit = jmvcore::Group,
     active = list(
+        instructions = function() private$.items[["instructions"]],
         tc = function() private$.items[["tc"]],
         textualgroup = function() private$.items[["textualgroup"]],
         chideuxgroup = function() private$.items[["chideuxgroup"]],
@@ -76,7 +85,15 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 options=options,
                 name="",
-                title="Results of the Categorical Variable Description")
+                title="Results of the Categorical Variable Description",
+                refs=list(
+                    "factominer",
+                    "explo"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="instructions",
+                title="Instructions",
+                visible="(tuto)"))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="tc",
@@ -218,11 +235,13 @@ textualBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param data .
 #' @param individuals .
 #' @param words .
+#' @param tuto .
 #' @param thres .
 #' @param lowfreq .
 #' @param highfreq .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$tc} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$textualgroup$textual} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$chideuxgroup$chideux} \tab \tab \tab \tab \tab a table \cr
@@ -235,6 +254,7 @@ textual <- function(
     data,
     individuals,
     words,
+    tuto = TRUE,
     thres = 5,
     lowfreq = 0,
     highfreq = 0) {
@@ -255,6 +275,7 @@ textual <- function(
     options <- textualOptions$new(
         individuals = individuals,
         words = words,
+        tuto = tuto,
         thres = thres,
         lowfreq = lowfreq,
         highfreq = highfreq)

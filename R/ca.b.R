@@ -3,10 +3,65 @@
 CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     "CAClass",
     inherit = CABase,
+    active = list(
+    nbclust = function() {
+            if (is.null(private$.nbclust))
+                private$.nbclust <- private$.computeNbclust()
+
+            return(private$.nbclust)
+        }
+    ),
+    
     private = list(
 
+      .nbclust = NULL,
 
-      #### Init + run functions ----
+    #---------------------------------------------  
+    #### Init + run functions ----
+
+      .init = function() {
+            if (is.null(self$options$activecol)) {
+              if (self$options$tuto==TRUE){
+                self$results$instructions$setVisible(visible = TRUE)
+              }
+            }
+            
+            self$results$instructions$setContent(
+            "<html>
+            <head>
+            </head>
+            <body>
+            <div class='justified-text'>
+            <p><b>What you should know before running a CA in jamovi</b></p>
+            <p>______________________________________________________________________________</p>
+            <p> Correspondence Analysis (CA) is a multivariate statistical technique used to analyze 
+            the associations between two categorical variables. It is often applied to explore and visualize 
+            the relationships between the rows and columns of a contingency table, revealing a structure of association and disassociation.</p>
+
+            <p> The interpretation of the CA plot allows to identify which categories of variables 
+            tend to co-occur or are associated with each other and which ones are relatively 
+            independent or disassociated. This knowledge can provide valuable insights into the underlying 
+            relationships between the two categorical variables of interest.</p>
+
+            <p> While the <I>Active Columns</I> field is <B>mandatory</B>, the <I>Supplementary Columns</I> field is <B>optional</B>. 
+            However, if you have supplementary columns, they may be essential for interpreting the structure of association.</p>
+
+            <p> Clustering is based on the number of components saved. 
+            By default, clustering is based on the first 5 components, 
+            <I>i.e.</I> the distance between individuals is calculated on these 5 components.</p>
+
+            <p> By default, the <I>Number of clusters</I> field is set to -1 which means that the number of clusters 
+            is automatically chosen by the computer.</p>
+                        
+            <p>______________________________________________________________________________</p>
+            
+            </div>
+            </body>
+            </html>"
+            )
+            
+        },
+
       .run = function() {
 
         ready <- TRUE
@@ -20,10 +75,15 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
           data <- private$.buildData()
           res.ca <- private$.CA(data)
+          res.classif <- private$.classif(res.ca)
           res.xsq <- private$.chisq(data)
 
           private$.chideux(res.xsq)
           tab = private$.dimdesc(res.ca)
+
+          code <- private$.code(res.ca)
+          self$results$code$setContent(code)
+
           private$.dodTable(tab)
           private$.printeigenTable(res.ca)
           private$.printTables(res.ca, "coord")
@@ -38,13 +98,24 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
           imageell = self$results$plotell
           imageell$setState(res.ca)
+
+          if (self$options$graphclassif==TRUE){
+          imageclass = self$results$plotclassif
+          imageclass$setState(res.classif)
+          }
           
           private$.output(res.ca)
+          private$.output2(res.classif)
 
         }
       },
 
       #### Compute results ----
+      .computeNbclust = function() {
+          nbclust <- self$options$nbclust
+          return(nbclust)
+      },
+      
       .CA = function(data) {
 
         actcol_gui=self$options$activecol
@@ -52,14 +123,45 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         nbfact_gui=self$options$nbfact
 
         if (is.null(illucol_gui) == FALSE) {
-          FactoMineR::CA(data, ncp = nbfact_gui,
+          FactoMineR::CA(data, ncp = self$options$ncp,
                         col.sup=(length(actcol_gui)+1):(length(actcol_gui)+length(illucol_gui)),
                         graph=FALSE)
         }
         else {
-          FactoMineR::CA(data, ncp = nbfact_gui, graph=FALSE)
+          FactoMineR::CA(data, ncp = self$options$ncp, graph=FALSE)
         }
 
+      },
+
+      .code = function(table) {
+
+        actcol_gui=self$options$activecol
+        illucol_gui=self$options$illustrativecol
+        nbfact_gui=self$options$nbfact
+
+        if (is.null(illucol_gui) == FALSE) {
+          #FactoMineR::CA(data, ncp = self$options$ncp,
+          #              col.sup=(length(actcol_gui)+1):(length(actcol_gui)+length(illucol_gui)),
+          #              graph=FALSE)
+          names_var <- paste(names(table$call$Xtot), collapse = ", ")
+          data <- paste("data_CA <- data[ ,c(",names_var,")]",sep="")
+          code <- paste("CA(data_CA, col.sup=",(length(actcol_gui)+1),":",(length(actcol_gui)+length(illucol_gui)),", ncp=",self$options$ncp,")",sep="")
+          a <- list("dataset"=data,"R code"=code)
+          print(a)
+
+        }
+        else {
+          #FactoMineR::CA(data, ncp = self$options$ncp, graph=FALSE)
+          names_var <- paste(names(table$call$Xtot), collapse = ", ")
+          data <- paste("data_CA <- data[ ,c(",names_var,")]",sep="")
+          code <- paste("CA(data_CA, ncp=",self$options$ncp,")",sep="")
+          a <- list("dataset"=data,"R code"=code)
+          print(a)
+        }
+      },
+
+      .classif = function(res) {
+          FactoMineR::HCPC(res,nb.clust=self$nbclust,graph=F)
       },
 
       .chisq = function(data) {
@@ -239,10 +341,10 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           res.ca=image$state
 
           if (addillucol == TRUE)
-            plot=plot.CA(res.ca, axes=c(abs_gui, ord_gui),
+            plot=FactoMineR::plot.CA(res.ca, axes=c(abs_gui, ord_gui),
                          selectCol=fcol, selectRow=frow, invisible="row", title = "Representation of the Columns")
           else
-            plot=plot.CA(res.ca, axes=c(abs_gui, ord_gui),
+            plot=FactoMineR::plot.CA(res.ca, axes=c(abs_gui, ord_gui),
                          selectCol=fcol, selectRow=frow, invisible=c("row","col.sup"), title = "Representation of the Columns")
 
           print(plot)
@@ -262,7 +364,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
           res.ca=image$state
 
-            plot=plot.CA(res.ca, axes=c(abs_gui, ord_gui),
+            plot=FactoMineR::plot.CA(res.ca, axes=c(abs_gui, ord_gui),
                          selectCol=fcol, selectRow=frow, invisible=c("col","col.sup"), title = "Representation of the Rows")
 
           print(plot)
@@ -303,8 +405,23 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
                            ellipse=c("row"), col.row="blue", col.col="red", invisible=adc, title = "Representation of the Ellipses for the Rows")
 
           else
-            plot=plot.CA(res.ca, axes=c(abs_gui, ord_gui), selectCol=fcol, selectRow=frow, invisible=adc, title = "Superimposed Representation of the Rows and the Columns")
+            plot=FactoMineR::plot.CA(res.ca, axes=c(abs_gui, ord_gui), selectCol=fcol, selectRow=frow, invisible=adc, title = "Superimposed Representation of the Rows and the Columns")
 
+          print(plot)
+          TRUE
+        }
+      },
+
+      .plotclassif= function(image, ...){
+
+        if (is.null(self$options$activecol)) return()
+
+        else {
+          abs_gui=self$options$abs
+          ord_gui=self$options$ord
+
+          res.classif=image$state
+          plot=FactoMineR::plot.HCPC(res.classif, axes=c(abs_gui, ord_gui), choice="map", draw.tree = F, title="Representation of the Rows According to Clusters")
           print(plot)
           TRUE
         }
@@ -318,9 +435,10 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       },
       
       .output = function(res.ca) {
+        nFactors_out <- min(self$options$ncp,dim(res.ca)[1])
         if (self$results$newvar$isNotFilled()) {
-          keys <- 1:self$options$nbfact
-          measureTypes <- rep("continuous", self$options$nbfact)
+          keys <- 1:nFactors_out
+          measureTypes <- rep("continuous", nFactors_out)
           titles <- paste(("Dim."), keys)
           descriptions <- character(length(keys))
           self$results$newvar$set(
@@ -329,11 +447,30 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             descriptions=descriptions,
             measureTypes=measureTypes
           )
-          for (i in 1:self$options$nbfact) {
+          for (i in 1:nFactors_out) {
             scores <- as.numeric(res.ca$row$coord[, i])
             self$results$newvar$setValues(index=i, scores)
           }
           self$results$newvar$setRowNums(rownames(self$data))
+        }
+      },
+
+      .output2 = function(res.classif){
+        if (self$results$newvar2$isNotFilled()) {
+          keys <- 1
+          measureTypes <- "nominal"
+          titles <- "Cluster"
+          descriptions <- "Cluster variable"
+          self$results$newvar2$set(
+            keys=keys,
+            titles=titles,
+            descriptions=descriptions,
+            measureTypes=measureTypes
+          )
+            scores <- as.factor(res.classif$data.clust[rownames(private$.buildData()),dim(res.classif$data.clust)[2]])
+            self$results$newvar2$setValues(index=1, scores)
+
+          self$results$newvar2$setRowNums(rownames(self$data))
         }
       },
 

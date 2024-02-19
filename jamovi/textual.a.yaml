@@ -25,17 +25,22 @@ options:
     title: Described by
     type: Variable
 
+  - name: tuto
+    title: Read me before running
+    type: Bool
+    default: true    
+
   - name: thres
     title: Significance threshold (%)
     type: Number
     default: 5
 
   - name: lowfreq
-    title: Words lowest frequency
+    title: Lowest frequency words
     type: Number
     default: 0
 
   - name: highfreq
-    title: Words highest frequency
+    title: Highest frequency words 
     type: Number
     default: 0

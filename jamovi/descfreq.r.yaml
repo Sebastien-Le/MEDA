@@ -2,8 +2,16 @@
 name: descfreq
 title: Description of the Contingency Table
 jrs: '1.1'
+refs: 
+    - factominer
+    - explo
 
 items:
+  - name: instructions
+    title: Instructions
+    visible: (tuto)
+    type: Html
+    
   - name: descoftablerow
     title: Description of the Rows
     type: Table

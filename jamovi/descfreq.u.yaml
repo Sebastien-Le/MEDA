@@ -24,6 +24,11 @@ children:
   - type: LayoutBox
     margin: large
     children:
+      - type: CheckBox
+        name: tuto
+  - type: LayoutBox
+    margin: large
+    children:
       - type: TextBox
         name: threshold
         format: number

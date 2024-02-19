@@ -8,6 +8,7 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             rows = NULL,
             columns = NULL,
+            tuto = TRUE,
             threshold = 5, ...) {
 
             super$initialize(
@@ -30,6 +31,10 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "continuous"),
                 permitted=list(
                     "numeric"))
+            private$..tuto <- jmvcore::OptionBool$new(
+                "tuto",
+                tuto,
+                default=TRUE)
             private$..threshold <- jmvcore::OptionNumber$new(
                 "threshold",
                 threshold,
@@ -37,15 +42,18 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 
             self$.addOption(private$..rows)
             self$.addOption(private$..columns)
+            self$.addOption(private$..tuto)
             self$.addOption(private$..threshold)
         }),
     active = list(
         rows = function() private$..rows$value,
         columns = function() private$..columns$value,
+        tuto = function() private$..tuto$value,
         threshold = function() private$..threshold$value),
     private = list(
         ..rows = NA,
         ..columns = NA,
+        ..tuto = NA,
         ..threshold = NA)
 )
 
@@ -53,6 +61,7 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "descfreqResults",
     inherit = jmvcore::Group,
     active = list(
+        instructions = function() private$.items[["instructions"]],
         descoftablerow = function() private$.items[["descoftablerow"]],
         descoftablecol = function() private$.items[["descoftablecol"]]),
     private = list(),
@@ -61,7 +70,15 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 options=options,
                 name="",
-                title="Description of the Contingency Table")
+                title="Description of the Contingency Table",
+                refs=list(
+                    "factominer",
+                    "explo"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="instructions",
+                title="Instructions",
+                visible="(tuto)"))
             self$add(jmvcore::Table$new(
                 options=options,
                 name="descoftablerow",
@@ -169,9 +186,11 @@ descfreqBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param data .
 #' @param rows .
 #' @param columns .
+#' @param tuto .
 #' @param threshold .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$descoftablerow} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$descoftablecol} \tab \tab \tab \tab \tab a table \cr
 #' }
@@ -187,6 +206,7 @@ descfreq <- function(
     data,
     rows,
     columns,
+    tuto = TRUE,
     threshold = 5) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -205,6 +225,7 @@ descfreq <- function(
     options <- descfreqOptions$new(
         rows = rows,
         columns = columns,
+        tuto = tuto,
         threshold = threshold)
 
     analysis <- descfreqClass$new(
