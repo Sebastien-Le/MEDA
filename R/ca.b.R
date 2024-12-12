@@ -456,7 +456,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       },
 
       .output2 = function(res.classif){
-        if (self$results$newvar2$isNotFilled()) {
+        #if (self$results$newvar2$isNotFilled()) {
+        if (self$results$newvar2$isFilled()) {
           keys <- 1
           measureTypes <- "nominal"
           titles <- "Cluster"

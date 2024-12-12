@@ -31,49 +31,49 @@ analyses:
     menuGroup: MEDA
     menuTitle: By Categorical / Quantitative Data
     menuSubgroup: Automatic Univariate Description
-    menuSubtitle: 'FactoMineR::catdes/condes'
+    menuSubtitle: FactoMineR::catdes/condes
   - title: Categorical Variable Described by Textual Data
     name: textual
     ns: MEDA
     menuGroup: MEDA
     menuTitle: By Textual Data
     menuSubgroup: Automatic Univariate Description
-    menuSubtitle: 'FactoMineR::textual/descfreq'
+    menuSubtitle: FactoMineR::textual/descfreq
   - title: Description of a Contingency Table
     name: descfreq
     ns: MEDA
     menuGroup: MEDA
     menuTitle: By Columns / Rows (Contingency Table)
     menuSubgroup: Automatic Univariate Description
-    menuSubtitle: 'FactoMineR::descfreq'
+    menuSubtitle: FactoMineR::descfreq
   - title: Principal Component Analysis
     name: PCA
     ns: MEDA
     menuGroup: MEDA
     menuTitle: Principal Component Analysis
     menuSubgroup: Multivariate Analysis
-    menuSubtitle: 'FactoMineR::PCA'
+    menuSubtitle: FactoMineR::PCA
   - title: Correspondence Analysis
     name: CA
     ns: MEDA
     menuGroup: MEDA
     menuTitle: Correspondence Analysis
     menuSubgroup: Multivariate Analysis
-    menuSubtitle: 'FactoMineR::CA'
+    menuSubtitle: FactoMineR::CA
   - title: Multiple Correspondence Analysis
     name: MCA
     ns: MEDA
     menuGroup: MEDA
     menuTitle: Multiple Correspondence Analysis
     menuSubgroup: Multivariate Analysis
-    menuSubtitle: 'FactoMineR::MCA'
+    menuSubtitle: FactoMineR::MCA
   - title: Multiple Factor Analysis
     name: MFA
     ns: MEDA
     menuGroup: MEDA
     menuTitle: Multiple Factor Analysis
     menuSubgroup: Multivariate Analysis
-    menuSubtitle: 'FactoMineR::MFA'
+    menuSubtitle: FactoMineR::MFA
 datasets:
   - name: beard_description
     path: beard_description.omv

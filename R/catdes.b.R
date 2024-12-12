@@ -109,30 +109,59 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             self$results$qtvargroup$setVisible(visible=FALSE)
             self$results$qtgroup$qt$setVisible(visible=FALSE)
 
-            if (names(self$condesResult)=="call"){
-              return()
-            }
+            # if (names(self$condesResult)=="call"){
+            #   return()
+            # }
           
-            if (any(grepl("quanti",names(self$condesResult))) == TRUE) {
-              private$.printCondesCorTable()
-            }
-            else {
-              self$results$qtgroup$qtcor$setVisible(visible=FALSE)
-            }
+            # if (any(grepl("quanti",names(self$condesResult))) == TRUE) {
+            #   private$.printCondesCorTable()
+            # }
+            # else {
+            #   self$results$qtgroup$qtcor$setVisible(visible=FALSE)
+            # }
 
-            if (any(grepl("quali",names(self$condesResult))) == TRUE) {
-              private$.printCondesR2Table()
-            }
-            else {
-              self$results$categgroup$qualir2$setVisible(visible=FALSE)
-            }
+            # if (any(grepl("quali",names(self$condesResult))) == TRUE) {
+            #   private$.printCondesR2Table()
+            # }
+            # else {
+            #   self$results$categgroup$qualir2$setVisible(visible=FALSE)
+            # }
 
-            if (any(grepl("category",names(self$condesResult))) == TRUE) {
-              private$.printCondesCategTable()
-            }
-            else {
-              self$results$categgroup$categquanti$setVisible(visible=FALSE)
-            }            
+            # if (any(grepl("category",names(self$condesResult))) == TRUE) {
+            #   private$.printCondesCategTable()
+            # }
+            # else {
+            #   self$results$categgroup$categquanti$setVisible(visible=FALSE)
+            # }    
+            
+# Define mappings of conditions and actions
+conditions_actions <- list(
+    quanti = list(
+        condition = any(grepl("quanti", names(self$condesResult))),
+        action = private$.printCondesCorTable,
+        hide = self$results$qtgroup$qtcor$setVisible
+    ),
+    quali = list(
+        condition = any(grepl("quali", names(self$condesResult))),
+        action = private$.printCondesR2Table,
+        hide = self$results$categgroup$qualir2$setVisible
+    ),
+    category = list(
+        condition = any(grepl("category", names(self$condesResult))),
+        action = private$.printCondesCategTable,
+        hide = self$results$categgroup$categquanti$setVisible
+    )
+)
+
+# Process each condition and perform actions
+for (key in names(conditions_actions)) {
+    condition_action <- conditions_actions[[key]]
+    if (condition_action$condition) {
+        condition_action$action()
+    } else {
+        condition_action$hide(visible = FALSE)
+    }
+}
           }
           else {
             # Hide the output tables of the condes
@@ -140,37 +169,71 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             self$results$qtgroup$qtcor$setVisible(visible=FALSE)
             self$results$categgroup$qualir2$setVisible(visible=FALSE)
 
-            if (names(self$catdesResult)=="call"){
-              return()
-            }
+            #if (sum(names(self$catdesResult)=="call")==1){
+            #  return()
+            #}
 
-            if (any(grepl("test.chi2",names(self$catdesResult))) == TRUE) {
-              private$.chiTable()
-            }
-            else {
-              self$results$chigroup$setVisible(visible=FALSE)
-            }
+            # if (any(grepl("test.chi2",names(self$catdesResult))) == TRUE) {
+            # #if (dim(self$catdesResult$test.chi)[1]>0) {
+            #   private$.chiTable()
+            # }
+            # else {
+            #   self$results$chigroup$setVisible(visible=FALSE)
+            # }
             
-            if (any(grepl("category",names(self$catdesResult))) == TRUE){
-              private$.categoryTable()
-            }
-            else {
-              self$results$categgroup$setVisible(visible=FALSE)
-            }
+            # if (any(grepl("category",names(self$catdesResult))) == TRUE){
+            #   private$.categoryTable()
+            # }
+            # else {
+            #   self$results$categgroup$setVisible(visible=FALSE)
+            # }
             
-            if (any(grepl("quanti.var",names(self$catdesResult))) == TRUE){
-              private$.qtvarTable()
-            }
-            else {
-              self$results$qtvargroup$setVisible(visible=FALSE)
-            }
+            # if (any(grepl("quanti.var",names(self$catdesResult))) == TRUE){
+            #   private$.qtvarTable()
+            # }
+            # else {
+            #   self$results$qtvargroup$setVisible(visible=FALSE)
+            # }
 
-            if (any(grepl("quanti",names(self$catdesResult))) == TRUE){
-              private$.qtTable()
-            }
-            else {
-              self$results$qtgroup$setVisible(visible=FALSE)
-            }            
+            # if (any(grepl("quanti",names(self$catdesResult))) == TRUE){
+            #   private$.qtTable()
+            # }
+            # else {
+            #   self$results$qtgroup$setVisible(visible=FALSE)
+            # }            
+            # Define mappings of conditions and actions
+conditions_actions <- list(
+    test_chi2 = list(
+        condition = any(grepl("test.chi2", names(self$catdesResult))),
+        action = private$.chiTable,
+        hide = self$results$chigroup$setVisible
+    ),
+    category = list(
+        condition = any(grepl("category", names(self$catdesResult))),
+        action = private$.categoryTable,
+        hide = self$results$categgroup$setVisible
+    ),
+    quanti_var = list(
+        condition = any(grepl("quanti.var", names(self$catdesResult))),
+        action = private$.qtvarTable,
+        hide = self$results$qtvargroup$setVisible
+    ),
+    quanti = list(
+        condition = any(grepl("quanti", names(self$catdesResult))),
+        action = private$.qtTable,
+        hide = self$results$qtgroup$setVisible
+    )
+)
+
+# Process each condition and perform actions
+for (key in names(conditions_actions)) {
+    condition_action <- conditions_actions[[key]]
+    if (condition_action$condition) {
+        condition_action$action()
+    } else {
+        condition_action$hide(visible = FALSE)
+    }
+}
           }
         }        
       },
@@ -320,6 +383,7 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       .chiTable = function(){
         table <- self$catdesResult
 
+        if (dim(table$test.chi)[1]>0) {
         for (i in 1:dim(table$test.chi)[1]){
           self$results$chigroup$chi$addRow(rowKey=i, values=list(varchi=as.character(rownames(table$test.chi)[i]))) 
         }
@@ -332,6 +396,10 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           row[["df"]]=df[i]
           self$results$chigroup$chi$setRow(rowNo=i, values = row)
         }
+        }
+            else {
+              self$results$chigroup$setVisible(visible=FALSE)
+              }
       },
       
       .categoryTable = function(){
