@@ -65,16 +65,21 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       .run = function() {
 
         ready <- TRUE
-        if (is.null(self$options$activecol) || length(self$options$activecol) < self$options$nbfact){
-          return()
-          ready <- FALSE
-        }
+        # if (is.null(self$options$activecol) || length(self$options$activecol) < self$options$nbfact){
+        #   return()
+        #   ready <- FALSE
+        # }
+        if (is.null(self$options$activecol) || length(self$options$activecol) < self$options$nbfact) return()
         private$.errorCheck()
 
         if (ready) {
 
           data <- private$.buildData()
           res.ca <- private$.CA(data)
+          if (is.null(res.ca) || !inherits(res.ca, "CA")) {
+            jmvcore::reject("L'analyse des correspondances (CA) a échoué. Veuillez vérifier vos données.")
+            return()
+          }
           res.classif <- private$.classif(res.ca)
           res.xsq <- private$.chisq(data)
 
@@ -116,23 +121,66 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           return(nbclust)
       },
       
-      .CA = function(data) {
+      #MODIF
+      # .CA = function(data) {
+      # 
+      #   actcol_gui=self$options$activecol
+      #   illucol_gui=self$options$illustrativecol
+      #   nbfact_gui=self$options$nbfact
+      # 
+      #   if (is.null(illucol_gui) == FALSE) {
+      #     FactoMineR::CA(data, ncp = self$options$ncp,
+      #                   col.sup=(length(actcol_gui)+1):(length(actcol_gui)+length(illucol_gui)),
+      #                   graph=FALSE)
+      #   }
+      #   else {
+      #     FactoMineR::CA(data, ncp = self$options$ncp, graph=FALSE)
+      #   }
+      # 
+      # },
 
-        actcol_gui=self$options$activecol
-        illucol_gui=self$options$illustrativecol
-        nbfact_gui=self$options$nbfact
-
-        if (is.null(illucol_gui) == FALSE) {
-          FactoMineR::CA(data, ncp = self$options$ncp,
-                        col.sup=(length(actcol_gui)+1):(length(actcol_gui)+length(illucol_gui)),
-                        graph=FALSE)
+    .CA = function(data) {
+      actcol_gui <- self$options$activecol
+      illucol_gui <- self$options$illustrativecol
+      
+      if (!is.null(illucol_gui) && length(illucol_gui) > 0) {
+        for (col in illucol_gui) {
+          if (!col %in% colnames(data)) next
+          if (all(is.na(data[[col]]))) {
+            warning(paste0("[.CA] Colonne illustrative '", col, "' uniquement composée de NA — ignorée"))
+            data[[col]] <- NULL
+            next
+          }
+          if (!is.numeric(data[[col]])) {
+            suppressWarnings(data[[col]] <- as.numeric(as.character(data[[col]])))
+          }
         }
-        else {
-          FactoMineR::CA(data, ncp = self$options$ncp, graph=FALSE)
+        
+        #col_sup_index <- which(colnames(data) %in% illucol_gui)
+        col_sup_index <- match(illucol_gui, colnames(data))
+        if (length(col_sup_index) == 0) {
+          warning("[.CA] Aucune colonne illustrative valide trouvée — analyse faite sans col.sup")
+          col_sup_index <- NULL
         }
-
-      },
-
+      } else {
+        col_sup_index <- NULL
+      }
+      
+      print("[DEBUG] Aperçu de data dans .CA() :")
+      print(str(data))
+      print("[DEBUG] Colonnes supplémentaires (col.sup) :")
+      print(col_sup_index)
+      
+      res <- tryCatch({
+        FactoMineR::CA(data, ncp = self$options$ncp, col.sup = col_sup_index, graph = FALSE)
+      }, error = function(e) {
+        cat("[.CA] Erreur lors de l'appel à FactoMineR::CA :", e$message, "\n")
+        return(NULL)
+      })
+      
+      return(res)
+    },
+    
       .code = function(table) {
 
         actcol_gui=self$options$activecol
@@ -145,7 +193,9 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           #              graph=FALSE)
           names_var <- paste(names(table$call$Xtot), collapse = ", ")
           data <- paste("data_CA <- data[ ,c(",names_var,")]",sep="")
-          code <- paste("CA(data_CA, col.sup=",(length(actcol_gui)+1),":",(length(actcol_gui)+length(illucol_gui)),", ncp=",self$options$ncp,")",sep="")
+          #code <- paste("CA(data_CA, col.sup=",(length(actcol_gui)+1),":",(length(actcol_gui)+length(illucol_gui)),", ncp=",self$options$ncp,")",sep="")
+          illucol_index <- match(illucol_gui, names(table$call$Xtot))
+          code <- paste0("CA(data_CA, col.sup=c(", paste(illucol_index, collapse=","), "), ncp=", self$options$ncp, ")")
           a <- list("dataset"=data,"R code"=code)
           print(a)
 
@@ -178,45 +228,97 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
       },
 
-      .dimdesc = function(table) {
-
-        nbfact_gui=self$options$nbfact
-        proba = self$options$proba/100
-
-        ddca = dimdesc(table, axes = 1:nbfact_gui, proba = proba)
-
-        #Mise en place du tableau description of the axes
-
-        tab=cbind(names(ddca)[1],names(ddca[[1]][1]),
-                  rownames(as.data.frame(ddca[[1]][1])),as.data.frame(ddca[[1]][1])[[1]])
-        tab=as.data.frame(tab)
-        pretab=cbind(names(ddca)[1],names(ddca[[1]][2]),
-                     rownames(as.data.frame(ddca[[1]][2])),as.data.frame(ddca[[1]][2])[[1]])
-        tab=rbind(tab,pretab)
-
-        colnames(tab)[1]="dim"
-        colnames(tab)[2]="rowcol"
-        colnames(tab)[3]="name"
-        colnames(tab)[4]="coord"
-
-        for (i in (2):length(ddca)) {
-          for (k in 1:2) {
-            if (dim(as.data.frame(ddca[[i]][k]))[1] != 0) {
-              pretab=cbind(names(ddca)[i],names(ddca[[i]][k]),
-                           rownames(as.data.frame(ddca[[i]][k])),as.data.frame(ddca[[i]][k])[[1]])
-              pretab=as.data.frame(pretab)
-              colnames(pretab)[1]="dim"
-              colnames(pretab)[2]="rowcol"
-              colnames(pretab)[3]="name"
-              colnames(pretab)[4]="coord"
-              tab=rbind(tab,pretab)
-            }
+      # .dimdesc = function(table) {
+      # 
+      #   nbfact_gui=self$options$nbfact
+      #   proba = self$options$proba/100
+      # 
+      #   ddca = dimdesc(table, axes = 1:nbfact_gui, proba = proba)
+      # 
+      #   #Mise en place du tableau description of the axes
+      # 
+      #   tab=cbind(names(ddca)[1],names(ddca[[1]][1]),
+      #             rownames(as.data.frame(ddca[[1]][1])),as.data.frame(ddca[[1]][1])[[1]])
+      #   tab=as.data.frame(tab)
+      #   pretab=cbind(names(ddca)[1],names(ddca[[1]][2]),
+      #                rownames(as.data.frame(ddca[[1]][2])),as.data.frame(ddca[[1]][2])[[1]])
+      #   tab=rbind(tab,pretab)
+      # 
+      #   colnames(tab)[1]="dim"
+      #   colnames(tab)[2]="rowcol"
+      #   colnames(tab)[3]="name"
+      #   colnames(tab)[4]="coord"
+      # 
+      #   for (i in (2):length(ddca)) {
+      #     for (k in 1:2) {
+      #       if (dim(as.data.frame(ddca[[i]][k]))[1] != 0) {
+      #         pretab=cbind(names(ddca)[i],names(ddca[[i]][k]),
+      #                      rownames(as.data.frame(ddca[[i]][k])),as.data.frame(ddca[[i]][k])[[1]])
+      #         pretab=as.data.frame(pretab)
+      #         colnames(pretab)[1]="dim"
+      #         colnames(pretab)[2]="rowcol"
+      #         colnames(pretab)[3]="name"
+      #         colnames(pretab)[4]="coord"
+      #         tab=rbind(tab,pretab)
+      #       }
+      #     }
+      #   }
+      # 
+      #   tab[,4]=as.numeric(as.character(tab[,4]))
+      #   tab=as.data.frame(tab)
+      # },
+    
+    .dimdesc = function(table) {
+      
+      proba = self$options$proba / 100
+      
+      # Étape 1 : reconstruire un tableau uniquement avec les colonnes actives
+      dataactcol <- data.frame(self$data[, self$options$activecol])
+      colnames(dataactcol) <- self$options$activecol
+      
+      if (!is.null(self$options$indiv)) {
+        rownames(dataactcol) <- self$data[[self$options$indiv]]
+      }
+      
+      # Étape 2 : recalculer la CA sans col.sup
+      res_ca_active <- FactoMineR::CA(dataactcol, ncp = self$options$ncp, graph = FALSE)
+      
+      max_dim <- ncol(res_ca_active$row$coord)
+      nbfact_gui <- min(self$options$nbfact, max_dim)
+      
+      # Étape 3 : appeler dimdesc uniquement sur les dimensions principales
+      ddca = FactoMineR::dimdesc(res_ca_active, axes = 1:nbfact_gui, proba = proba)
+      
+      # Mise en forme du tableau
+      tab = cbind(names(ddca)[1], names(ddca[[1]][1]),
+                  rownames(as.data.frame(ddca[[1]][1])), as.data.frame(ddca[[1]][1])[[1]])
+      tab = as.data.frame(tab)
+      pretab = cbind(names(ddca)[1], names(ddca[[1]][2]),
+                     rownames(as.data.frame(ddca[[1]][2])), as.data.frame(ddca[[1]][2])[[1]])
+      tab = rbind(tab, pretab)
+      
+      colnames(tab)[1] = "dim"
+      colnames(tab)[2] = "rowcol"
+      colnames(tab)[3] = "name"
+      colnames(tab)[4] = "coord"
+      
+      for (i in 2:length(ddca)) {
+        for (k in 1:2) {
+          temp <- as.data.frame(ddca[[i]][[k]])
+          if (nrow(temp) > 0) {
+            pretab = cbind(names(ddca)[i], names(ddca[[i]])[k],
+                           rownames(temp), temp[[1]])
+            pretab = as.data.frame(pretab)
+            colnames(pretab) = c("dim", "rowcol", "name", "coord")
+            tab = rbind(tab, pretab)
           }
         }
-
-        tab[,4]=as.numeric(as.character(tab[,4]))
-        tab=as.data.frame(tab)
-      },
+      }
+      
+      tab[, 4] = as.numeric(as.character(tab[, 4]))
+      tab = as.data.frame(tab)
+    },
+    
 
       .chideux = function(res.xsq) {
 
@@ -245,8 +347,16 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       .printTables = function(table, quoi){
         
-        col_gui=self$options$activecol
-        nbfact_gui=self$options$nbfact
+        #nbfact_gui <- min(nbfact_gui, ncol(quoivar), ncol(quoiind))
+        col_gui <- self$options$activecol
+        
+        # Obtenir le nombre de dimensions disponibles dans l'objet CA
+        max_dim <- ncol(table$row$coord)
+        
+        # Sécuriser le nombre de dimensions demandées
+        nbfact_gui <- min(self$options$nbfact, max_dim)
+        
+        #nbfact_gui=self$options$nbfact
         if (is.null(self$options$indiv)==FALSE)
           row_gui=self$data[[self$options$indiv]]
         else
@@ -339,6 +449,11 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           frow=paste("cos2", self$options$limcosrow)
           addillucol=self$options$addillucol
           res.ca=image$state
+          #MODIF
+          if (is.null(res.ca) || !inherits(res.ca, "CA")) {
+            cat("[.plotcol] Erreur : res.ca est NULL ou invalide\n")
+            return()
+          }
 
           if (addillucol == TRUE)
             plot=FactoMineR::plot.CA(res.ca, axes=c(abs_gui, ord_gui),
@@ -363,6 +478,11 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           frow=paste("cos2", self$options$limcosrow)
 
           res.ca=image$state
+          #MODIF
+          if (is.null(res.ca) || !inherits(res.ca, "CA")) {
+            cat("[.plotcol] Erreur : res.ca est NULL ou invalide\n")
+            return()
+          }
 
             plot=FactoMineR::plot.CA(res.ca, axes=c(abs_gui, ord_gui),
                          selectCol=fcol, selectRow=frow, invisible=c("col","col.sup"), title = "Representation of the Rows")
@@ -386,11 +506,19 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           addillucol=self$options$addillucol
 
           res.ca=image$state
-
-          if (addillucol == TRUE)
-            adc = c("none")
-          else
-            adc = c("col.sup")
+          #MODIF
+          if (is.null(res.ca) || !inherits(res.ca, "CA")) {
+            cat("[.plotell] Erreur : res.ca est NULL ou n'est pas un objet de classe 'CA'
+                ")
+            return()
+          }
+          
+          #if (addillucol == TRUE)
+          #  adc = c("none")
+          #else
+          #  adc = c("col.sup")
+          
+          adc <- if (addillucol) NULL else "col.sup"
 
           if (ellipsecol_gui == TRUE && ellipserow_gui == TRUE)
             plot=ellipseCA(res.ca, axes=c(abs_gui, ord_gui), selectCol=fcol, selectRow=frow,
@@ -435,7 +563,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       },
       
       .output = function(res.ca) {
-        nFactors_out <- min(self$options$ncp,dim(res.ca)[1])
+        #nFactors_out <- min(self$options$ncp,dim(res.ca)[1])
+        nFactors_out <- min(self$options$ncp, ncol(res.ca$row$coord))
         if (self$results$newvar$isNotFilled()) {
           keys <- 1:nFactors_out
           measureTypes <- rep("continuous", nFactors_out)
