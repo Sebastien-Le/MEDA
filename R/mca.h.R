@@ -429,7 +429,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar2",
-                title="Coordinates",
+                title="Cluster",
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
@@ -438,7 +438,9 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "qualisup",
                     "individus",
                     "nFactors",
-                    "norme")))}))
+                    "norme",
+                    "ventil",
+                    "nbclust")))}))
 
 MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "MCABase",

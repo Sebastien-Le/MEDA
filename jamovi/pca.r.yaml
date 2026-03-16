@@ -25,6 +25,46 @@ items:
     width: 600
     height: 600
     renderFun: .plotvariables
+    
+  - name: plotseulind
+    title: Representation of the Individuals Only
+    visible: (graphind)
+    type: Image
+    width: 800
+    height: 600
+    renderFun: .plotseulind
+
+  - name: plotseulmod
+    title: Representation of the Categories Only
+    visible: (graphmod)
+    type: Image
+    width: 800
+    height: 600
+    renderFun: .plotseulmod
+    
+  - name: plothabillage
+    title: Representation of the Individuals Colored by Variable
+    visible: (habillage > 0)
+    type: Image
+    width: 800
+    height: 600
+    renderFun: .plothabillage  
+
+  - name: plotseulvaract
+    title: Representation of the Active Variables Only
+    visible: (graphvaract)
+    type: Image
+    width: 600
+    height: 600
+    renderFun: .plotseulvaract
+
+  - name: plotseulvarillu
+    title: Representation of the Supplementary Variables Only
+    visible: (graphvarillu)
+    type: Image
+    width: 600
+    height: 600
+    renderFun: .plotseulvarillu
 
   - name: eigengroup
     title: Eigenvalue Decomposition
@@ -134,8 +174,8 @@ items:
 
   - name: newvar2
     type: Output
-    title: Coordinates
-    measureType: continuous
+    title: Cluster
+    measureType: nominal
     initInRun: true
     clearWith:
       - actvars
@@ -144,3 +184,5 @@ items:
       - individus
       - nFactors
       - norme
+      - nbclust
+      - ncp

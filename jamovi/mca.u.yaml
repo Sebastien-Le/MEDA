@@ -203,7 +203,6 @@ children:
                 children:
                   - type: CheckBox
                     name: graphclassif
-                    format: number
               - type: Label
                 label: ''
                 cell:
@@ -222,4 +221,5 @@ children:
                 stretchFactor: 1
                 children:
                   - type: Output
-                    name: newvar2      
+                    name: newvar2
+                    enable: (graphclassif)

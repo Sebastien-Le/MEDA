@@ -22,11 +22,11 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             nFactors = 2,
             abs = 1,
             ord = 2,
-            varact = TRUE,
-            varillus = TRUE,
-            indact = TRUE,
-            modillus = TRUE,
-            habillage = NULL,
+            graphvaract = FALSE,
+            graphvarillu = FALSE,
+            graphind = FALSE,
+            graphmod = FALSE,
+            habillage = 0,
             ncp = 5,
             graphclassif = FALSE,
             nbclust = -1, ...) {
@@ -114,25 +114,26 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "ord",
                 ord,
                 default=2)
-            private$..varact <- jmvcore::OptionBool$new(
-                "varact",
-                varact,
-                default=TRUE)
-            private$..varillus <- jmvcore::OptionBool$new(
-                "varillus",
-                varillus,
-                default=TRUE)
-            private$..indact <- jmvcore::OptionBool$new(
-                "indact",
-                indact,
-                default=TRUE)
-            private$..modillus <- jmvcore::OptionBool$new(
-                "modillus",
-                modillus,
-                default=TRUE)
+            private$..graphvaract <- jmvcore::OptionBool$new(
+                "graphvaract",
+                graphvaract,
+                default=FALSE)
+            private$..graphvarillu <- jmvcore::OptionBool$new(
+                "graphvarillu",
+                graphvarillu,
+                default=FALSE)
+            private$..graphind <- jmvcore::OptionBool$new(
+                "graphind",
+                graphind,
+                default=FALSE)
+            private$..graphmod <- jmvcore::OptionBool$new(
+                "graphmod",
+                graphmod,
+                default=FALSE)
             private$..habillage <- jmvcore::OptionInteger$new(
                 "habillage",
-                habillage)
+                habillage,
+                default=0)
             private$..ncp <- jmvcore::OptionInteger$new(
                 "ncp",
                 ncp,
@@ -166,10 +167,10 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..nFactors)
             self$.addOption(private$..abs)
             self$.addOption(private$..ord)
-            self$.addOption(private$..varact)
-            self$.addOption(private$..varillus)
-            self$.addOption(private$..indact)
-            self$.addOption(private$..modillus)
+            self$.addOption(private$..graphvaract)
+            self$.addOption(private$..graphvarillu)
+            self$.addOption(private$..graphind)
+            self$.addOption(private$..graphmod)
             self$.addOption(private$..habillage)
             self$.addOption(private$..ncp)
             self$.addOption(private$..newvar)
@@ -194,10 +195,10 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         nFactors = function() private$..nFactors$value,
         abs = function() private$..abs$value,
         ord = function() private$..ord$value,
-        varact = function() private$..varact$value,
-        varillus = function() private$..varillus$value,
-        indact = function() private$..indact$value,
-        modillus = function() private$..modillus$value,
+        graphvaract = function() private$..graphvaract$value,
+        graphvarillu = function() private$..graphvarillu$value,
+        graphind = function() private$..graphind$value,
+        graphmod = function() private$..graphmod$value,
         habillage = function() private$..habillage$value,
         ncp = function() private$..ncp$value,
         newvar = function() private$..newvar$value,
@@ -221,10 +222,10 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..nFactors = NA,
         ..abs = NA,
         ..ord = NA,
-        ..varact = NA,
-        ..varillus = NA,
-        ..indact = NA,
-        ..modillus = NA,
+        ..graphvaract = NA,
+        ..graphvarillu = NA,
+        ..graphind = NA,
+        ..graphmod = NA,
         ..habillage = NA,
         ..ncp = NA,
         ..newvar = NA,
@@ -240,6 +241,11 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         instructions = function() private$.items[["instructions"]],
         plotind = function() private$.items[["plotind"]],
         plotvar = function() private$.items[["plotvar"]],
+        plotseulind = function() private$.items[["plotseulind"]],
+        plotseulmod = function() private$.items[["plotseulmod"]],
+        plothabillage = function() private$.items[["plothabillage"]],
+        plotseulvaract = function() private$.items[["plotseulvaract"]],
+        plotseulvarillu = function() private$.items[["plotseulvarillu"]],
         eigengroup = function() private$.items[["eigengroup"]],
         descdesdim = function() private$.items[["descdesdim"]],
         code = function() private$.items[["code"]],
@@ -277,6 +283,46 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 width=600,
                 height=600,
                 renderFun=".plotvariables"))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotseulind",
+                title="Representation of the Individuals Only",
+                visible="(graphind)",
+                width=800,
+                height=600,
+                renderFun=".plotseulind"))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotseulmod",
+                title="Representation of the Categories Only",
+                visible="(graphmod)",
+                width=800,
+                height=600,
+                renderFun=".plotseulmod"))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plothabillage",
+                title="Representation of the Individuals Colored by Variable",
+                visible="(habillage > 0)",
+                width=800,
+                height=600,
+                renderFun=".plothabillage"))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotseulvaract",
+                title="Representation of the Active Variables Only",
+                visible="(graphvaract)",
+                width=600,
+                height=600,
+                renderFun=".plotseulvaract"))
+            self$add(jmvcore::Image$new(
+                options=options,
+                name="plotseulvarillu",
+                title="Representation of the Supplementary Variables Only",
+                visible="(graphvarillu)",
+                width=600,
+                height=600,
+                renderFun=".plotseulvarillu"))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -415,8 +461,8 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar2",
-                title="Coordinates",
-                measureType="continuous",
+                title="Cluster",
+                measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
                     "actvars",
@@ -424,7 +470,9 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "qualisup",
                     "individus",
                     "nFactors",
-                    "norme")))}))
+                    "norme",
+                    "nbclust",
+                    "ncp")))}))
 
 PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "PCABase",
@@ -467,10 +515,10 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param nFactors .
 #' @param abs .
 #' @param ord .
-#' @param varact .
-#' @param varillus .
-#' @param indact .
-#' @param modillus .
+#' @param graphvaract .
+#' @param graphvarillu .
+#' @param graphind .
+#' @param graphmod .
 #' @param habillage .
 #' @param ncp .
 #' @param graphclassif .
@@ -480,6 +528,11 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotind} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
+#'   \code{results$plotseulind} \tab \tab \tab \tab \tab an image \cr
+#'   \code{results$plotseulmod} \tab \tab \tab \tab \tab an image \cr
+#'   \code{results$plothabillage} \tab \tab \tab \tab \tab an image \cr
+#'   \code{results$plotseulvaract} \tab \tab \tab \tab \tab an image \cr
+#'   \code{results$plotseulvarillu} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$eigengroup$eigen} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$descdesdim} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
@@ -513,11 +566,11 @@ PCA <- function(
     nFactors = 2,
     abs = 1,
     ord = 2,
-    varact = TRUE,
-    varillus = TRUE,
-    indact = TRUE,
-    modillus = TRUE,
-    habillage,
+    graphvaract = FALSE,
+    graphvarillu = FALSE,
+    graphind = FALSE,
+    graphmod = FALSE,
+    habillage = 0,
     ncp = 5,
     graphclassif = FALSE,
     nbclust = -1) {
@@ -557,10 +610,10 @@ PCA <- function(
         nFactors = nFactors,
         abs = abs,
         ord = ord,
-        varact = varact,
-        varillus = varillus,
-        indact = indact,
-        modillus = modillus,
+        graphvaract = graphvaract,
+        graphvarillu = graphvarillu,
+        graphind = graphind,
+        graphmod = graphmod,
         habillage = habillage,
         ncp = ncp,
         graphclassif = graphclassif,

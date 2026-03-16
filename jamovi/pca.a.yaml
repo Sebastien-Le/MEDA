@@ -107,29 +107,30 @@ options:
     type: Integer
     default: 2
 
-  - name: varact
+  - name: graphvaract
     title: Active variables
     type: Bool
-    default: true
+    default: false
 
-  - name: varillus
+  - name: graphvarillu
     title: Supplementary variables
     type: Bool
-    default: true
+    default: false
 
-  - name: indact
+  - name: graphind
     title: Individuals
     type: Bool
-    default: true
+    default: false
 
-  - name: modillus
+  - name: graphmod
     title: Categorical supplementary variables
     type: Bool
-    default: true
+    default: false
 
   - name: habillage
     title: Grouping variable
     type: Integer
+    default: 0
 
   - name: ncp
     title: Number of components
@@ -149,7 +150,7 @@ options:
     title: Number of clusters
     type: Integer
     default: -1
-
+    
   - name: newvar2
     title: Cluster variable
     type: Output

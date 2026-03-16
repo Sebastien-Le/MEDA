@@ -292,7 +292,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="newvar2",
                 title="Coordinates",
-                measureType="continuous",
+                measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
                     "actvars",

@@ -152,7 +152,7 @@ items:
 
   - name: newvar2
     type: Output
-    title: Coordinates
+    title: Cluster
     measureType: continuous
     initInRun: true
     clearWith:
@@ -162,3 +162,5 @@ items:
       - individus
       - nFactors
       - norme
+      - ventil
+      - nbclust

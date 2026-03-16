@@ -89,57 +89,47 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         },
 
     .run = function() {
-      
-      ready <- TRUE
-      if (is.null(self$options$quantivar) && (is.null(self$options$qualivar))){
+      if (is.null(self$options$quantivar) && is.null(self$options$qualivar))
         return()
-        ready <- FALSE
-      }
-      #private$.errorCheck()
       
-      if (ready) {
-
+      res.mfa <- self$MFAResult
+      if (is.null(res.mfa)) return()
+      
+      res.classif <- NULL
+      need_classif <- isTRUE(self$options$graphclassif) || !self$results$newvar2$isNotFilled()
+      if (need_classif)
         res.classif <- private$.getclassifResult()
-
-        dimdesc=private$.dimdesc()
-        self$results$descdesdim$setContent(dimdesc)
-          
-        code=private$.code()
-        self$results$code$setContent(code)
-        
-        private$.printeigenTable()
-        
-        imagevar=self$results$plotgroup
-        imagevar$setState(self$MFAResult)
-
-        imagevar=self$results$plotaxe
-        imagevar$setState(self$MFAResult)
-        
-        imageind=self$results$plotind
-        imageind$setState(self$MFAResult)
-
-        if (isTRUE(dim(self$MFAResult$summary.quali)[1]) && dim(self$MFAResult$summary.quali)[1]>0){
-        self$results$plotcat$setVisible(visible=TRUE)
-        imageind=self$results$plotcat
-        imageind$setState(self$MFAResult)
-        }
-
-        if (any(grepl("quanti",names(self$MFAResult))) == TRUE){
-        self$results$plotvar$setVisible(visible=TRUE)
-        imagevar=self$results$plotvar
-        imagevar$setState(self$MFAResult)
-        }
-
-        if (self$options$graphclassif==TRUE){
-          imageclass = self$results$plotclassif
-          imageclass$setState(res.classif)
-        }
-
-        private$.output()    
-        #private$.output2()
-        private$.output2(res.classif)    
-  
+      
+      dimdesc <- private$.dimdesc()
+      self$results$descdesdim$setContent(dimdesc)
+      
+      code <- private$.code()
+      self$results$code$setContent(code)
+      
+      private$.printeigenTable()
+      
+      self$results$plotgroup$setState(self$MFAResult)
+      self$results$plotaxe$setState(self$MFAResult)
+      self$results$plotind$setState(self$MFAResult)
+      
+      if (isTRUE(dim(self$MFAResult$summary.quali)[1]) &&
+          dim(self$MFAResult$summary.quali)[1] > 0) {
+        self$results$plotcat$setVisible(visible = TRUE)
+        self$results$plotcat$setState(self$MFAResult)
       }
+      
+      if (any(grepl("quanti", names(self$MFAResult)))) {
+        self$results$plotvar$setVisible(visible = TRUE)
+        self$results$plotvar$setState(self$MFAResult)
+      }
+      
+      if (isTRUE(self$options$graphclassif) && !is.null(res.classif))
+        self$results$plotclassif$setState(res.classif)
+      
+      if (!is.null(res.classif))
+        private$.output2(res.classif)
+      
+      private$.output()
     },
 
 #---------------------------------------------
@@ -150,51 +140,63 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 },
 
 .getclassifResult = function() {
-  groupdef_gui=self$options$groupdef
-  grouptype_gui=self$options$grouptype
-  if (groupdef_gui == "Ex: 5,3,10,9,2,2" || grouptype_gui == "Ex: s,s,s,s,s,n"){
-          return()
-        }
-  else{
-        reshcpc <- FactoMineR::HCPC(self$MFAResult,nb.clust=self$nbclust,graph=F)
-        private$.classifResult <- reshcpc
-        return(private$.classifResult)
-      }
-      },
-
-.getMFAResult= function() {
-  data <- self$dataProcessed
-  groupdef_gui=self$options$groupdef
-  groupill_gui=self$options$groupill
-  grouptype_gui=self$options$grouptype
-  groupname_gui=self$options$groupname
-
-   if (groupdef_gui == "Ex: 5,3,10,9,2,2" || grouptype_gui == "Ex: s,s,s,s,s,n"){
-          return()
-        }
-   else {
+  groupdef_gui  <- self$options$groupdef
+  grouptype_gui <- self$options$grouptype
+  if (groupdef_gui == "Ex: 5,3,10,9,2,2" || grouptype_gui == "Ex: s,s,s,s,s,n")
+    return(NULL)
   
-   if (groupname_gui == "Ex: olf,vis,olfag,gust,ens,orig" || groupname_gui == "" || groupname_gui == 0 ) {
+  reshcpc <- tryCatch(
+    FactoMineR::HCPC(self$MFAResult, nb.clust = self$nbclust, graph = FALSE),
+    error = function(e) NULL
+  )
+  private$.classifResult <- reshcpc
+  return(private$.classifResult)
+},
 
-   if (groupill_gui == "Ex: 5,6" || groupill_gui == "" || groupill_gui == 0 ) {
-    r <- FactoMineR::MFA(data,group = as.numeric(strsplit(groupdef_gui, ",")[[1]]), type = unlist(strsplit(grouptype_gui, ",")), ncp=self$options$ncp, graph=FALSE)
-   }
-   else {
-    r <- FactoMineR::MFA(data,group = as.numeric(strsplit(groupdef_gui, ",")[[1]]), type = unlist(strsplit(grouptype_gui, ",")), num.group.sup=as.numeric(strsplit(groupill_gui, ",")[[1]]), ncp=self$options$ncp, graph=FALSE)
-   }
-   }
-
-  else {
- if (groupill_gui == "Ex: 5,6" || groupill_gui == "" || groupill_gui == 0 ) {
-    r <- FactoMineR::MFA(data,group = as.numeric(strsplit(groupdef_gui, ",")[[1]]), type = unlist(strsplit(grouptype_gui, ",")), name.group = unlist(strsplit(groupname_gui, ",")), ncp=self$options$ncp, graph=FALSE)
-   }
-   else {
-    r <- FactoMineR::MFA(data,group = as.numeric(strsplit(groupdef_gui, ",")[[1]]), type = unlist(strsplit(grouptype_gui, ",")), num.group.sup=as.numeric(strsplit(groupill_gui, ",")[[1]]), name.group = unlist(strsplit(groupname_gui, ",")), ncp=self$options$ncp, graph=FALSE)
-   }
-  }
+.getMFAResult = function() {
+  data <- self$dataProcessed
+  if (is.null(data)) return(NULL)
+  
+  groupdef_gui  <- self$options$groupdef
+  groupill_gui  <- self$options$groupill
+  grouptype_gui <- self$options$grouptype
+  groupname_gui <- self$options$groupname
+  
+  if (groupdef_gui == "Ex: 5,3,10,9,2,2" || grouptype_gui == "Ex: s,s,s,s,s,n")
+    return(NULL)
+  
+  # Logique ncp défensive alignée sur PCA/MCA
+  ncp_candidates <- c(self$options$ncp, self$options$nFactors)
+  ncp_candidates <- suppressWarnings(as.numeric(ncp_candidates))
+  ncp_candidates <- ncp_candidates[!is.na(ncp_candidates) & ncp_candidates > 0]
+  ncp_target     <- if (length(ncp_candidates) == 0) 2 else max(ncp_candidates)
+  ncp_target     <- max(ncp_target, 3)
+  ncp_use        <- ncp_target
+  
+  group   <- as.numeric(strsplit(groupdef_gui, ",")[[1]])
+  type    <- unlist(strsplit(grouptype_gui, ","))
+  has_ill  <- !(groupill_gui  %in% c("Ex: 5,6", "", "0"))
+  has_name <- !(groupname_gui %in% c("Ex: olf,vis,olfag,gust,ens,orig", "", "0"))
+  num_sup  <- if (has_ill)  as.numeric(strsplit(groupill_gui,  ",")[[1]]) else NULL
+  name_grp <- if (has_name) unlist(strsplit(groupname_gui, ","))          else NULL
+  
+  r <- tryCatch({
+    FactoMineR::MFA(
+      data,
+      group         = group,
+      type          = type,
+      ncp           = ncp_use,
+      num.group.sup = num_sup,
+      name.group    = name_grp,
+      graph         = FALSE
+    )
+  }, error = function(e) {
+    jmvcore::reject(paste("MFA failed:", e$message))
+    return(NULL)
+  })
+  
   private$.MFAResult <- r
   return(private$.MFAResult)
-  }
 },
 
 .code= function() {
@@ -404,7 +406,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 #---------------------------------------------
 ### Helper functions ----
 .errorCheck = function() {
-  if (length(self$options$quantivar) + length(self$options$quantivar) != sum(as.numeric(strsplit(self$options$groupdef, ",")[[1]])))
+  if (length(self$options$quantivar) + length(self$options$qualivar) != sum(as.numeric(strsplit(self$options$groupdef, ",")[[1]])))
     jmvcore::reject(jmvcore::format('The definition of the groups is not good'))
 },
 
@@ -430,48 +432,50 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         
       },
 
-.output2 = function(res.classif){
-  groupdef_gui=self$options$groupdef
-  grouptype_gui=self$options$grouptype
-  if (groupdef_gui == "Ex: 5,3,10,9,2,2" || grouptype_gui == "Ex: s,s,s,s,s,n"){
-          return()
-        }
-  else{
-        if (self$results$newvar2$isFilled()) {
-          keys <- 1
-          measureTypes <- "nominal"
-          titles <- "Cluster"
-          descriptions <- "Cluster variable"
-          self$results$newvar2$set(
-            keys=keys,
-            titles=titles,
-            descriptions=descriptions,
-            measureTypes=measureTypes
-          )
-            scores <- as.factor(res.classif$data.clust[rownames(private$.buildData()),dim(res.classif$data.clust)[2]])
-            self$results$newvar2$setValues(index=1, scores)
-
-
-          self$results$newvar2$setRowNums(rownames(self$data))
-        }
-      }
-      },
+.output2 = function(res.classif) {
+  groupdef_gui  <- self$options$groupdef
+  grouptype_gui <- self$options$grouptype
+  if (groupdef_gui == "Ex: 5,3,10,9,2,2" || grouptype_gui == "Ex: s,s,s,s,s,n")
+    return()
+  if (is.null(res.classif) || is.null(res.classif$data.clust))
+    return()
+  
+  output <- self$results$newvar2
+  if (output$isNotFilled()) {
+    output$set(
+      keys         = 1,
+      titles       = "Cluster",
+      descriptions = "Cluster variable",
+      measureTypes = "nominal"
+    )
+  }
+  scores <- as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)])
+  output$setValues(index = 1, scores)
+  output$setRowNums(rownames(self$data))
+},
 
 .buildData = function() {
+  data_list <- list()
   
-  dataquantivar=data.frame(self$data[,self$options$quantivar])
-  colnames(dataquantivar)=self$options$quantivar
-  
-  dataqualivar=data.frame(self$data[,self$options$qualivar])
-  colnames(dataqualivar)=self$options$qualivar
-
-  data=data.frame(dataquantivar,dataqualivar)
-  
-  if (is.null(self$options$individus)==FALSE) {
-    rownames(data)=self$data[[self$options$individus]]
+  if (!is.null(self$options$quantivar) && length(self$options$quantivar) > 0) {
+    dataquantivar <- data.frame(self$data[, self$options$quantivar, drop = FALSE])
+    colnames(dataquantivar) <- self$options$quantivar
+    data_list <- c(data_list, list(dataquantivar))
   }
+  
+  if (!is.null(self$options$qualivar) && length(self$options$qualivar) > 0) {
+    dataqualivar <- data.frame(self$data[, self$options$qualivar, drop = FALSE])
+    colnames(dataqualivar) <- self$options$qualivar
+    data_list <- c(data_list, list(dataqualivar))
+  }
+  
+  if (length(data_list) == 0) return(NULL)
+  
+  data <- as.data.frame(do.call(cbind, data_list))
+  rownames(data) <- if (!is.null(self$options$individus))
+    self$data[[self$options$individus]]
   else
-    rownames(data)=c(1:nrow(data))
+    seq_len(nrow(data))
   
   return(data)
 }

@@ -89,19 +89,21 @@ children:
             label: Individual Graphic Options
             children:
               - type: CheckBox
-                name: indact
+                name: graphind
               - type: CheckBox
-                name: modillus
+                name: graphmod
+                enable: (qualisup)
               - type: TextBox
                 name: habillage
                 format: number
           - type: Label
             label: Variable Graphic Options
             children:
-              - name: varact
+              - name: graphvaract
                 type: CheckBox
-              - name: varillus
+              - name: graphvarillu
                 type: CheckBox
+                enable: (quantisup)
   - type: LayoutBox
     margin: large
     stretchFactor: 1
@@ -203,7 +205,6 @@ children:
                 children:
                   - type: CheckBox
                     name: graphclassif
-                    format: number
               - type: Label
                 label: ''
                 cell:
@@ -222,4 +223,5 @@ children:
                 stretchFactor: 1
                 children:
                   - type: Output
-                    name: newvar2       
+                    name: newvar2
+                    enable: (graphclassif)

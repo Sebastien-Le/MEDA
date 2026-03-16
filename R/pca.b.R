@@ -1,498 +1,664 @@
-
 # This file is a generated template, your changes will not be overwritten
-
 PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
-    "PCAClass",
-    inherit = PCABase,
-    active = list(
-        dataProcessed = function() {
-            if (is.null(private$.dataProcessed))
-                private$.dataProcessed <- private$.buildData()
-
-            return(private$.dataProcessed)
-        },
-        nVaract = function() {
-            if (is.null(private$.nVaract))
-                private$.nVaract <- private$.computeNVaract()
-
-            return(private$.nVaract)
-        },
-        nQualsup = function() {
-            if (is.null(private$.nQualsup))
-                private$.nQualsup <- private$.computeNQualsup()
-
-            return(private$.nQualsup)
-        },
-        nQuantsup = function() {
-            if (is.null(private$.nQuantsup))
-                private$.nQuantsup <- private$.computeNQuantsup()
-
-            return(private$.nQuantsup)
-        },
-        nbclust = function() {
-            if (is.null(private$.nbclust))
-                private$.nbclust <- private$.computeNbclust()
-
-            return(private$.nbclust)
-        },
-
-        classifResult = function() {
-          if (is.null(private$.classifResult))
-          private$.classifResult <- private$.getclassifResult()
-          return(private$.classifResult)
-        },
-
-        PCAResult = function() {
-            if (is.null(private$.PCAResult))
-                private$.PCAResult <- private$.getPCAResult()
-
-            return(private$.PCAResult)
-        }
-    ),
-    private = list(
-
-      .dataProcessed = NULL,
-      .nVaract = NULL,
-      .nQuantsup = NULL,
-      .nQualsup = NULL,
-      .nbclust = NULL,
-      .classifResult = NULL,      
-      .PCAResult = NULL,
-      
-      
-    #---------------------------------------------  
+  "PCAClass",
+  inherit = PCABase,
+  active = list(
+    dataProcessed = function() {
+      if (is.null(private$.dataProcessed))
+        private$.dataProcessed <- private$.buildData()
+      return(private$.dataProcessed)
+    },
+    
+    nVaract = function() {
+      if (is.null(private$.nVaract))
+        private$.nVaract <- private$.computeNVaract()
+      return(private$.nVaract)
+    },
+    
+    nQualsup = function() {
+      if (is.null(private$.nQualsup))
+        private$.nQualsup <- private$.computeNQualsup()
+      return(private$.nQualsup)
+    },
+    
+    nQuantsup = function() {
+      if (is.null(private$.nQuantsup))
+        private$.nQuantsup <- private$.computeNQuantsup()
+      return(private$.nQuantsup)
+    },
+    
+    nbclust = function() {
+      if (is.null(private$.nbclust))
+        private$.nbclust <- private$.computeNbclust()
+      return(private$.nbclust)
+    },
+    
+    classifResult = function() {
+      if (is.null(private$.classifResult))
+        private$.classifResult <- private$.getclassifResult()
+      return(private$.classifResult)
+    },
+    
+    PCAResult = function() {
+      if (is.null(private$.PCAResult))
+        private$.PCAResult <- private$.getPCAResult()
+      return(private$.PCAResult)
+    }
+  ),
+  
+  private = list(
+    
+    .dataProcessed = NULL,
+    .nVaract       = NULL,
+    .nQuantsup     = NULL,
+    .nQualsup      = NULL,
+    .nbclust       = NULL,
+    .classifResult = NULL,
+    .PCAResult     = NULL,
+    
+    #---------------------------------------------
     #### Init + run functions ----
-
-        .init = function() {
-            if (is.null(self$options$actvars) || self$nVaract < 2) {
-              if (self$options$tuto==TRUE){
-                self$results$instructions$setVisible(visible = TRUE)
-              }
-            }
-            
-            self$results$instructions$setContent(
-            "<html>
+    
+    .init = function() {
+      if (is.null(self$options$actvars) || self$nVaract < 2) {
+        if (self$options$tuto == TRUE)
+          self$results$instructions$setVisible(visible = TRUE)
+      }
+      
+      self$results$instructions$setContent(
+        "<html>
             <head>
             </head>
             <body>
             <div class='justified-text'>
             <p><b>What you should know before running a PCA in jamovi</b></p>
             <p>______________________________________________________________________________</p>
-
-            <p> The main aim of Principal Component Analysis (PCA) is to show how individuals are structured according to their description. 
+            <p> The main aim of Principal Component Analysis (PCA) is to show how individuals are structured according to their description.
             Therefore, the choice of active variables is of paramount importance as it defines how individuals are described.</p>
-
             <p> The choice depends on the problem you are trying to address and therefore the perspective from which you want to answer it.</p>
-
-            <p> While the <I>Active Variables</I> field is <B>mandatory</B>, the <I>Supplementary Variables</I> fields are optional. 
+            <p> While the <I>Active Variables</I> field is <B>mandatory</B>, the <I>Supplementary Variables</I> fields are optional.
             However, if you have supplementary variables they may be essential for interpreting the structure on the individuals.</p>
-
-            <p> Once you have selected the active variables, you can choose whether or not to standardize them. By default, 
+            <p> Once you have selected the active variables, you can choose whether or not to standardize them. By default,
             the active variables are standardized. This choice is essential when variables are measured in relation to different units of measurement.</p>
-
-            <p> Clustering is based on the number of components saved. 
-            By default, clustering is based on the first 5 components, 
+            <p> Clustering is based on the number of components saved.
+            By default, clustering is based on the first 5 components,
             <I>i.e.</I> the distance between individuals is calculated on these 5 components.</p>
-
-           <p> By default, the <I>Number of clusters</I> field is set to -1 which means that the number of clusters 
-           is automatically chosen by the computer.</p>
-
+            <p> By default, the <I>Number of clusters</I> field is set to -1 which means that the number of clusters
+            is automatically chosen by the computer.</p>
             <p>______________________________________________________________________________</p>
-            
             </div>
             </body>
             </html>"
-            )
-            
-        },
-
-      .run = function() {
-
-      ready <- TRUE
-      if (is.null(self$options$actvars) || self$nVaract < 2){
-        return()
-        ready <- FALSE
-      }
-
-      if (ready) {                
-
-          #private$.errorCheck()
-          res.classif <- private$.getclassifResult()
-
-          dimdesc=private$.dimdesc()
-          self$results$descdesdim$setContent(dimdesc)
-
-          code=private$.code()
-          self$results$code$setContent(code)
-
-          private$.printeigenTable()
-          private$.printTables("coord")
-          private$.printTables("contrib")
-          private$.printTables("cos2")
-          
-          private$.plotindividus()
-          private$.plotvariables()
-
-          if (self$options$graphclassif==TRUE){
-          imageclass = self$results$plotclassif
-          imageclass$setState(res.classif)
-          }
-          
-          private$.output()
-          private$.output2(res.classif)
-      }
-      },
-
-      #### Compute results ----
-      .computeNbclust = function() {
-          nbclust <- self$options$nbclust
-          return(nbclust)
-      },
-      .computeNQuantsup = function() {
-          nQuantsup <- length(self$options$quantisup)
-          return(nQuantsup)
-      },
-      .computeNQualsup = function() {
-          nQualsup <- length(self$options$qualisup)
-          return(nQualsup)
-      },
-      .computeNVaract = function() {
-          nVaract <- length(self$options$actvars)
-          return(nVaract)
-      },
-
-      .getclassifResult = function() {
-        if (is.null(self$options$actvars) || self$nVaract < 2){
-          return()
-        }
-        else{
-        reshcpc <- FactoMineR::HCPC(self$PCAResult,nb.clust=self$nbclust,graph=F)
-        private$.classifResult <- reshcpc
-        return(private$.classifResult)
-        }
-      },
-
-      .getPCAResult = function() {
-          if (is.null(self$options$quantisup) == FALSE && is.null(self$options$qualisup)== TRUE) {
-          r <- FactoMineR::PCA(self$dataProcessed, quanti.sup=(self$nVaract+1):(self$nVaract+self$nQuantsup),ncp=self$options$ncp, scale.unit=(self$options$norme==TRUE), graph=FALSE)
-          }
-          else if (is.null(self$options$quantisup)==TRUE && is.null(self$options$qualisup) == FALSE) {
-          r <- FactoMineR::PCA(self$dataProcessed, quali.sup=(self$nVaract+1):(self$nVaract+self$nQualsup), ncp=self$options$ncp, scale.unit=(self$options$norme==TRUE), graph=FALSE)
-          }
-          else if (is.null(self$options$quantisup) == FALSE && is.null(self$options$qualisup) == FALSE) {
-          r <- FactoMineR::PCA(self$dataProcessed, quanti.sup=(self$nVaract+1):(self$nVaract+self$nQuantsup),quali.sup=(self$nVaract+self$nQuantsup+1):(self$nVaract+self$nQuantsup+self$nQualsup), ncp=self$options$ncp, scale.unit=(self$options$norme==TRUE), graph=FALSE)
-          }
-          else {
-          r <- FactoMineR::PCA(self$dataProcessed, scale.unit=(self$options$norme==TRUE), graph=FALSE, ncp=self$options$ncp)
-          }
-          private$.PCAResult <- r
-          return(private$.PCAResult)
-      },
-
-      .dimdesc = function() {
-        table <- self$PCAResult
-        proba <- self$options$proba/100
-        nFactors_out <- min(self$options$nFactors,dim(self$PCAResult$eig)[1])
-
-        res=dimdesc(table, axes=1:nFactors_out, proba = proba)
-        print(res[-length(res)])
-      },
-
-      .code = function() {
-
-          if (is.null(self$options$quantisup) == FALSE && is.null(self$options$qualisup)== TRUE) {
-          #r <- FactoMineR::PCA(self$dataProcessed, quanti.sup=(self$nVaract+1):(self$nVaract+self$nQuantsup),ncp=self$options$ncp, scale.unit=(self$options$norme==TRUE), graph=FALSE)
-          quantisup_1 <- self$nVaract+1
-          quantisup_2 <- self$nVaract+self$nQuantsup
-          qualisup_1 <- quantisup_2+1
-          qualisup_2 <- quantisup_2+self$nQualsup
-          names_var <- paste(names(self$PCAResult$call$X), collapse = ", ")
-          data <- paste("data_PCA <- data[ ,c(",names_var,")]",sep="")
-          code <- paste("PCA(data_PCA, quanti.sup=",quantisup_1,":",quantisup_2,", scale.unit=",(self$options$norme==TRUE),", ncp=",self$options$ncp,")",sep="")
-          a <- list("dataset"=data,"R code"=code)
-          print(a)
-          }
-          else if (is.null(self$options$quantisup)==TRUE && is.null(self$options$qualisup) == FALSE) {
-          #r <- FactoMineR::PCA(self$dataProcessed, quali.sup=(self$nVaract+1):(self$nVaract+self$nQualsup), ncp=self$options$ncp, scale.unit=(self$options$norme==TRUE), graph=FALSE)
-          quantisup_1 <- self$nVaract+1
-          quantisup_2 <- self$nVaract+self$nQuantsup
-          qualisup_1 <- quantisup_2+1
-          qualisup_2 <- quantisup_2+self$nQualsup
-          names_var <- paste(names(self$PCAResult$call$X), collapse = ", ")
-          data <- paste("data_PCA <- data[ ,c(",names_var,")]",sep="")
-          code <- paste("PCA(data_PCA, quali.sup=",qualisup_1,":",qualisup_2,", scale.unit=",(self$options$norme==TRUE),", ncp=",self$options$ncp,")",sep="")
-          a <- list("dataset"=data,"R code"=code)
-          print(a)
-          }
-          else if (is.null(self$options$quantisup) == FALSE && is.null(self$options$qualisup) == FALSE) {
-          #r <- FactoMineR::PCA(self$dataProcessed, quanti.sup=(self$nVaract+1):(self$nVaract+self$nQuantsup),quali.sup=(self$nVaract+self$nQuantsup+1):(self$nVaract+self$nQuantsup+self$nQualsup), ncp=self$options$ncp, scale.unit=(self$options$norme==TRUE), graph=FALSE)
-          quantisup_1 <- self$nVaract+1
-          quantisup_2 <- self$nVaract+self$nQuantsup
-          qualisup_1 <- quantisup_2+1
-          qualisup_2 <- quantisup_2+self$nQualsup
-          names_var <- paste(names(self$PCAResult$call$X), collapse = ", ")
-          data <- paste("data_PCA <- data[ ,c(",names_var,")]",sep="")
-          code <- paste("PCA(data_PCA, quanti.sup=",quantisup_1,":",quantisup_2,", quali.sup=",qualisup_1,":",qualisup_2,", scale.unit=",(self$options$norme==TRUE),", ncp=",self$options$ncp,")",sep="")
-          a <- list("dataset"=data,"R code"=code)
-          print(a)
-          }
-          else {
-          #r <- FactoMineR::PCA(self$dataProcessed, scale.unit=(self$options$norme==TRUE), graph=FALSE, ncp=self$options$ncp)
-          quantisup_1 <- self$nVaract+1
-          quantisup_2 <- self$nVaract+self$nQuantsup
-          qualisup_1 <- quantisup_2+1
-          qualisup_2 <- quantisup_2+self$nQualsup
-          names_var <- paste(names(self$PCAResult$call$X), collapse = ", ")
-          data <- paste("data_PCA <- data[ ,c(",names_var,")]",sep="")
-          code <- paste("PCA(data_PCA, scale.unit=",(self$options$norme==TRUE),", ncp=",self$options$ncp,")",sep="")
-          a <- list("dataset"=data,"R code"=code)
-          print(a)
-          }
-      },
-
-      .printeigenTable = function(){
-
-        table <- self$PCAResult
-        table <- table$eig
-
-        for (i in 1:dim(table)[1]){
-          self$results$eigengroup$eigen$addRow(rowKey=i, values=list(component=as.character(i)))
-        }
-        eigen=table[,1]
-        purcent=table[,2]
-        purcentcum=table[,3]
-
-        for (i in seq_along(eigen)) {
-          row=list()
-          row[["component"]]=paste("Dim.",i)
-          row[["eigenvalue"]]=eigen[i]
-          row[["purcent"]]=purcent[i]
-          row[["purcentcum"]]=purcentcum[i]
-          self$results$eigengroup$eigen$setRow(rowNo=i, values = row)
-        }
-        return(table)
-      },
-
-      .printTables = function(quoi){
-
-        nFactors_out <- min(self$options$nFactors,dim(self$PCAResult$eig)[1])
-        table <- self$PCAResult
-
-        if (is.null(self$options$individus)==FALSE)
-          individus_gui=self$data[[self$options$individus]]
-        else
-          individus_gui=c(1:nrow(self$data))
-
-        if (quoi=="coord") {
-          quoivar=table$var$coord
-          quoiind=table$ind$coord
-          tablevar=self$results$variables$coordonnees
-          tableind=self$results$individus$coordonnees
-        }
-
-        else if (quoi=="contrib") {
-          quoivar=table$var$contrib
-          quoiind=table$ind$contrib
-          tablevar=self$results$variables$contribution
-          tableind=self$results$individus$contribution
-        }
-
-        else if (quoi=="cos2") {
-          quoivar=table$var$cos2
-          quoiind=table$ind$cos2
-          tablevar=self$results$variables$cosinus
-          tableind=self$results$individus$cosinus
-        }
-
-        tableind$addColumn(name="individus", title="", type="text")
-        for (i in seq(nrow(quoiind)))
-          tableind$addRow(rowKey=i, value=NULL)
-
-        tablevar$addColumn(name="variables", title="", type="text")
-        for (i in seq(nrow(quoivar)))
-          tablevar$addRow(rowKey=i, value=NULL)
-
-        for (i in 1:nFactors_out){
-          tablevar$addColumn(name=paste0("dim",i), title=paste0("Dim.", as.character(i)),type='number') #, superTitle='Facteurs'
-          tableind$addColumn(name=paste0("dim",i), title=paste0("Dim.", as.character(i)),type='number')
-        }
-
-        for (var in seq_along(self$options$actvars)) {
-          row=list()
-          row[["variables"]]=rownames(quoivar)[var]
-          for (i in 1:nFactors_out) {
-            row[[paste0("dim",i)]]=quoivar[var,i]
-          }
-          tablevar$setRow(rowNo=var, values=row)
-        }
-
-        for (ind in 1:length(individus_gui)) {
-          row=list()
-          if (is.null(self$options$individus))
-            row[["individus"]]= individus_gui[ind]
-          else
-            row[["individus"]]= rownames(quoiind)[ind]
-          for (i in 1:nFactors_out){
-            row[[paste0("dim",i)]]=quoiind[ind,i]
-          }
-          tableind$setRow(rowNo=ind, values=row)
-        }
-
-      },
-
-      .plotindividus = function(image, ...){
-
-        if (self$nVaract<2) return()
-
-        else {
-          res.pca=self$PCAResult
-          abs_gui=self$options$abs
-          ord_gui=self$options$ord
-
-
-          if (self$options$habillage > 0) habillage_value = self$nVaract+self$nQuantsup+self$options$habillage
-          else habillage_value="none"
-
-          if (is.null(self$options$qualisup) == FALSE){
-            if (self$options$indact == TRUE && self$options$modillus == TRUE)
-              plot=plot.PCA(res.pca,axes=c(abs_gui, ord_gui), habillage = habillage_value, title = "Representation of the Individuals and the Categories")
-
-            else if (self$options$indact == TRUE && self$options$modillus == FALSE)
-              plot=plot.PCA(res.pca,axes=c(abs_gui, ord_gui), invisible="quali", habillage = habillage_value, title = "Representation of the Individuals")
-
-            else if (self$options$indact == FALSE && self$options$modillus == TRUE)
-              plot=plot.PCA(res.pca,axes=c(abs_gui, ord_gui), invisible="ind", habillage = habillage_value, title = "Representation of the Categories")
-
-            else
-              plot=plot.PCA(res.pca,axes=c(abs_gui, ord_gui), invisible=c("ind", "quali"), habillage = habillage_value, title = "Representation of the Individuals")
-          }
-
-          else plot=plot.PCA(res.pca,axes=c(abs_gui, ord_gui), title = "Representation of the Individuals")
-
-          return(plot)
-
-        }
-      },
-
-      .plotvariables = function(image, ...) {
-
-        if (self$nVaract<2) return()
-
-        else {
-
-          res.pca=self$PCAResult
-          abs_gui=self$options$abs
-          ord_gui=self$options$ord
-
-          if (is.null(self$options$quantisup) == FALSE) {
-
-            if (self$options$varact == TRUE && self$options$varillus == TRUE)
-              plot=plot.PCA(res.pca, choix="var", axes=c(abs_gui, ord_gui), title = "Representation of the Variables (Active and Supplementary)")
-
-            else if (self$options$varact == TRUE && self$options$varillus == FALSE)
-              plot=plot.PCA(res.pca, choix="var", axes=c(abs_gui, ord_gui), invisible="quanti.sup", title = "Representation of the Active Variables")
-
-            else if (self$options$varact == FALSE && self$options$varillus == TRUE)
-              plot=plot.PCA(res.pca, choix="var", axes=c(abs_gui, ord_gui), invisible="var", title = "Representation of the Supplementary Variables")
-
-            else
-              plot=plot.PCA(res.pca, choix="var", axes=c(abs_gui, ord_gui), invisible = c("var", "quanti.sup"), title = "Correlation Circle")
-          }
-
-          else plot=plot.PCA(res.pca, choix="var", axes=c(abs_gui, ord_gui), title = "Representation of the Active Variables")
-
-          return(plot)
-
-        }
-      },
-
-      .plotclassif= function(image, ...){
-
-        if (is.null(self$options$actvars) || self$nVaract < 2) return()
-
-        else {
-          abs_gui=self$options$abs
-          ord_gui=self$options$ord
-
-          res.classif=image$state
-          plot=FactoMineR::plot.HCPC(res.classif, axes=c(abs_gui, ord_gui), choice="map", draw.tree = F, title="Representation of the Individuals According to Clusters")
-          print(plot)
-          TRUE
-        }
-      },
-
-#---------------------------------------------
-### Helper functions ----
-
-      .errorCheck = function() {
-            if (self$options$nFactors > self$nVaract) {
-                jmvcore::reject(
-                    jmvcore::format(
-                        'Number of components cannot be bigger than number of variables'
-                    )
-                )
-            }
-      },
+      )
+    },
+    
+    .run = function() {
       
-      .output = function(){
-        nFactors_out <- min(self$options$ncp,dim(self$PCAResult$eig)[1])
-        if (self$results$newvar$isNotFilled()) {
-          keys <- 1:(nFactors_out)
-          measureTypes <- c(rep("continuous", nFactors_out))
-          titles <- paste(("Dim."), keys)
-          descriptions <- "PCA component"
-          self$results$newvar$set(
-            keys=keys,
-            titles=titles,
-            descriptions=descriptions,
-            measureTypes=measureTypes
-          )
-          for (i in 1:(nFactors_out)) {
-            scores <- as.numeric(self$PCAResult$ind$coord[, i])
-            self$results$newvar$setValues(index=i, scores)
-          }
-          self$results$newvar$setRowNums(rownames(self$data))
-        }
-      },
+      if (is.null(self$options$actvars) || self$nVaract < 2)
+        return()
+      
+      private$.errorCheck() 
+      
+      res.pca <- self$PCAResult
+      if (is.null(res.pca))
+        return()
+      
+      res.classif <- NULL
+      need_classif <- isTRUE(self$options$graphclassif) || !self$results$newvar2$isNotFilled()
+      
+      if (need_classif)
+        res.classif <- private$.getclassifResult()
+      
+      self$results$descdesdim$setContent(private$.dimdesc())
+      self$results$code$setContent(private$.code())
+      
+      private$.printeigenTable()
+      private$.printTables("coord")
+      private$.printTables("contrib")
+      private$.printTables("cos2")
+      
+      # Graphes toujours affichés
+      self$results$plotind$setState(self$PCAResult)
+      self$results$plotvar$setState(self$PCAResult)
+      
+      # Graphes supplémentaires optionnels
+      if (isTRUE(self$options$graphind))
+        self$results$plotseulind$setState(self$PCAResult)
+      
+      if (isTRUE(self$options$graphmod) && !is.null(self$options$qualisup))
+        self$results$plotseulmod$setState(self$PCAResult)
+      
+      if (self$options$habillage > 0)
+        self$results$plothabillage$setState(self$PCAResult)
+      
+      if (isTRUE(self$options$graphvaract))
+        self$results$plotseulvaract$setState(self$PCAResult)
+      
+      if (isTRUE(self$options$graphvarillu) && !is.null(self$options$quantisup))
+        self$results$plotseulvarillu$setState(self$PCAResult)
+      
+      if (isTRUE(self$options$graphclassif) && !is.null(res.classif))
+        self$results$plotclassif$setState(res.classif)
+      
+      if (!is.null(res.classif))
+        private$.output2(res.classif)
+      
+      
+      private$.output()
+    },
 
-      .output2 = function(res.classif){
-        #if (self$results$newvar2$isNotFilled()) {
-        if (self$results$newvar2$isFilled()) {
-          keys <- 1
-          measureTypes <- "nominal"
-          titles <- "Cluster"
-          descriptions <- "Cluster variable"
-          self$results$newvar2$set(
-            keys=keys,
-            titles=titles,
-            descriptions=descriptions,
-            measureTypes=measureTypes
-          )
-            #scores <- as.factor(res.classif$data.clust[,dim(res.classif$data.clust)[2]])
-            scores <- as.factor(res.classif$data.clust[rownames(private$.buildData()),dim(res.classif$data.clust)[2]])
-            self$results$newvar2$setValues(index=1, scores)
-
-          self$results$newvar2$setRowNums(rownames(self$data))
-        }
-      },
-
-      .buildData = function() {
-
-        dataactvars=data.frame(self$data[,self$options$actvars])
-        colnames(dataactvars)=self$options$actvars
-        dataquantisup=data.frame(self$data[,self$options$quantisup])
-        colnames(dataquantisup)=self$options$quantisup
-        dataqualisup=data.frame(self$data[,self$options$qualisup])
-        colnames(dataqualisup)=self$options$qualisup
-        data=data.frame(dataactvars,dataquantisup,dataqualisup)
-
-        if (is.null(self$options$individus)==FALSE) {
-          rownames(data)=self$data[[self$options$individus]]
-        }
-        else
-          rownames(data)=c(1:nrow(data))
-        
-        return(data)
+    #### Compute results ----
+    
+    .computeNbclust = function() {
+      return(self$options$nbclust)
+    },
+    
+    .computeNQuantsup = function() {
+      if (is.null(self$options$quantisup)) return(0)
+      length(self$options$quantisup)
+    },
+    
+    .computeNQualsup = function() {
+      if (is.null(self$options$qualisup)) return(0)
+      length(self$options$qualisup)
+    },
+    
+    .computeNVaract = function() {
+      if (is.null(self$options$actvars)) return(0)
+      length(self$options$actvars)
+    },
+    
+    .getclassifResult = function() {
+      if (is.null(self$options$actvars) || self$nVaract < 2)
+        return(NULL)
+      
+      reshcpc <- tryCatch(
+        FactoMineR::HCPC(self$PCAResult, nb.clust = self$nbclust, graph = FALSE),
+        error = function(e) NULL
+      )
+      private$.classifResult <- reshcpc
+      return(private$.classifResult)
+    },
+    
+    .getPCAResult = function() {
+      
+      data <- self$dataProcessed
+      if (is.null(data))
+        return(NULL)
+      
+      has_quanti <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
+      has_quali  <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
+      
+      ncp_candidates <- c(self$options$ncp, self$options$nFactors)
+      
+      if (isTRUE(self$options$graphclassif) || !self$results$newvar2$isNotFilled())
+        #ncp_candidates <- c(ncp_candidates, 5)
+      
+      ncp_candidates <- suppressWarnings(as.numeric(ncp_candidates))
+      ncp_candidates <- ncp_candidates[!is.na(ncp_candidates) & ncp_candidates > 0]
+      
+      ncp_target <- if (length(ncp_candidates) == 0) 2 else max(ncp_candidates)
+      ncp_upper  <- min(nrow(data) - 1, self$nVaract)
+      
+      if (is.na(ncp_upper) || ncp_upper < 1) {
+        jmvcore::reject("PCA failed: not enough rows or active variables to compute at least one component")
+        return(NULL)
       }
-    )
+      
+      ncp_use <- min(ncp_target, ncp_upper)
+      
+      r <- tryCatch({
+        if (has_quanti && !has_quali) {
+          FactoMineR::PCA(
+            data,
+            quanti.sup = (self$nVaract + 1):(self$nVaract + self$nQuantsup),
+            ncp        = ncp_use,
+            scale.unit = isTRUE(self$options$norme),
+            graph      = FALSE
+          )
+        } else if (!has_quanti && has_quali) {
+          FactoMineR::PCA(
+            data,
+            quali.sup  = (self$nVaract + 1):(self$nVaract + self$nQualsup),
+            ncp        = ncp_use,
+            scale.unit = isTRUE(self$options$norme),
+            graph      = FALSE
+          )
+        } else if (has_quanti && has_quali) {
+          FactoMineR::PCA(
+            data,
+            quanti.sup = (self$nVaract + 1):(self$nVaract + self$nQuantsup),
+            quali.sup  = (self$nVaract + self$nQuantsup + 1):(self$nVaract + self$nQuantsup + self$nQualsup),
+            ncp        = ncp_use,
+            scale.unit = isTRUE(self$options$norme),
+            graph      = FALSE
+          )
+        } else {
+          FactoMineR::PCA(
+            data,
+            ncp        = ncp_use,
+            scale.unit = isTRUE(self$options$norme),
+            graph      = FALSE
+          )
+        }
+      }, error = function(e) {
+        jmvcore::reject(paste("PCA failed:", e$message))
+        return(NULL)
+      })
+      
+      private$.PCAResult <- r
+      return(private$.PCAResult)
+    },
+    
+    .dimdesc = function() {
+      table <- self$PCAResult
+      if (is.null(table))
+        return("No result available")
+      
+      nFactors_out <- min(self$options$nFactors, ncol(table$ind$coord))
+      if (is.null(nFactors_out) || nFactors_out < 1)
+        return("No dimension available")
+      
+      res <- FactoMineR::dimdesc(table, axes = 1:nFactors_out, proba = self$options$proba / 100)
+      paste(capture.output(print(res[-length(res)])), collapse = "\n")
+    },
+    
+    .code = function() {
+      
+      has_quanti  <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
+      has_quali   <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
+      names_var   <- paste(names(self$PCAResult$call$X), collapse = ", ")
+      data_str    <- paste0("data_PCA <- data[ ,c(", names_var, ")]")
+      norme_str   <- isTRUE(self$options$norme)
+      ncp_str     <- self$options$ncp
+      
+      code_str <- if (has_quanti && !has_quali) {
+        paste0("PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", self$nVaract + self$nQuantsup,
+               ", scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+      } else if (!has_quanti && has_quali) {
+        paste0("PCA(data_PCA, quali.sup=", self$nVaract + 1, ":", self$nVaract + self$nQualsup,
+               ", scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+      } else if (has_quanti && has_quali) {
+        q1 <- self$nVaract + self$nQuantsup
+        paste0("PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", q1,
+               ", quali.sup=", q1 + 1, ":", q1 + self$nQualsup,
+               ", scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+      } else {
+        paste0("PCA(data_PCA, scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+      }
+      
+      print(list("dataset" = data_str, "R code" = code_str))
+    },
+    
+    .printeigenTable = function() {
+      table      <- self$PCAResult$eig
+      eigen      <- table[, 1]
+      purcent    <- table[, 2]
+      purcentcum <- table[, 3]
+      
+      for (i in seq_along(eigen)) {
+        self$results$eigengroup$eigen$addRow(rowKey = i, values = list(
+          component  = paste("Dim.", i),
+          eigenvalue = eigen[i],
+          purcent    = purcent[i],
+          purcentcum = purcentcum[i]
+        ))
+      }
+    },
+    
+    # .printTables = function(quoi) {
+    #   
+    #   table <- self$PCAResult
+    #   individus_gui <- if (!is.null(self$options$individus))
+    #     self$data[[self$options$individus]]
+    #   else
+    #     seq_len(nrow(self$data))
+    #   
+    #   if (quoi == "coord") {
+    #     quoivar  <- table$var$coord
+    #     quoiind  <- table$ind$coord
+    #     tablevar <- self$results$variables$coordonnees
+    #     tableind <- self$results$individus$coordonnees
+    #   } else if (quoi == "contrib") {
+    #     quoivar  <- table$var$contrib
+    #     quoiind  <- table$ind$contrib
+    #     tablevar <- self$results$variables$contribution
+    #     tableind <- self$results$individus$contribution
+    #   } else if (quoi == "cos2") {
+    #     quoivar  <- table$var$cos2
+    #     quoiind  <- table$ind$cos2
+    #     tablevar <- self$results$variables$cosinus
+    #     tableind <- self$results$individus$cosinus
+    #   } else {
+    #     return()
+    #   }
+    #   
+    #   nFactors_out <- min(self$options$nFactors, ncol(quoivar), ncol(quoiind))
+    #   
+    #   tableind$addColumn(name = "individus", title = "", type = "text")
+    #   for (i in seq_len(nrow(quoiind)))
+    #     tableind$addRow(rowKey = i, value = NULL)
+    #   
+    #   tablevar$addColumn(name = "variables", title = "", type = "text")
+    #   for (i in seq_len(nrow(quoivar)))
+    #     tablevar$addRow(rowKey = i, value = NULL)
+    #   
+    #   for (i in seq_len(nFactors_out)) {
+    #     tablevar$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
+    #     tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
+    #   }
+    #   
+    #   for (var in seq_len(nrow(quoivar))) {
+    #     row <- list(variables = rownames(quoivar)[var])
+    #     for (i in seq_len(nFactors_out))
+    #       row[[paste0("dim", i)]] <- quoivar[var, i]
+    #     tablevar$setRow(rowNo = var, values = row)
+    #   }
+    #   
+    #   for (ind in seq_along(individus_gui)) {
+    #     row <- list(individus = if (is.null(self$options$individus))
+    #       individus_gui[ind] else rownames(quoiind)[ind])
+    #     for (i in seq_len(nFactors_out))
+    #       row[[paste0("dim", i)]] <- quoiind[ind, i]
+    #     tableind$setRow(rowNo = ind, values = row)
+    #   }
+    # },
+    
+    .printTables = function(quoi) {
+      
+      # Ne calculer que si au moins un des deux tableaux est demandé
+      show_ind <- switch(quoi,
+                         "coord"  = isTRUE(self$options$coordind),
+                         "contrib"= isTRUE(self$options$contribind),
+                         "cos2"   = isTRUE(self$options$cosind),
+                         FALSE
+      )
+      show_var <- switch(quoi,
+                         "coord"  = isTRUE(self$options$coordvar),
+                         "contrib"= isTRUE(self$options$contribvar),
+                         "cos2"   = isTRUE(self$options$cosvar),
+                         FALSE
+      )
+      
+      if (!show_ind && !show_var) return()
+      
+      table <- self$PCAResult
+      individus_gui <- if (!is.null(self$options$individus))
+        self$data[[self$options$individus]]
+      else
+        seq_len(nrow(self$data))
+      
+      if (quoi == "coord") {
+        quoivar  <- table$var$coord
+        quoiind  <- table$ind$coord
+        tablevar <- self$results$variables$coordonnees
+        tableind <- self$results$individus$coordonnees
+      } else if (quoi == "contrib") {
+        quoivar  <- table$var$contrib
+        quoiind  <- table$ind$contrib
+        tablevar <- self$results$variables$contribution
+        tableind <- self$results$individus$contribution
+      } else if (quoi == "cos2") {
+        quoivar  <- table$var$cos2
+        quoiind  <- table$ind$cos2
+        tablevar <- self$results$variables$cosinus
+        tableind <- self$results$individus$cosinus
+      } else {
+        return()
+      }
+      
+      nFactors_out <- min(self$options$nFactors, ncol(quoivar), ncol(quoiind))
+      
+      if (show_var) {
+        tablevar$addColumn(name = "variables", title = "", type = "text")
+        for (i in seq_len(nrow(quoivar)))
+          tablevar$addRow(rowKey = i, value = NULL)
+        for (i in seq_len(nFactors_out))
+          tablevar$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
+        for (var in seq_len(nrow(quoivar))) {
+          row <- list(variables = rownames(quoivar)[var])
+          for (i in seq_len(nFactors_out))
+            row[[paste0("dim", i)]] <- quoivar[var, i]
+          tablevar$setRow(rowNo = var, values = row)
+        }
+      }
+      
+      if (show_ind) {
+        tableind$addColumn(name = "individus", title = "", type = "text")
+        for (i in seq_len(nrow(quoiind)))
+          tableind$addRow(rowKey = i, value = NULL)
+        for (i in seq_len(nFactors_out))
+          tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
+        for (ind in seq_along(individus_gui)) {
+          row <- list(individus = if (is.null(self$options$individus))
+            individus_gui[ind] else rownames(quoiind)[ind])
+          for (i in seq_len(nFactors_out))
+            row[[paste0("dim", i)]] <- quoiind[ind, i]
+          tableind$setRow(rowNo = ind, values = row)
+        }
+      }
+    },
+    
+    .plotindividus = function(image, ...) {
+      if (self$nVaract < 2) return()
+      
+      res.pca <- image$state
+      
+      if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0) {
+        plot <- FactoMineR::plot.PCA(res.pca,
+                                     axes  = c(self$options$abs, self$options$ord),
+                                     title = "Representation of the Individuals and the Categories"
+        )
+      } else {
+        plot <- FactoMineR::plot.PCA(res.pca,
+                                     axes  = c(self$options$abs, self$options$ord),
+                                     title = "Representation of the Individuals"
+        )
+      }
+      print(plot)
+      TRUE
+    },
+    
+    .plothabillage = function(image, ...) {
+      if (self$nVaract < 2) return()
+      res.pca <- image$state
+      habillage_value <- self$nVaract + self$nQuantsup + self$options$habillage
+      
+      args <- list(
+        res.pca,
+        axes      = c(self$options$abs, self$options$ord),
+        habillage = habillage_value,
+        title     = "Representation of the Individuals (Colored by Variable)"
+      )
+      
+      if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0)
+        args$invisible <- "quali"
+      
+      plot <- do.call(FactoMineR::plot.PCA, args)
+      print(plot)
+      TRUE
+    },
+    
+    .plotseulind = function(image, ...) {
+      if (self$nVaract < 2) return()
+      res.pca <- image$state
+      args <- list(
+        res.pca,
+        axes      = c(self$options$abs, self$options$ord),
+        habillage = "none",
+        title     = "Representation of the Individuals"
+      )
+      
+      if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0)
+        args$invisible <- "quali"
+      
+      plot <- do.call(FactoMineR::plot.PCA, args)
+      print(plot)
+      TRUE
+      
+    },
+    
+    .plotseulmod = function(image, ...) {
+      if (self$nVaract < 2) return()
+      if (is.null(self$options$qualisup) || length(self$options$qualisup) == 0) return()
+      res.pca <- image$state
+      plot <- FactoMineR::plot.PCA(res.pca,
+                                   axes      = c(self$options$abs, self$options$ord),
+                                   invisible = "ind",
+                                   title     = "Representation of the Categories"
+      )
+      print(plot)
+      TRUE
+    },
+    
+    .plotvariables = function(image, ...) {
+      if (self$nVaract < 2) return()
+      
+      res.pca <- image$state
+      abs_gui <- self$options$abs
+      ord_gui <- self$options$ord
+      
+      # Graphe principal : variables actives + illustratives si quantisup présent
+      if (!is.null(self$options$quantisup) && length(self$options$quantisup) > 0) {
+        plot <- FactoMineR::plot.PCA(res.pca,
+                                     choix = "var",
+                                     axes  = c(abs_gui, ord_gui),
+                                     title = "Representation of the Variables (Active and Supplementary)"
+        )
+      } else {
+        plot <- FactoMineR::plot.PCA(res.pca,
+                                     choix = "var",
+                                     axes  = c(abs_gui, ord_gui),
+                                     title = "Correlation Circle"
+        )
+      }
+      print(plot)
+      TRUE
+    },
+    
+    .plotseulvaract = function(image, ...) {
+      if (self$nVaract < 2) return()
+      res.pca <- image$state
+      args <- list(
+        res.pca,
+        choix = "var",
+        axes  = c(self$options$abs, self$options$ord),
+        title = "Representation of the Active Variables"
+      )
+      if (!is.null(self$options$quantisup) && length(self$options$quantisup) > 0)
+        args$invisible <- "quanti.sup"
+      
+      plot <- do.call(FactoMineR::plot.PCA, args)
+      print(plot)
+      TRUE
+    },
+    
+    .plotseulvarillu = function(image, ...) {
+      if (self$nVaract < 2) return()
+      if (is.null(self$options$quantisup) || length(self$options$quantisup) == 0) return()
+      res.pca <- image$state
+      plot <- FactoMineR::plot.PCA(res.pca,
+                                   choix     = "var",
+                                   axes      = c(self$options$abs, self$options$ord),
+                                   invisible = "var",
+                                   title     = "Representation of the Supplementary Variables"
+      )
+      print(plot)
+      TRUE
+    },
+    
+    .plotclassif = function(image, ...) {
+      if (is.null(self$options$actvars) || self$nVaract < 2) return()
+      
+      res.classif <- image$state
+      plot <- FactoMineR::plot.HCPC(res.classif,
+                                    axes      = c(self$options$abs, self$options$ord),
+                                    choice    = "map",
+                                    draw.tree = FALSE,
+                                    title     = "Representation of the Individuals According to Clusters"
+      )
+      print(plot)
+      TRUE
+    },
+    
+    #---------------------------------------------
+    ### Helper functions ----
+    
+    .errorCheck = function() {
+      if (self$options$nFactors > self$nVaract)
+        jmvcore::reject('Number of components cannot be bigger than number of variables')
+    },
+    
+    .output = function() {
+      nFactors_out <- min(self$options$ncp, ncol(self$PCAResult$ind$coord))
+      
+      if (self$results$newvar$isNotFilled()) {
+        self$results$newvar$set(
+          keys         = 1:nFactors_out,
+          titles       = paste("Dim.", 1:nFactors_out),
+          descriptions = rep("PCA component", nFactors_out),
+          measureTypes = rep("continuous", nFactors_out)
+        )
+      }
+      
+      for (i in seq_len(nFactors_out))
+        self$results$newvar$setValues(index = i, as.numeric(self$PCAResult$ind$coord[, i]))
+      
+      self$results$newvar$setRowNums(rownames(self$dataProcessed))
+    },
+    
+    .output2 = function(res.classif) {
+      if (is.null(res.classif) || is.null(res.classif$data.clust))
+        return()
+      
+      output <- self$results$newvar2
+      
+      if (output$isNotFilled()) {
+        output$set(
+          keys         = 1,
+          titles       = "Cluster",
+          descriptions = "Cluster variable",
+          measureTypes = "nominal"
+        )
+      }
+      
+      output$setValues(index = 1, as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)]))
+      output$setRowNums(rownames(self$dataProcessed))
+    },
+    
+    .buildData = function() {
+      
+      data_list <- list()
+      
+      if (!is.null(self$options$actvars) && length(self$options$actvars) > 0) {
+        dataactvars <- data.frame(self$data[, self$options$actvars, drop = FALSE])
+        colnames(dataactvars) <- self$options$actvars
+        data_list <- c(data_list, list(dataactvars))
+      }
+      
+      if (!is.null(self$options$quantisup) && length(self$options$quantisup) > 0) {
+        dataquantisup <- data.frame(self$data[, self$options$quantisup, drop = FALSE])
+        colnames(dataquantisup) <- self$options$quantisup
+        data_list <- c(data_list, list(dataquantisup))
+      }
+      
+      if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0) {
+        dataqualisup <- data.frame(self$data[, self$options$qualisup, drop = FALSE])
+        colnames(dataqualisup) <- self$options$qualisup
+        data_list <- c(data_list, list(dataqualisup))
+      }
+      
+      if (length(data_list) == 0)
+        return(NULL)
+      
+      data <- as.data.frame(do.call(cbind, data_list))
+      
+      rownames(data) <- if (!is.null(self$options$individus))
+        self$data[[self$options$individus]]
+      else
+        seq_len(nrow(data))
+      
+      return(data)
+    }
+  )
 )

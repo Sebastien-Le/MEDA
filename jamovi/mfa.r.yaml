@@ -102,7 +102,7 @@ items:
   - name: newvar2
     type: Output
     title: Coordinates
-    measureType: continuous
+    measureType: nominal
     initInRun: true
     clearWith:
       - actvars
