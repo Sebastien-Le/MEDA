@@ -75,10 +75,6 @@ items:
     title: Automatic Description of the Dimensions
     type: Preformatted
 
-  - name: code
-    title: R code
-    type: Preformatted
-
   - name: plotclassif
     title: Representation of the Individuals According to Clusters
     visible: (graphclassif)
@@ -110,3 +106,7 @@ items:
       - qualisup
       - individus
       - norme
+      
+  - name: code
+    title: R code
+    type: Preformatted

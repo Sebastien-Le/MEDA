@@ -197,6 +197,24 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       return(private$.MCAResult)
     },
     
+    .getValidAxes = function(res) {
+      abs_gui <- suppressWarnings(as.numeric(self$options$abs))
+      ord_gui <- suppressWarnings(as.numeric(self$options$ord))
+      
+      if (is.null(res) || is.null(res$eig))
+        return(NULL)
+      
+      n_axes <- nrow(res$eig)
+      
+      if (is.na(abs_gui) || is.na(ord_gui) || abs_gui < 1 || ord_gui < 1)
+        return(NULL)
+      
+      if (abs_gui > n_axes || ord_gui > n_axes)
+        return(NULL)
+      
+      c(abs_gui, ord_gui)
+    },
+    
     .classif = function(res.mca) {
       tryCatch(
         FactoMineR::HCPC(res.mca, nb.clust = self$nbclust, graph = FALSE),
@@ -228,25 +246,46 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       has_quanti <- nQuantsup > 0
       has_quali  <- nQualsup  > 0
       
-      names_var <- paste(names(table$call$X), collapse = ", ")
-      data_str  <- paste0("data_MCA <- data[ ,c(", names_var, ")]")
+      names_var <- paste0("'", names(table$call$X), "'", collapse = ", ")
+      data_str  <- paste0("data_MCA <- data[, c(", names_var, ")]")
       ncp_str   <- self$options$ncp
       
       code_str <- if (has_quanti && !has_quali) {
-        paste0("MCA(data_MCA, quanti.sup=", nVaract + 1, ":", nVaract + nQuantsup,
-               ", level.ventil=", ventil, ", ncp=", ncp_str, ")")
+        paste0(
+          "MCA(data_MCA, quanti.sup=", nVaract + 1, ":", nVaract + nQuantsup,
+          ", level.ventil=", ventil,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       } else if (!has_quanti && has_quali) {
-        paste0("MCA(data_MCA, quali.sup=", nVaract + 1, ":", nVaract + nQualsup,
-               ", level.ventil=", ventil, ", ncp=", ncp_str, ")")
+        paste0(
+          "MCA(data_MCA, quali.sup=", nVaract + 1, ":", nVaract + nQualsup,
+          ", level.ventil=", ventil,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       } else if (has_quanti && has_quali) {
-        paste0("MCA(data_MCA, quanti.sup=", nVaract + 1, ":", nVaract + nQuantsup,
-               ", quali.sup=", nVaract + nQuantsup + 1, ":", nVaract + nQuantsup + nQualsup,
-               ", level.ventil=", ventil, ", ncp=", ncp_str, ")")
+        paste0(
+          "MCA(data_MCA, quanti.sup=", nVaract + 1, ":", nVaract + nQuantsup,
+          ", quali.sup=", nVaract + nQuantsup + 1, ":", nVaract + nQuantsup + nQualsup,
+          ", level.ventil=", ventil,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       } else {
-        paste0("MCA(data_MCA, level.ventil=", ventil, ", ncp=", ncp_str, ")")
+        paste0(
+          "MCA(data_MCA, level.ventil=", ventil,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       }
       
-      print(list("dataset" = data_str, "R code" = code_str))
+      out <- list(
+        "dataset" = data_str,
+        "R code"  = code_str
+      )
+      
+      paste(capture.output(print(out)), collapse = "\n")
     },
     
     .printeigenTable = function(table) {
@@ -285,9 +324,9 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       nFactors_out <- min(self$options$nFactors, ncol(table$ind$coord))
       
       individus_gui <- if (!is.null(self$options$individus))
-        self$data[[self$options$individus]]
+        as.character(self$data[[self$options$individus]])
       else
-        seq_len(nrow(self$data))
+        as.character(seq_len(nrow(self$data)))
       
       if (quoi == "coord") {
         quoivar  <- table$var$coord
@@ -328,9 +367,8 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           tableind$addRow(rowKey = i, value = NULL)
         for (i in seq_len(nFactors_out))
           tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
-        for (ind in seq_along(individus_gui)) {
-          row <- list(individus = if (is.null(self$options$individus))
-            individus_gui[ind] else rownames(quoiind)[ind])
+        for (ind in seq_len(nrow(quoiind))) {
+          row <- list(individus = individus_gui[ind])
           for (i in seq_len(nFactors_out))
             row[[paste0("dim", i)]] <- quoiind[ind, i]
           tableind$setRow(rowNo = ind, values = row)
@@ -421,26 +459,49 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .plotclassif = function(image, ...) {
-      if (is.null(self$options$actvars)) return()
-      res.classif <- image$state
-      if (is.null(res.classif)) return()
+      if (is.null(self$options$actvars))
+        return(FALSE)
       
-      plot <- FactoMineR::plot.HCPC(res.classif,
-                                    axes      = c(self$options$abs, self$options$ord),
-                                    choice    = "map",
-                                    draw.tree = FALSE,
-                                    title     = "Representation of the Individuals According to Clusters"
-      )
-      print(plot)
-      TRUE
+      res.classif <- image$state
+      if (is.null(res.classif))
+        return(FALSE)
+      
+      abs_gui <- suppressWarnings(as.numeric(self$options$abs))
+      ord_gui <- suppressWarnings(as.numeric(self$options$ord))
+      
+      if (is.na(abs_gui) || is.na(ord_gui))
+        return(FALSE)
+      
+      ok <- tryCatch({
+        plot <- FactoMineR::plot.HCPC(
+          res.classif,
+          axes = c(abs_gui, ord_gui),
+          choice = "map",
+          draw.tree = FALSE,
+          title = "Representation of the Individuals According to Clusters"
+        )
+        print(plot)
+        TRUE
+      }, error = function(e) {
+        jmvcore::reject(paste("Cluster plot failed:", e$message))
+        FALSE
+      })
+      
+      ok
     },
     
     #---------------------------------------------
     ### Helper functions ----
     
     .errorCheck = function() {
-      if (self$nVaract < self$options$nFactors)
-        jmvcore::reject('Number of components cannot be bigger than number of variables')
+      
+      nFactors <- suppressWarnings(as.numeric(self$options$nFactors))
+      
+      if (is.na(nFactors) || nFactors < 1)
+        jmvcore::reject("Number of components must be at least 1")
+      
+      if (self$nVaract < 2)
+        jmvcore::reject("At least two active variables are required")
     },
     
     .output = function(res.mca) {
@@ -458,7 +519,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       for (i in seq_len(nFactors_out))
         self$results$newvar$setValues(index = i, as.numeric(res.mca$ind$coord[, i]))
       
-      self$results$newvar$setRowNums(rownames(self$dataProcessed))
+      self$results$newvar$setRowNums(seq_len(nrow(self$dataProcessed)))
     },
     
     .output2 = function(res.classif) {
@@ -477,7 +538,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
       
       output$setValues(index = 1, as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)]))
-      output$setRowNums(rownames(self$dataProcessed))
+      output$setRowNums(seq_len(nrow(self$dataProcessed)))
     },
     
     .buildData = function() {
@@ -507,10 +568,13 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       data <- as.data.frame(do.call(cbind, data_list))
       
-      rownames(data) <- if (!is.null(self$options$individus))
-        self$data[[self$options$individus]]
-      else
-        seq_len(nrow(data))
+      if (!is.null(self$options$individus)) {
+        ids <- as.character(self$data[[self$options$individus]])
+        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        rownames(data) <- make.unique(ids)
+      } else {
+        rownames(data) <- as.character(seq_len(nrow(data)))
+      }
       
       return(data)
     }

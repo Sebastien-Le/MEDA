@@ -61,7 +61,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     
     .init = function() {
       if (is.null(self$options$actvars) || self$nVaract < 2) {
-        if (self$options$tuto == TRUE)
+        if (isTRUE(self$options$tuto))
           self$results$instructions$setVisible(visible = TRUE)
       }
       
@@ -183,17 +183,12 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     .getPCAResult = function() {
       
       data <- self$dataProcessed
-      if (is.null(data))
-        return(NULL)
+      if (is.null(data)) return(NULL)
       
       has_quanti <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
       has_quali  <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
       
       ncp_candidates <- c(self$options$ncp, self$options$nFactors)
-      
-      if (isTRUE(self$options$graphclassif) || !self$results$newvar2$isNotFilled())
-        #ncp_candidates <- c(ncp_candidates, 5)
-      
       ncp_candidates <- suppressWarnings(as.numeric(ncp_candidates))
       ncp_candidates <- ncp_candidates[!is.na(ncp_candidates) & ncp_candidates > 0]
       
@@ -265,29 +260,52 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     
     .code = function() {
       
-      has_quanti  <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
-      has_quali   <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
-      names_var   <- paste(names(self$PCAResult$call$X), collapse = ", ")
-      data_str    <- paste0("data_PCA <- data[ ,c(", names_var, ")]")
-      norme_str   <- isTRUE(self$options$norme)
-      ncp_str     <- self$options$ncp
+      has_quanti <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
+      has_quali  <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
+      
+      names_var <- paste0("'", names(self$PCAResult$call$X), "'", collapse = ", ")
+      data_str  <- paste0("data_PCA <- data[, c(", names_var, ")]")
+      
+      norme_str <- if (isTRUE(self$options$norme)) "TRUE" else "FALSE"
+      ncp_str   <- self$options$ncp
       
       code_str <- if (has_quanti && !has_quali) {
-        paste0("PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", self$nVaract + self$nQuantsup,
-               ", scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+        paste0(
+          "PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", self$nVaract + self$nQuantsup,
+          ", scale.unit=", norme_str,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       } else if (!has_quanti && has_quali) {
-        paste0("PCA(data_PCA, quali.sup=", self$nVaract + 1, ":", self$nVaract + self$nQualsup,
-               ", scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+        paste0(
+          "PCA(data_PCA, quali.sup=", self$nVaract + 1, ":", self$nVaract + self$nQualsup,
+          ", scale.unit=", norme_str,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       } else if (has_quanti && has_quali) {
         q1 <- self$nVaract + self$nQuantsup
-        paste0("PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", q1,
-               ", quali.sup=", q1 + 1, ":", q1 + self$nQualsup,
-               ", scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+        paste0(
+          "PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", q1,
+          ", quali.sup=", q1 + 1, ":", q1 + self$nQualsup,
+          ", scale.unit=", norme_str,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       } else {
-        paste0("PCA(data_PCA, scale.unit=", norme_str, ", ncp=", ncp_str, ")")
+        paste0(
+          "PCA(data_PCA, scale.unit=", norme_str,
+          ", ncp=", ncp_str,
+          ", graph=FALSE)"
+        )
       }
       
-      print(list("dataset" = data_str, "R code" = code_str))
+      out <- list(
+        "dataset" = data_str,
+        "R code"  = code_str
+      )
+      
+      paste(capture.output(print(out)), collapse = "\n")
     },
     
     .printeigenTable = function() {
@@ -384,9 +402,9 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       table <- self$PCAResult
       individus_gui <- if (!is.null(self$options$individus))
-        self$data[[self$options$individus]]
+        as.character(self$data[[self$options$individus]])
       else
-        seq_len(nrow(self$data))
+        as.character(seq_len(nrow(self$data)))
       
       if (quoi == "coord") {
         quoivar  <- table$var$coord
@@ -429,9 +447,8 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           tableind$addRow(rowKey = i, value = NULL)
         for (i in seq_len(nFactors_out))
           tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
-        for (ind in seq_along(individus_gui)) {
-          row <- list(individus = if (is.null(self$options$individus))
-            individus_gui[ind] else rownames(quoiind)[ind])
+        for (ind in seq_len(nrow(quoiind))) {
+          row <- list(individus = individus_gui[ind])
           for (i in seq_len(nFactors_out))
             row[[paste0("dim", i)]] <- quoiind[ind, i]
           tableind$setRow(rowNo = ind, values = row)
@@ -604,7 +621,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       for (i in seq_len(nFactors_out))
         self$results$newvar$setValues(index = i, as.numeric(self$PCAResult$ind$coord[, i]))
       
-      self$results$newvar$setRowNums(rownames(self$dataProcessed))
+      self$results$newvar$setRowNums(seq_len(nrow(self$dataProcessed)))
     },
     
     .output2 = function(res.classif) {
@@ -623,7 +640,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
       
       output$setValues(index = 1, as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)]))
-      output$setRowNums(rownames(self$dataProcessed))
+      output$setRowNums(seq_len(nrow(self$dataProcessed)))
     },
     
     .buildData = function() {
@@ -653,10 +670,13 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       data <- as.data.frame(do.call(cbind, data_list))
       
-      rownames(data) <- if (!is.null(self$options$individus))
-        self$data[[self$options$individus]]
-      else
-        seq_len(nrow(data))
+      if (!is.null(self$options$individus)) {
+        ids <- as.character(self$data[[self$options$individus]])
+        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        rownames(data) <- make.unique(ids)
+      } else {
+        rownames(data) <- as.character(seq_len(nrow(data)))
+      }
       
       return(data)
     }

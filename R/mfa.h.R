@@ -171,10 +171,10 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         plotvar = function() private$.items[["plotvar"]],
         eigengroup = function() private$.items[["eigengroup"]],
         descdesdim = function() private$.items[["descdesdim"]],
-        code = function() private$.items[["code"]],
         plotclassif = function() private$.items[["plotclassif"]],
         newvar = function() private$.items[["newvar"]],
-        newvar2 = function() private$.items[["newvar2"]]),
+        newvar2 = function() private$.items[["newvar2"]],
+        code = function() private$.items[["code"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -264,10 +264,6 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="descdesdim",
                 title="Automatic Description of the Dimensions"))
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="code",
-                title="R code"))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotclassif",
@@ -299,7 +295,11 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "quantisup",
                     "qualisup",
                     "individus",
-                    "norme")))}))
+                    "norme")))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="code",
+                title="R code"))}))
 
 MFABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "MFABase",
@@ -351,10 +351,10 @@ MFABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$eigengroup$eigen} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$descdesdim} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$plotclassif} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
 #'   \code{results$newvar2} \tab \tab \tab \tab \tab an output \cr
+#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
 #' @export

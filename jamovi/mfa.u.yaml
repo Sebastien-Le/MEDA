@@ -191,4 +191,5 @@ children:
                 stretchFactor: 1
                 children:
                   - type: Output
-                    name: newvar2        
+                    name: newvar2
+                    enable: (graphclassif)

@@ -1,7 +1,7 @@
 ---
 title: Multivariate Exploratory Data Analysis
 name: MEDA
-version: 1.5.0
+version: 1.6.0
 jms: '1.0'
 authors:
   - Thomas Leblay
@@ -10,18 +10,18 @@ authors:
   - Maïwen Faure
   - Sébastien Lê
 maintainer: Sébastien Lê <sebastien.le@agrocampus-ouest.fr>
-date: '2023-26-07'
+date: '2023-07-26'
 type: R
 description: >-
-  This module allows you to perform multivariate exploratory analyses the French
-  way. In other words, you will be able to add supplementary information for a
-  better understanding of your results. Four main methods have been implemented:
-  Principal Component Analysis, Correspondence Analysis, Multiple Correspondence
-  Analysis and Multiple Factor Analysis. After running these 4 methods,
-  unsupervised clustering can also be performed on the compoenents. You can also
-  get an automatic description of a variable based on the other variables of the
-  dataset (categorical/quantitative). Results are obtained thanks to the
-  FactoMineR package. These analyses are described in the <a
+  This module allows you to perform multivariate exploratory analyses using the
+  FactoMineR framework. You can add supplementary information to improve the
+  interpretation of your results. Four main methods are implemented: Principal
+  Component Analysis, Correspondence Analysis, Multiple Correspondence Analysis,
+  and Multiple Factor Analysis. Unsupervised clustering can also be performed on
+  the retained components. The module also provides automatic description of a
+  variable based on the other variables in the dataset (categorical or
+  quantitative). Results are obtained using the FactoMineR package. These
+  analyses are described on the <a
   href="https://sebastien-le.github.io/medasite/index.html" target="_blank">MEDA
   website</a>.
 analyses:
@@ -83,7 +83,7 @@ datasets:
       - textual
   - name: decathlon
     path: decathlon.omv
-    description: Athletes'performances at the decathlon
+    description: Decathlon athletes'performances
     tags:
       - PCA
       - condes

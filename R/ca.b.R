@@ -18,7 +18,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     
     .init = function() {
       if (is.null(self$options$activecol)) {
-        if (self$options$tuto == TRUE)
+        if (isTRUE(self$options$tuto))
           self$results$instructions$setVisible(visible = TRUE)
       }
       self$results$instructions$setContent(
@@ -50,7 +50,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .run = function() {
-      if (is.null(self$options$activecol) || length(self$options$activecol) < self$options$nbfact)
+      if (is.null(self$options$activecol))
         return()
       
       private$.errorCheck()
@@ -74,7 +74,9 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       tab  <- private$.dimdesc(res.ca)
       code <- private$.code(res.ca)
       self$results$code$setContent(code)
-      private$.dodTable(tab)
+      
+      if (!is.null(tab))
+        private$.dodTable(tab)
       
       private$.printeigenTable(res.ca)
       private$.printTables(res.ca, "coord")
@@ -89,9 +91,9 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         self$results$plotclassif$setState(res.classif)
       
       if (!is.null(res.classif))
-        private$.output2(res.classif)
+        private$.output2(res.classif, data)
       
-      private$.output(res.ca)
+      private$.output(res.ca, data)
     },
     
     #### Compute results ----
@@ -141,21 +143,34 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .code = function(table) {
-      actcol_gui  <- self$options$activecol
       illucol_gui <- self$options$illustrativecol
       
+      names_var <- paste0("'", names(table$call$Xtot), "'", collapse = ", ")
+      data_str  <- paste0("data_CA <- data[, c(", names_var, ")]")
+      
       if (!is.null(illucol_gui) && length(illucol_gui) > 0) {
-        names_var    <- paste(names(table$call$Xtot), collapse = ", ")
-        data_str     <- paste0("data_CA <- data[ ,c(", names_var, ")]")
         illucol_index <- match(illucol_gui, names(table$call$Xtot))
-        code_str     <- paste0("CA(data_CA, col.sup=c(", paste(illucol_index, collapse = ","),
-                               "), ncp=", self$options$ncp, ")")
+        illucol_index <- illucol_index[!is.na(illucol_index)]
+        
+        code_str <- paste0(
+          "CA(data_CA, col.sup=c(",
+          paste(illucol_index, collapse = ", "),
+          "), ncp=", self$options$ncp,
+          ", graph=FALSE)"
+        )
       } else {
-        names_var <- paste(names(table$call$Xtot), collapse = ", ")
-        data_str  <- paste0("data_CA <- data[ ,c(", names_var, ")]")
-        code_str  <- paste0("CA(data_CA, ncp=", self$options$ncp, ")")
+        code_str <- paste0(
+          "CA(data_CA, ncp=", self$options$ncp,
+          ", graph=FALSE)"
+        )
       }
-      print(list("dataset" = data_str, "R code" = code_str))
+      
+      out <- list(
+        "dataset" = data_str,
+        "R code"  = code_str
+      )
+      
+      paste(capture.output(print(out)), collapse = "\n")
     },
     
     .classif = function(res) {
@@ -187,18 +202,36 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       dataactcol <- data.frame(self$data[, self$options$activecol, drop = FALSE])
       colnames(dataactcol) <- self$options$activecol
-      if (!is.null(self$options$indiv))
-        rownames(dataactcol) <- self$data[[self$options$indiv]]
       
-      res_ca_active <- FactoMineR::CA(dataactcol, ncp = self$options$ncp, graph = FALSE)
-      max_dim  <- ncol(res_ca_active$row$coord)
+      if (!is.null(self$options$indiv)) {
+        ids <- as.character(self$data[[self$options$indiv]])
+        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        rownames(dataactcol) <- make.unique(ids)
+      }
+      
+      res_ca_active <- tryCatch(
+        FactoMineR::CA(dataactcol, ncp = self$options$ncp, graph = FALSE),
+        error = function(e) return(NULL)
+      )
+      
+      if (is.null(res_ca_active) || is.null(res_ca_active$row$coord))
+        return(NULL)
+      
+      max_dim   <- ncol(res_ca_active$row$coord)
       nbfact_gui <- min(self$options$nbfact, max_dim)
       
-      ddca <- FactoMineR::dimdesc(res_ca_active, axes = 1:nbfact_gui, proba = proba)
+      ddca <- tryCatch(
+        FactoMineR::dimdesc(res_ca_active, axes = 1:nbfact_gui, proba = proba),
+        error = function(e) return(NULL)
+      )
+      
+      if (is.null(ddca) || length(ddca) == 0)
+        return(NULL)
       
       tab <- cbind(names(ddca)[1], names(ddca[[1]][1]),
                    rownames(as.data.frame(ddca[[1]][1])), as.data.frame(ddca[[1]][1])[[1]])
       tab <- as.data.frame(tab)
+      
       pretab <- cbind(names(ddca)[1], names(ddca[[1]][2]),
                       rownames(as.data.frame(ddca[[1]][2])), as.data.frame(ddca[[1]][2])[[1]])
       tab <- rbind(tab, pretab)
@@ -215,8 +248,27 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           }
         }
       }
+      
       tab[, 4] <- as.numeric(as.character(tab[, 4]))
-      return(as.data.frame(tab))
+      as.data.frame(tab)
+    },
+    
+    .getValidAxes = function(res.ca) {
+      abs_gui <- suppressWarnings(as.numeric(self$options$abs))
+      ord_gui <- suppressWarnings(as.numeric(self$options$ord))
+      
+      if (is.null(res.ca) || is.null(res.ca$eig))
+        return(NULL)
+      
+      n_axes <- nrow(res.ca$eig)
+      
+      if (is.na(abs_gui) || is.na(ord_gui) || abs_gui < 1 || ord_gui < 1)
+        return(NULL)
+      
+      if (abs_gui > n_axes || ord_gui > n_axes)
+        return(NULL)
+      
+      c(abs_gui, ord_gui)
     },
     
     .dodTable = function(tab) {
@@ -256,9 +308,9 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       nbfact_gui <- min(self$options$nbfact, max_dim)
       
       row_gui <- if (!is.null(self$options$indiv))
-        self$data[[self$options$indiv]]
+        as.character(self$data[[self$options$indiv]])
       else
-        seq_len(nrow(self$data))
+        as.character(seq_len(nrow(self$data)))
       
       if (quoi == "coord") {
         quoivar  <- table$col$coord
@@ -285,7 +337,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           tablevar$addRow(rowKey = i, value = NULL)
         for (i in seq_len(nbfact_gui))
           tablevar$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
-        for (var in seq_along(col_gui)) {
+        for (var in seq_len(nrow(quoivar))) {
           row <- list(column = rownames(quoivar)[var])
           for (i in seq_len(nbfact_gui))
             row[[paste0("dim", i)]] <- quoivar[var, i]
@@ -299,8 +351,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           tableind$addRow(rowKey = i, value = NULL)
         for (i in seq_len(nbfact_gui))
           tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
-        for (ind in seq_along(row_gui)) {
-          row <- list(row = if (is.null(self$options$indiv)) row_gui[ind] else rownames(quoiind)[ind])
+        for (ind in seq_len(nrow(quoiind))) {
+          row <- list(row = row_gui[ind])
           for (i in seq_len(nbfact_gui))
             row[[paste0("dim", i)]] <- quoiind[ind, i]
           tableind$setRow(rowNo = ind, values = row)
@@ -323,100 +375,193 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .plotcol = function(image, ...) {
-      if (is.null(self$options$activecol)) return()
+      if (is.null(self$options$activecol))
+        return(FALSE)
+      
       res.ca <- image$state
-      if (is.null(res.ca) || !inherits(res.ca, "CA")) return()
-      abs_gui     <- self$options$abs
-      ord_gui     <- self$options$ord
-      fcol        <- paste("cos2", self$options$limcoscol)
-      frow        <- paste("cos2", self$options$limcosrow)
-      addillucol  <- self$options$addillucol
-      if (addillucol)
-        plot <- FactoMineR::plot.CA(res.ca, axes = c(abs_gui, ord_gui),
-                                    selectCol = fcol, selectRow = frow,
-                                    invisible = "row",
-                                    title = "Representation of the Columns")
-      else
-        plot <- FactoMineR::plot.CA(res.ca, axes = c(abs_gui, ord_gui),
-                                    selectCol = fcol, selectRow = frow,
-                                    invisible = c("row", "col.sup"),
-                                    title = "Representation of the Columns")
-      print(plot)
-      TRUE
+      if (is.null(res.ca) || !inherits(res.ca, "CA"))
+        return(FALSE)
+      
+      axes_ok <- private$.getValidAxes(res.ca)
+      if (is.null(axes_ok))
+        return(FALSE)
+      
+      fcol       <- paste("cos2", self$options$limcoscol)
+      frow       <- paste("cos2", self$options$limcosrow)
+      addillucol <- self$options$addillucol
+      
+      ok <- tryCatch({
+        if (isTRUE(addillucol)) {
+          p <- FactoMineR::plot.CA(
+            res.ca,
+            axes = axes_ok,
+            selectCol = fcol,
+            selectRow = frow,
+            invisible = "row",
+            title = "Representation of the Columns"
+          )
+        } else {
+          p <- FactoMineR::plot.CA(
+            res.ca,
+            axes = axes_ok,
+            selectCol = fcol,
+            selectRow = frow,
+            invisible = c("row", "col.sup"),
+            title = "Representation of the Columns"
+          )
+        }
+        print(p)
+        TRUE
+      }, error = function(e) {
+        jmvcore::reject(paste("Column plot failed:", e$message))
+        FALSE
+      })
+      
+      ok
     },
     
     .plotrow = function(image, ...) {
-      if (is.null(self$options$activecol)) return()
+      if (is.null(self$options$activecol))
+        return(FALSE)
+      
       res.ca <- image$state
-      if (is.null(res.ca) || !inherits(res.ca, "CA")) return()
-      abs_gui <- self$options$abs
-      ord_gui <- self$options$ord
-      fcol    <- paste("cos2", self$options$limcoscol)
-      frow    <- paste("cos2", self$options$limcosrow)
-      plot <- FactoMineR::plot.CA(res.ca, axes = c(abs_gui, ord_gui),
-                                  selectCol = fcol, selectRow = frow,
-                                  invisible = c("col", "col.sup"),
-                                  title = "Representation of the Rows")
-      print(plot)
-      TRUE
+      if (is.null(res.ca) || !inherits(res.ca, "CA"))
+        return(FALSE)
+      
+      axes_ok <- private$.getValidAxes(res.ca)
+      if (is.null(axes_ok))
+        return(FALSE)
+      
+      fcol <- paste("cos2", self$options$limcoscol)
+      frow <- paste("cos2", self$options$limcosrow)
+      
+      ok <- tryCatch({
+        p <- FactoMineR::plot.CA(
+          res.ca,
+          axes = axes_ok,
+          selectCol = fcol,
+          selectRow = frow,
+          invisible = c("col", "col.sup"),
+          title = "Representation of the Rows"
+        )
+        print(p)
+        TRUE
+      }, error = function(e) {
+        jmvcore::reject(paste("Row plot failed:", e$message))
+        FALSE
+      })
+      
+      ok
     },
     
     .plotell = function(image, ...) {
-      if (is.null(self$options$activecol)) return()
+      if (is.null(self$options$activecol))
+        return(FALSE)
+      
       res.ca <- image$state
-      if (is.null(res.ca) || !inherits(res.ca, "CA")) return()
-      abs_gui       <- self$options$abs
-      ord_gui       <- self$options$ord
-      fcol          <- paste("cos2", self$options$limcoscol)
-      frow          <- paste("cos2", self$options$limcosrow)
+      if (is.null(res.ca) || !inherits(res.ca, "CA"))
+        return(FALSE)
+      
+      axes_ok <- private$.getValidAxes(res.ca)
+      if (is.null(axes_ok))
+        return(FALSE)
+      
+      fcol           <- paste("cos2", self$options$limcoscol)
+      frow           <- paste("cos2", self$options$limcosrow)
       ellipsecol_gui <- self$options$ellipsecol
       ellipserow_gui <- self$options$ellipserow
-      addillucol    <- self$options$addillucol
-      adc           <- if (addillucol) NULL else "col.sup"
+      addillucol     <- self$options$addillucol
+      adc            <- if (isTRUE(addillucol)) NULL else "col.sup"
       
-      if (ellipsecol_gui && ellipserow_gui)
-        plot <- ellipseCA(res.ca, axes = c(abs_gui, ord_gui), selectCol = fcol, selectRow = frow,
-                          ellipse = c("col", "row"), col.row = "blue", col.col = "red",
-                          invisible = adc, title = "Representation of the Ellipses for the Rows and the Columns")
-      else if (ellipsecol_gui)
-        plot <- ellipseCA(res.ca, axes = c(abs_gui, ord_gui), selectCol = fcol, selectRow = frow,
-                          ellipse = "col", col.row = "blue", col.col = "red",
-                          invisible = adc, title = "Representation of the Ellipses for the Columns")
-      else if (ellipserow_gui)
-        plot <- ellipseCA(res.ca, axes = c(abs_gui, ord_gui), selectCol = fcol, selectRow = frow,
-                          ellipse = "row", col.row = "blue", col.col = "red",
-                          invisible = adc, title = "Representation of the Ellipses for the Rows")
-      else
-        plot <- FactoMineR::plot.CA(res.ca, axes = c(abs_gui, ord_gui),
-                                    selectCol = fcol, selectRow = frow,
-                                    invisible = adc,
-                                    title = "Superimposed Representation of the Rows and the Columns")
-      print(plot)
-      TRUE
+      ok <- tryCatch({
+        if (ellipsecol_gui && ellipserow_gui) {
+          p <- ellipseCA(
+            res.ca, axes = axes_ok, selectCol = fcol, selectRow = frow,
+            ellipse = c("col", "row"), col.row = "blue", col.col = "red",
+            invisible = adc,
+            title = "Representation of the Ellipses for the Rows and the Columns"
+          )
+        } else if (ellipsecol_gui) {
+          p <- ellipseCA(
+            res.ca, axes = axes_ok, selectCol = fcol, selectRow = frow,
+            ellipse = "col", col.row = "blue", col.col = "red",
+            invisible = adc,
+            title = "Representation of the Ellipses for the Columns"
+          )
+        } else if (ellipserow_gui) {
+          p <- ellipseCA(
+            res.ca, axes = axes_ok, selectCol = fcol, selectRow = frow,
+            ellipse = "row", col.row = "blue", col.col = "red",
+            invisible = adc,
+            title = "Representation of the Ellipses for the Rows"
+          )
+        } else {
+          p <- FactoMineR::plot.CA(
+            res.ca, axes = axes_ok, selectCol = fcol, selectRow = frow,
+            invisible = adc,
+            title = "Superimposed Representation of the Rows and the Columns"
+          )
+        }
+        print(p)
+        TRUE
+      }, error = function(e) {
+        jmvcore::reject(paste("Ellipse plot failed:", e$message))
+        FALSE
+      })
+      
+      ok
     },
     
     .plotclassif = function(image, ...) {
-      if (is.null(self$options$activecol)) return()
+      if (is.null(self$options$activecol))
+        return(FALSE)
+      
       res.classif <- image$state
-      if (is.null(res.classif)) return()
-      plot <- FactoMineR::plot.HCPC(res.classif,
-                                    axes      = c(self$options$abs, self$options$ord),
-                                    choice    = "map",
-                                    draw.tree = FALSE,
-                                    title     = "Representation of the Rows According to Clusters")
-      print(plot)
-      TRUE
+      if (is.null(res.classif))
+        return(FALSE)
+      
+      abs_gui <- suppressWarnings(as.numeric(self$options$abs))
+      ord_gui <- suppressWarnings(as.numeric(self$options$ord))
+      
+      if (is.na(abs_gui) || is.na(ord_gui))
+        return(FALSE)
+      
+      ok <- tryCatch({
+        p <- FactoMineR::plot.HCPC(
+          res.classif,
+          axes = c(abs_gui, ord_gui),
+          choice = "map",
+          draw.tree = FALSE,
+          title = "Representation of the Rows According to Clusters"
+        )
+        print(p)
+        TRUE
+      }, error = function(e) {
+        jmvcore::reject(paste("Cluster plot failed:", e$message))
+        FALSE
+      })
+      
+      ok
     },
     
     ### Helper functions ----
     
     .errorCheck = function() {
-      if (length(self$options$activecol) < self$options$nbfact)
-        jmvcore::reject('The number of factors is too low')
+      nbfact_gui <- suppressWarnings(as.numeric(self$options$nbfact))
+      
+      if (is.na(nbfact_gui) || nbfact_gui < 1)
+        jmvcore::reject("Number of dimensions must be at least 1")
+      
+      if (is.null(self$options$activecol) || length(self$options$activecol) < 2)
+        jmvcore::reject("At least two active columns are required")
+      
+      if (length(self$options$activecol) < nbfact_gui)
+        jmvcore::reject("Number of dimensions cannot exceed the number of active columns")
     },
     
-    .output = function(res.ca) {
+    .output = function(res.ca, data) {
       nFactors_out <- min(self$options$ncp, ncol(res.ca$row$coord))
+      
       if (self$results$newvar$isNotFilled()) {
         self$results$newvar$set(
           keys         = 1:nFactors_out,
@@ -424,15 +569,20 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           descriptions = rep("CA component", nFactors_out),
           measureTypes = rep("continuous", nFactors_out)
         )
-        for (i in seq_len(nFactors_out))
-          self$results$newvar$setValues(index = i, as.numeric(res.ca$row$coord[, i]))
-        self$results$newvar$setRowNums(rownames(self$data))
       }
+      
+      for (i in seq_len(nFactors_out))
+        self$results$newvar$setValues(index = i, as.numeric(res.ca$row$coord[, i]))
+      
+      self$results$newvar$setRowNums(seq_len(nrow(data)))
     },
     
-    .output2 = function(res.classif) {
-      if (is.null(res.classif) || is.null(res.classif$data.clust)) return()
+    .output2 = function(res.classif, data) {
+      if (is.null(res.classif) || is.null(res.classif$data.clust))
+        return()
+      
       output <- self$results$newvar2
+      
       if (output$isNotFilled()) {
         output$set(
           keys         = 1,
@@ -441,9 +591,9 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           measureTypes = "nominal"
         )
       }
-      scores <- as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)])
-      output$setValues(index = 1, scores)
-      output$setRowNums(rownames(self$data))
+      
+      output$setValues(index = 1, as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)]))
+      output$setRowNums(seq_len(nrow(data)))
     },
     
     .buildData = function() {
@@ -461,14 +611,20 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         data_list <- c(data_list, list(datacolsup))
       }
       
-      if (length(data_list) == 0) return(NULL)
+      if (length(data_list) == 0)
+        return(NULL)
       
       data <- as.data.frame(do.call(cbind, data_list))
-      rownames(data) <- if (!is.null(self$options$indiv))
-        self$data[[self$options$indiv]]
-      else
-        seq_len(nrow(data))
-      return(data)
+      
+      if (!is.null(self$options$indiv)) {
+        ids <- as.character(self$data[[self$options$indiv]])
+        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        rownames(data) <- make.unique(ids)
+      } else {
+        rownames(data) <- as.character(seq_len(nrow(data)))
+      }
+      
+      data
     }
   )
 )
