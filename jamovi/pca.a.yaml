@@ -52,6 +52,11 @@ options:
     type: Bool
     default: true
 
+  - name: showCode
+    title: R code
+    type: Bool
+    default: false
+
   - name: norme
     title: Scale to unit variance
     type: Bool

@@ -3,15 +3,58 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   "CAClass",
   inherit = CABase,
   active = list(
+    dataProcessed = function() {
+      key <- private$.makeDataProcessingKey()
+      if (is.null(private$.dataProcessed) ||
+          !identical(private$.dataProcessedKey, key)) {
+        private$.dataProcessed <- private$.buildData()
+        private$.dataProcessedKey <- key
+      }
+      private$.dataProcessed
+    },
+
     nbclust = function() {
-      if (is.null(private$.nbclust))
-        private$.nbclust <- private$.computeNbclust()
-      return(private$.nbclust)
+      private$.computeNbclust()
+    },
+
+    CAResult = function() {
+      key <- private$.makeCAKey()
+      data_key <- private$.dataValueSignature()
+      cached <- self$results$caCache$state
+      if (!is.null(cached) && inherits(cached, "CA") &&
+          identical(attr(cached, "MEDA.cache.key", exact = TRUE), key) &&
+          identical(attr(cached, "MEDA.data.key", exact = TRUE), data_key))
+        return(cached)
+
+      value <- private$.CA(self$dataProcessed)
+      if (!is.null(value)) {
+        attr(value, "MEDA.cache.key") <- key
+        attr(value, "MEDA.data.key") <- data_key
+        self$results$caCache$setState(value)
+      }
+      value
+    },
+
+    classifResult = function() {
+      key <- private$.makeClassifKey()
+      cached <- self$results$classifCache$state
+      if (!is.null(cached) && identical(
+        attr(cached, "MEDA.cache.key", exact = TRUE), key
+      ))
+        return(cached)
+
+      value <- private$.classif(self$CAResult)
+      if (!is.null(value)) {
+        attr(value, "MEDA.cache.key") <- key
+        self$results$classifCache$setState(value)
+      }
+      value
     }
   ),
   
   private = list(
-    .nbclust = NULL,
+    .dataProcessed = NULL,
+    .dataProcessedKey = NULL,
     
     #---------------------------------------------
     #### Init + run functions ----
@@ -22,30 +65,78 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           self$results$instructions$setVisible(visible = TRUE)
       }
       self$results$instructions$setContent(
-        "<html>
-        <head></head>
-        <body>
-        <div class='justified-text'>
-        <p><b>What you should know before running a CA in jamovi</b></p>
-        <p>______________________________________________________________________________</p>
-        <p> Correspondence Analysis (CA) is a multivariate statistical technique used to analyze
-        the associations between two categorical variables. It is often applied to explore and visualize
-        the relationships between the rows and columns of a contingency table, revealing a structure of association and disassociation.</p>
-        <p> The interpretation of the CA plot allows to identify which categories of variables
-        tend to co-occur or are associated with each other and which ones are relatively
-        independent or disassociated. This knowledge can provide valuable insights into the underlying
-        relationships between the two categorical variables of interest.</p>
-        <p> While the <I>Active Columns</I> field is <B>mandatory</B>, the <I>Supplementary Columns</I> field is <B>optional</B>.
-        However, if you have supplementary columns, they may be essential for interpreting the structure of association.</p>
-        <p> Clustering is based on the number of components saved.
-        By default, clustering is based on the first 5 components,
-        <I>i.e.</I> the distance between individuals is calculated on these 5 components.</p>
-        <p> By default, the <I>Number of clusters</I> field is set to -1 which means that the number of clusters
-        is automatically chosen by the computer.</p>
-        <p>______________________________________________________________________________</p>
-        </div>
-        </body>
-        </html>"
+        "
+  <div style='
+      font-family: inherit;
+      margin: 8px 0;
+      padding: 14px 18px;
+      background-color: #F4F7FB;
+      border: 1px solid #CBD8E8;
+      border-left: 5px solid #6B9DE8;
+      border-radius: 6px;
+      color: #333333;
+      line-height: 1.45;
+  '>
+
+    <p style='
+        margin: 0 0 10px 0;
+        color: #355F98;
+        font-size: 1.08em;
+    '>
+      <b>What you should know before running a CA in jamovi</b>
+    </p>
+
+    <div style='
+        border-top: 1px solid #CBD8E8;
+        margin-bottom: 12px;
+    '></div>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Purpose.</b>
+      Correspondence Analysis (CA) is a multivariate statistical method used
+      to analyze the relationships between the rows and columns of a
+      contingency table. It provides a graphical representation of departures
+      from independence between the two categorical variables.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Interpretation.</b>
+      Row points located close to one another have similar column profiles,
+      while column points located close to one another have similar row
+      profiles. Points far from the origin generally have more distinctive
+      profiles and contribute more strongly to the dimensions.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      Associations between row and column categories should be interpreted
+      from their positions relative to the origin and their contributions to
+      the dimensions, rather than from the distance between a row point and a
+      column point alone.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Columns.</b>
+      While the <i>Active Columns</i> field is <b>mandatory</b>, the
+      <i>Supplementary Columns</i> field is optional. Supplementary columns do
+      not determine the dimensions, but they may provide valuable information
+      for interpreting the structure revealed by the active columns.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Clustering.</b>
+      Clustering is based on the number of components saved. By default,
+      clustering uses the first five components; that is, the distance between
+      rows is calculated from their coordinates on these five components.
+    </p>
+
+    <p style='margin: 0;'>
+      By default, the <i>Number of clusters</i> field is set to -1, which means
+      that the number of clusters is selected automatically by the clustering
+      procedure.
+    </p>
+
+  </div>
+  "
       )
     },
     
@@ -55,8 +146,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       private$.errorCheck()
       
-      data      <- private$.buildData()
-      res.ca    <- private$.CA(data)
+      data      <- self$dataProcessed
+      res.ca    <- self$CAResult
       
       if (is.null(res.ca) || !inherits(res.ca, "CA")) {
         jmvcore::reject("CA failed. Please check your data.")
@@ -64,16 +155,18 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
       
       res.classif <- NULL
-      need_classif <- isTRUE(self$options$graphclassif) || !self$results$newvar2$isNotFilled()
+      need_classif <- isTRUE(self$options$graphclassif) ||
+        (isTRUE(self$options$newvar2) &&
+         self$results$newvar2$isNotFilled())
       if (need_classif)
-        res.classif <- private$.classif(res.ca)
+        res.classif <- self$classifResult
       
       res.xsq <- private$.chisq(data)
       private$.chideux(res.xsq)
       
       tab  <- private$.dimdesc(res.ca)
-      code <- private$.code(res.ca)
-      self$results$code$setContent(code)
+      if (isTRUE(self$options$showCode))
+        self$results$code$setContent(private$.code(res.ca))
       
       if (!is.null(tab))
         private$.dodTable(tab)
@@ -83,12 +176,16 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       private$.printTables(res.ca, "contrib")
       private$.printTables(res.ca, "cos2")
       
-      self$results$ploticol$setState(res.ca)
-      self$results$plotirow$setState(res.ca)
-      self$results$plotell$setState(res.ca)
+      marker <- list(ready = TRUE)
+      if (is.null(self$results$ploticol$state))
+        self$results$ploticol$setState(marker)
+      if (is.null(self$results$plotirow$state))
+        self$results$plotirow$setState(marker)
+      if (is.null(self$results$plotell$state))
+        self$results$plotell$setState(marker)
       
       if (isTRUE(self$options$graphclassif) && !is.null(res.classif))
-        self$results$plotclassif$setState(res.classif)
+        self$results$plotclassif$setState(marker)
       
       if (!is.null(res.classif))
         private$.output2(res.classif, data)
@@ -97,6 +194,80 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     #### Compute results ----
+
+    .dataSignature = function() {
+      paste(
+        c(
+          "activecol", self$options$activecol,
+          "illustrativecol", self$options$illustrativecol,
+          "indiv", self$options$indiv
+        ),
+        collapse = "\r"
+      )
+    },
+
+    .dataValueSignature = function() {
+      .meda_selected_data_signature(
+        self$data,
+        c(self$options$activecol, self$options$illustrativecol, self$options$indiv)
+      )
+    },
+
+    .makeDataProcessingKey = function() {
+      paste(private$.dataSignature(), private$.dataValueSignature(), sep = "\n")
+    },
+
+    .requiredNcp = function() {
+      candidates <- suppressWarnings(as.numeric(c(
+        self$options$ncp,
+        self$options$nbfact,
+        self$options$abs,
+        self$options$ord
+      )))
+      candidates <- candidates[is.finite(candidates) & candidates > 0]
+      as.integer(max(c(2, candidates)))
+    },
+
+    .makeCAKey = function() {
+      paste(
+        private$.dataSignature(),
+        private$.requiredNcp(),
+        sep = "\n"
+      )
+    },
+
+    .makeClassifKey = function() {
+      data_key <- private$.dataValueSignature()
+      if (is.null(data_key)) {
+        cached <- self$results$caCache$state
+        if (!is.null(cached) && inherits(cached, "CA") &&
+            identical(
+              attr(cached, "MEDA.cache.key", exact = TRUE),
+              private$.makeCAKey()
+            )) {
+          data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
+        }
+      }
+      if (is.null(data_key))
+        data_key <- "unavailable"
+
+      paste(
+        private$.makeCAKey(),
+        "data", data_key,
+        self$options$ncp,
+        self$options$nbclust,
+        sep = "\n"
+      )
+    },
+
+    .getSharedCA = function() {
+      cached <- self$results$caCache$state
+      key <- private$.makeCAKey()
+      if (is.null(cached) || !inherits(cached, "CA") ||
+          !identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
+        return(NULL)
+      cached
+    },
     
     .computeNbclust = function() {
       return(self$options$nbclust)
@@ -104,13 +275,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     
     .CA = function(data) {
       
-      # Logique ncp défensive alignée sur PCA/MCA
-      ncp_candidates <- c(self$options$ncp, self$options$nbfact)
-      ncp_candidates <- suppressWarnings(as.numeric(ncp_candidates))
-      ncp_candidates <- ncp_candidates[!is.na(ncp_candidates) & ncp_candidates > 0]
-      ncp_target     <- if (length(ncp_candidates) == 0) 2 else max(ncp_candidates)
-      ncp_target     <- max(ncp_target, 3)  # plancher à 3 pour plot.CA
-      ncp_use        <- ncp_target
+      ncp_use <- private$.requiredNcp()
       
       actcol_gui  <- self$options$activecol
       illucol_gui <- self$options$illustrativecol
@@ -139,53 +304,429 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           return(NULL)
         }
       )
-      return(res)
+      if (!is.null(res))
+        attr(res, "MEDA.ncp.requested") <- as.integer(ncp_use)
+      res
     },
     
     .code = function(table) {
-      illucol_gui <- self$options$illustrativecol
-      
-      names_var <- paste0("'", names(table$call$Xtot), "'", collapse = ", ")
-      data_str  <- paste0("data_CA <- data[, c(", names_var, ")]")
-      
-      if (!is.null(illucol_gui) && length(illucol_gui) > 0) {
-        illucol_index <- match(illucol_gui, names(table$call$Xtot))
-        illucol_index <- illucol_index[!is.na(illucol_index)]
-        
-        code_str <- paste0(
-          "CA(data_CA, col.sup=c(",
-          paste(illucol_index, collapse = ", "),
-          "), ncp=", self$options$ncp,
-          ", graph=FALSE)"
-        )
-      } else {
-        code_str <- paste0(
-          "CA(data_CA, ncp=", self$options$ncp,
-          ", graph=FALSE)"
+      if (is.null(table))
+        return("# The CA could not be computed.")
+
+      r_literal <- function(value) {
+        if (is.null(value))
+          return("NULL")
+        paste(deparse(value, width.cutoff = 500L), collapse = "\n")
+      }
+
+      add_call <- function(code, assignment, fun, arguments) {
+        prefix <- if (is.null(assignment)) "" else paste0(assignment, " <- ")
+        suffix <- if (length(arguments) > 1L) {
+          c(rep(",", length(arguments) - 1L), "")
+        } else {
+          ""
+        }
+        c(
+          code,
+          paste0(prefix, fun, "("),
+          paste0("  ", arguments, suffix),
+          ")"
         )
       }
-      
-      out <- list(
-        "dataset" = data_str,
-        "R code"  = code_str
+
+      option_names <- function(value) {
+        if (is.null(value) || length(value) == 0L)
+          return(character(0))
+        value <- as.character(value)
+        value[!is.na(value) & nzchar(value)]
+      }
+
+      active_cols <- option_names(self$options$activecol)
+      supplementary_cols <- option_names(self$options$illustrativecol)
+      variable_names <- c(active_cols, supplementary_cols)
+
+      if (length(active_cols) < 2L)
+        return("# Select at least two active columns to generate the CA code.")
+
+      ncp_use <- ncol(table$row$coord)
+      if (is.null(ncp_use) || !is.finite(ncp_use) || ncp_use < 1L)
+        return("# The CA did not retain any usable dimension.")
+      ncp_use <- as.integer(ncp_use)
+
+      n_desc <- suppressWarnings(as.integer(self$options$nbfact))
+      if (length(n_desc) == 0L || is.na(n_desc) || n_desc < 1L)
+        n_desc <- 1L
+      n_desc <- min(n_desc, ncp_use)
+
+      proba <- suppressWarnings(as.numeric(self$options$proba)) / 100
+      if (length(proba) == 0L || !is.finite(proba))
+        proba <- 0.05
+
+      axes_candidate <- suppressWarnings(as.integer(c(
+        self$options$abs, self$options$ord
+      )))
+      axes_ok <- NULL
+      if (length(axes_candidate) == 2L &&
+          all(is.finite(axes_candidate)) &&
+          all(axes_candidate >= 1L) &&
+          all(axes_candidate <= ncp_use) &&
+          axes_candidate[1] != axes_candidate[2]) {
+        axes_ok <- axes_candidate
+      } else if (ncp_use >= 2L) {
+        axes_ok <- c(1L, 2L)
+      }
+
+      supplementary_indices <- if (length(supplementary_cols) > 0L) {
+        length(active_cols) + seq_along(supplementary_cols)
+      } else {
+        NULL
+      }
+
+      code <- c(
+        "library(FactoMineR)",
+        "",
+        "# This script can be pasted directly into the jamovi Rj Editor.",
+        "# The dataset open in jamovi is available as data.",
+        "",
+        "# Keep active columns first, then supplementary columns.",
+        paste0(
+          "data_CA <- data[, ", r_literal(variable_names),
+          ", drop = FALSE]"
+        )
       )
-      
-      paste(capture.output(print(out)), collapse = "\n")
+
+      indiv <- option_names(self$options$indiv)
+      if (length(indiv) > 0L) {
+        code <- c(
+          code,
+          "",
+          "# Use the selected identifier as row names.",
+          paste0(
+            "id_CA <- as.character(data[[",
+            r_literal(indiv[1]), "]])"
+          ),
+          "missing_id_CA <- is.na(id_CA) | id_CA == \"\"",
+          "id_CA[missing_id_CA] <- as.character(seq_len(sum(missing_id_CA)))",
+          "rownames(data_CA) <- make.unique(id_CA)"
+        )
+      }
+
+      code <- c(
+        code,
+        "",
+        "# Active contingency table",
+        paste0(
+          "active_CA <- data_CA[, ",
+          r_literal(as.integer(seq_along(active_cols))),
+          ", drop = FALSE]"
+        ),
+        "",
+        "# Pearson chi-squared test",
+        "stats::chisq.test(active_CA)",
+        "",
+        "# Correspondence Analysis",
+        "# col.sup identifies supplementary columns.",
+        "# ncp is the number of dimensions retained in the result."
+      )
+
+      ca_arguments <- "data_CA"
+      if (!is.null(supplementary_indices)) {
+        ca_arguments <- c(
+          ca_arguments,
+          paste0(
+            "col.sup = ",
+            r_literal(as.integer(supplementary_indices))
+          )
+        )
+      }
+      ca_arguments <- c(
+        ca_arguments,
+        paste0("ncp = ", r_literal(ncp_use)),
+        "graph = FALSE"
+      )
+      code <- add_call(
+        code, "res_ca", "FactoMineR::CA", ca_arguments
+      )
+
+      code <- c(
+        code,
+        "",
+        "# Eigenvalues and percentages of explained variance",
+        "res_ca$eig",
+        "",
+        "# Automatic description uses the active table only.",
+        "# axes selects the dimensions; proba is the significance threshold."
+      )
+      code <- add_call(
+        code,
+        "res_ca_active",
+        "FactoMineR::CA",
+        c(
+          "active_CA",
+          paste0("ncp = ", r_literal(ncp_use)),
+          "graph = FALSE"
+        )
+      )
+      code <- c(
+        code,
+        paste0(
+          "dimensions_ca <- ",
+          r_literal(as.integer(seq_len(n_desc)))
+        )
+      )
+      code <- add_call(
+        code,
+        "desc_ca",
+        "FactoMineR::dimdesc",
+        c(
+          "res_ca_active",
+          "axes = dimensions_ca",
+          paste0("proba = ", r_literal(proba))
+        )
+      )
+      code <- c(code, "desc_ca")
+
+      if (isTRUE(self$options$coordrow)) {
+        code <- c(
+          code, "", "# Row coordinates",
+          "res_ca$row$coord[, dimensions_ca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$contribrow)) {
+        code <- c(
+          code, "", "# Row contributions",
+          "res_ca$row$contrib[, dimensions_ca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$cosrow)) {
+        code <- c(
+          code, "", "# Row squared cosines",
+          "res_ca$row$cos2[, dimensions_ca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$coordcol)) {
+        code <- c(
+          code, "", "# Active-column coordinates",
+          "res_ca$col$coord[, dimensions_ca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$contribcol)) {
+        code <- c(
+          code, "", "# Active-column contributions",
+          "res_ca$col$contrib[, dimensions_ca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$coscol)) {
+        code <- c(
+          code, "", "# Active-column squared cosines",
+          "res_ca$col$cos2[, dimensions_ca, drop = FALSE]"
+        )
+      }
+
+      if (isTRUE(self$options$newvar)) {
+        n_saved <- min(
+          suppressWarnings(as.integer(self$options$ncp)), ncp_use
+        )
+        if (is.finite(n_saved) && n_saved >= 1L) {
+          code <- c(
+            code,
+            "",
+            "# Coordinates saved by MEDA",
+            paste0(
+              "coordinates_ca <- res_ca$row$coord[, ",
+              r_literal(as.integer(seq_len(n_saved))),
+              ", drop = FALSE]"
+            )
+          )
+        }
+      }
+
+      if (!is.null(axes_ok)) {
+        select_col <- paste("cos2", self$options$limcoscol)
+        select_row <- paste("cos2", self$options$limcosrow)
+        column_invisible <- if (isTRUE(self$options$addillucol)) {
+          "row"
+        } else {
+          c("row", "col.sup")
+        }
+        superimposed_invisible <- if (isTRUE(self$options$addillucol)) {
+          NULL
+        } else {
+          "col.sup"
+        }
+
+        code <- c(
+          code,
+          "",
+          "# Dimensions used in the following maps",
+          paste0("axes_ca <- ", r_literal(as.integer(axes_ok))),
+          "",
+          "# graph.type = \"classic\" is the safest choice in the Rj Editor.",
+          "# In RStudio, it can be replaced with graph.type = \"ggplot\".",
+          "# selectRow and selectCol let plot.CA filter elements by cos2.",
+          "# autoLab = \"yes\" reduces label overlap but may be slow.",
+          "",
+          "# Rows"
+        )
+        code <- add_call(
+          code, NULL, "FactoMineR::plot.CA",
+          c(
+            "res_ca",
+            "axes = axes_ca",
+            paste0("selectCol = ", r_literal(select_col)),
+            paste0("selectRow = ", r_literal(select_row)),
+            "invisible = c(\"col\", \"col.sup\")",
+            "title = \"Representation of the Rows\"",
+            "graph.type = \"classic\"",
+            "autoLab = \"no\""
+          )
+        )
+
+        code <- c(code, "", "# Active and supplementary columns")
+        code <- add_call(
+          code, NULL, "FactoMineR::plot.CA",
+          c(
+            "res_ca",
+            "axes = axes_ca",
+            paste0("selectCol = ", r_literal(select_col)),
+            paste0("selectRow = ", r_literal(select_row)),
+            paste0(
+              "invisible = ", r_literal(column_invisible)
+            ),
+            "title = \"Representation of the Columns\"",
+            "graph.type = \"classic\"",
+            "autoLab = \"no\""
+          )
+        )
+
+        ellipse_col <- isTRUE(self$options$ellipsecol)
+        ellipse_row <- isTRUE(self$options$ellipserow)
+        if (ellipse_col || ellipse_row) {
+          ellipse_choice <- if (ellipse_col && ellipse_row) {
+            c("col", "row")
+          } else if (ellipse_col) {
+            "col"
+          } else {
+            "row"
+          }
+          ellipse_title <- if (ellipse_col && ellipse_row) {
+            "Representation of the Ellipses for the Rows and the Columns"
+          } else if (ellipse_col) {
+            "Representation of the Ellipses for the Columns"
+          } else {
+            "Representation of the Ellipses for the Rows"
+          }
+          code <- c(code, "", "# Confidence ellipses")
+          code <- add_call(
+            code, NULL, "FactoMineR::ellipseCA",
+            c(
+              "res_ca",
+              "axes = axes_ca",
+              paste0("selectCol = ", r_literal(select_col)),
+              paste0("selectRow = ", r_literal(select_row)),
+              paste0("ellipse = ", r_literal(ellipse_choice)),
+              "col.row = \"blue\"",
+              "col.col = \"red\"",
+              paste0(
+                "invisible = ", r_literal(superimposed_invisible)
+              ),
+              paste0("title = ", r_literal(ellipse_title)),
+              "graph.type = \"classic\"",
+              "autoLab = \"no\""
+            )
+          )
+        } else {
+          code <- c(code, "", "# Superimposed map of rows and columns")
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.CA",
+            c(
+              "res_ca",
+              "axes = axes_ca",
+              paste0("selectCol = ", r_literal(select_col)),
+              paste0("selectRow = ", r_literal(select_row)),
+              paste0(
+                "invisible = ", r_literal(superimposed_invisible)
+              ),
+              "title = \"Superimposed Representation of the Rows and the Columns\"",
+              "graph.type = \"classic\"",
+              "autoLab = \"no\""
+            )
+          )
+        }
+      }
+
+      need_classif <- isTRUE(self$options$graphclassif) ||
+        isTRUE(self$options$newvar2)
+      if (need_classif) {
+        n_classif <- min(
+          suppressWarnings(as.integer(self$options$ncp)), ncp_use
+        )
+        nbclust <- suppressWarnings(as.integer(self$options$nbclust))
+        if (length(nbclust) == 0L || is.na(nbclust))
+          nbclust <- -1L
+        code <- c(
+          code,
+          "",
+          "# Hierarchical clustering on the retained CA coordinates",
+          "# nb.clust = -1 lets HCPC choose the number of clusters.",
+          paste0(
+            "coord_hcpc_ca <- as.data.frame(res_ca$row$coord[, ",
+            r_literal(as.integer(seq_len(n_classif))),
+            ", drop = FALSE])"
+          )
+        )
+        code <- add_call(
+          code,
+          "res_hcpc",
+          "FactoMineR::HCPC",
+          c(
+            "coord_hcpc_ca",
+            paste0("nb.clust = ", r_literal(nbclust)),
+            "graph = FALSE",
+            "description = FALSE"
+          )
+        )
+        if (isTRUE(self$options$newvar2)) {
+          code <- c(
+            code,
+            "cluster_ca <- as.factor(res_hcpc$data.clust[, \"clust\"])"
+          )
+        }
+        if (isTRUE(self$options$graphclassif) && !is.null(axes_ok) &&
+            max(axes_ok) <= n_classif) {
+          code <- c(code, "", "# Cluster map")
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.HCPC",
+            c(
+              "res_hcpc",
+              "axes = axes_ca",
+              "choice = \"map\"",
+              "draw.tree = FALSE",
+              "new.plot = FALSE"
+            )
+          )
+        }
+      }
+
+      paste(code, collapse = "\n")
     },
     
     .classif = function(res) {
-      tryCatch(
-        FactoMineR::HCPC(res, nb.clust = self$nbclust, graph = FALSE),
-        error = function(e) NULL
+      if (is.null(res) || is.null(res$row$coord))
+        return(NULL)
+      .meda_hcpc_coordinates(
+        res$row$coord,
+        self$options$ncp,
+        self$nbclust,
+        "CA clustering"
       )
     },
     
     .chisq = function(data) {
       # Protection si pas de colonnes actives
       if (is.null(self$options$activecol)) return(NULL)
-      dataactcol <- data.frame(self$data[, self$options$activecol, drop = FALSE])
-      colnames(dataactcol) <- self$options$activecol
-      tryCatch(chisq.test(dataactcol), error = function(e) NULL)
+      dataactcol <- data[, self$options$activecol, drop = FALSE]
+      tryCatch(stats::chisq.test(dataactcol), error = function(e) NULL)
     },
     
     .chideux = function(res.xsq) {
@@ -210,7 +751,11 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
       
       res_ca_active <- tryCatch(
-        FactoMineR::CA(dataactcol, ncp = self$options$ncp, graph = FALSE),
+        FactoMineR::CA(
+          dataactcol,
+          ncp = private$.requiredNcp(),
+          graph = FALSE
+        ),
         error = function(e) return(NULL)
       )
       
@@ -228,47 +773,13 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is.null(ddca) || length(ddca) == 0)
         return(NULL)
       
-      tab <- cbind(names(ddca)[1], names(ddca[[1]][1]),
-                   rownames(as.data.frame(ddca[[1]][1])), as.data.frame(ddca[[1]][1])[[1]])
-      tab <- as.data.frame(tab)
-      
-      pretab <- cbind(names(ddca)[1], names(ddca[[1]][2]),
-                      rownames(as.data.frame(ddca[[1]][2])), as.data.frame(ddca[[1]][2])[[1]])
-      tab <- rbind(tab, pretab)
-      colnames(tab) <- c("dim", "rowcol", "name", "coord")
-      
-      for (i in 2:length(ddca)) {
-        for (k in 1:2) {
-          temp <- as.data.frame(ddca[[i]][[k]])
-          if (nrow(temp) > 0) {
-            pretab <- cbind(names(ddca)[i], names(ddca[[i]])[k], rownames(temp), temp[[1]])
-            pretab <- as.data.frame(pretab)
-            colnames(pretab) <- c("dim", "rowcol", "name", "coord")
-            tab <- rbind(tab, pretab)
-          }
-        }
-      }
-      
-      tab[, 4] <- as.numeric(as.character(tab[, 4]))
-      as.data.frame(tab)
+      .meda_tidy_ca_dimdesc(ddca)
     },
     
     .getValidAxes = function(res.ca) {
-      abs_gui <- suppressWarnings(as.numeric(self$options$abs))
-      ord_gui <- suppressWarnings(as.numeric(self$options$ord))
-      
       if (is.null(res.ca) || is.null(res.ca$eig))
         return(NULL)
-      
-      n_axes <- nrow(res.ca$eig)
-      
-      if (is.na(abs_gui) || is.na(ord_gui) || abs_gui < 1 || ord_gui < 1)
-        return(NULL)
-      
-      if (abs_gui > n_axes || ord_gui > n_axes)
-        return(NULL)
-      
-      c(abs_gui, ord_gui)
+      .meda_valid_axes(self$options$abs, self$options$ord, nrow(res.ca$eig))
     },
     
     .dodTable = function(tab) {
@@ -378,7 +889,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is.null(self$options$activecol))
         return(FALSE)
       
-      res.ca <- image$state
+      res.ca <- private$.getSharedCA()
       if (is.null(res.ca) || !inherits(res.ca, "CA"))
         return(FALSE)
       
@@ -424,7 +935,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is.null(self$options$activecol))
         return(FALSE)
       
-      res.ca <- image$state
+      res.ca <- private$.getSharedCA()
       if (is.null(res.ca) || !inherits(res.ca, "CA"))
         return(FALSE)
       
@@ -458,7 +969,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is.null(self$options$activecol))
         return(FALSE)
       
-      res.ca <- image$state
+      res.ca <- private$.getSharedCA()
       if (is.null(res.ca) || !inherits(res.ca, "CA"))
         return(FALSE)
       
@@ -516,25 +1027,31 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is.null(self$options$activecol))
         return(FALSE)
       
-      res.classif <- image$state
-      if (is.null(res.classif))
+      res.classif <- self$results$classifCache$state
+      if (is.null(res.classif) || !identical(
+        attr(res.classif, "MEDA.cache.key", exact = TRUE),
+        private$.makeClassifKey()
+      ))
         return(FALSE)
       
-      abs_gui <- suppressWarnings(as.numeric(self$options$abs))
-      ord_gui <- suppressWarnings(as.numeric(self$options$ord))
-      
-      if (is.na(abs_gui) || is.na(ord_gui))
+      classified_ncp <- suppressWarnings(as.integer(
+        attr(res.classif, "MEDA.ncp.classified", exact = TRUE)
+      ))
+      axes_ok <- .meda_valid_axes(
+        self$options$abs, self$options$ord, classified_ncp
+      )
+      if (is.null(axes_ok))
         return(FALSE)
       
       ok <- tryCatch({
-        p <- FactoMineR::plot.HCPC(
+        FactoMineR::plot.HCPC(
           res.classif,
-          axes = c(abs_gui, ord_gui),
+          axes = axes_ok,
           choice = "map",
           draw.tree = FALSE,
+          new.plot = FALSE,
           title = "Representation of the Rows According to Clusters"
         )
-        print(p)
         TRUE
       }, error = function(e) {
         jmvcore::reject(paste("Cluster plot failed:", e$message))
@@ -547,34 +1064,82 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     ### Helper functions ----
     
     .errorCheck = function() {
-      nbfact_gui <- suppressWarnings(as.numeric(self$options$nbfact))
-      
-      if (is.na(nbfact_gui) || nbfact_gui < 1)
-        jmvcore::reject("Number of dimensions must be at least 1")
-      
       if (is.null(self$options$activecol) || length(self$options$activecol) < 2)
         jmvcore::reject("At least two active columns are required")
-      
-      if (length(self$options$activecol) < nbfact_gui)
-        jmvcore::reject("Number of dimensions cannot exceed the number of active columns")
+      if (!.meda_integer_scalar(self$options$nbfact, minimum = 1L))
+        jmvcore::reject("The number of displayed dimensions must be a positive integer")
+      if (!.meda_integer_scalar(self$options$ncp, minimum = 1L))
+        jmvcore::reject("The number of saved dimensions must be a positive integer")
+      if (!.meda_integer_scalar(self$options$abs, minimum = 1L) ||
+          !.meda_integer_scalar(self$options$ord, minimum = 1L) ||
+          self$options$abs == self$options$ord)
+        jmvcore::reject("The two plotted dimensions must be distinct positive integers")
+      if (isTRUE(self$options$graphclassif) &&
+          max(self$options$abs, self$options$ord) > self$options$ncp)
+        jmvcore::reject("The cluster-map axes must not exceed the number of dimensions used for clustering")
+      proba <- suppressWarnings(as.numeric(self$options$proba))
+      if (length(proba) != 1L || !is.finite(proba) ||
+          proba < 0 || proba > 100)
+        jmvcore::reject("The significance threshold must be between 0 and 100")
+
+      active <- self$data[, self$options$activecol, drop = FALSE]
+      if (nrow(active) < 3L)
+        jmvcore::reject("CA requires at least three rows")
+      if (!all(vapply(active, is.numeric, logical(1))))
+        jmvcore::reject("All active columns must be numeric counts")
+      active_matrix <- as.matrix(active)
+      if (any(!is.finite(active_matrix)))
+        jmvcore::reject("Active columns must not contain missing or infinite values")
+      if (any(active_matrix < 0))
+        jmvcore::reject("Active columns must contain non-negative counts")
+      if (sum(active_matrix) <= 0 || any(rowSums(active_matrix) <= 0) ||
+          any(colSums(active_matrix) <= 0))
+        jmvcore::reject("The active contingency table must have positive row and column margins")
+
+      if (!is.null(self$options$illustrativecol) &&
+          length(self$options$illustrativecol) > 0L) {
+        supplementary <- self$data[, self$options$illustrativecol, drop = FALSE]
+        if (!all(vapply(supplementary, is.numeric, logical(1))))
+          jmvcore::reject("All supplementary columns must be numeric counts")
+        supplementary_matrix <- as.matrix(supplementary)
+        if (any(!is.finite(supplementary_matrix)) || any(supplementary_matrix < 0))
+          jmvcore::reject("Supplementary columns must contain finite non-negative counts")
+      }
+
+      total <- sum(active_matrix)
+      expected <- outer(rowSums(active_matrix), colSums(active_matrix)) / total
+      standardized <- (active_matrix - expected) / sqrt(expected)
+      max_axes <- min(
+        nrow(active_matrix) - 1L,
+        ncol(active_matrix) - 1L,
+        qr(standardized)$rank
+      )
+      if (max_axes < 2L)
+        jmvcore::reject("The active contingency table must provide at least two CA dimensions")
+      if (is.null(.meda_valid_axes(self$options$abs, self$options$ord, max_axes)))
+        jmvcore::reject(paste0("The plotted dimensions must be between 1 and ", max_axes))
     },
     
     .output = function(res.ca, data) {
+      output <- self$results$newvar
+      if (!isTRUE(self$options$newvar) || !output$isNotFilled())
+        return()
       nFactors_out <- min(self$options$ncp, ncol(res.ca$row$coord))
-      
-      if (self$results$newvar$isNotFilled()) {
-        self$results$newvar$set(
-          keys         = 1:nFactors_out,
-          titles       = paste("Dim.", 1:nFactors_out),
-          descriptions = rep("CA component", nFactors_out),
-          measureTypes = rep("continuous", nFactors_out)
-        )
-      }
+      if (nFactors_out < 1L)
+        return()
+      output$set(
+        keys         = seq_len(nFactors_out),
+        titles       = paste("Dim.", seq_len(nFactors_out)),
+        descriptions = rep("CA component", nFactors_out),
+        measureTypes = rep("continuous", nFactors_out)
+      )
       
       for (i in seq_len(nFactors_out))
-        self$results$newvar$setValues(index = i, as.numeric(res.ca$row$coord[, i]))
-      
-      self$results$newvar$setRowNums(seq_len(nrow(data)))
+        output$setValues(index = i, as.numeric(res.ca$row$coord[, i]))
+      row_nums <- attr(data, "jamovi_row_nums")
+      if (is.null(row_nums))
+        row_nums <- rownames(data)
+      output$setRowNums(row_nums)
     },
     
     .output2 = function(res.classif, data) {
@@ -582,18 +1147,20 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return()
       
       output <- self$results$newvar2
-      
-      if (output$isNotFilled()) {
-        output$set(
-          keys         = 1,
-          titles       = "Cluster",
-          descriptions = "Cluster variable",
-          measureTypes = "nominal"
-        )
-      }
+      if (!isTRUE(self$options$newvar2) || !output$isNotFilled())
+        return()
+      output$set(
+        keys         = 1,
+        titles       = "Cluster",
+        descriptions = "Cluster variable",
+        measureTypes = "nominal"
+      )
       
       output$setValues(index = 1, as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)]))
-      output$setRowNums(seq_len(nrow(data)))
+      row_nums <- attr(data, "jamovi_row_nums")
+      if (is.null(row_nums))
+        row_nums <- rownames(data)
+      output$setRowNums(row_nums)
     },
     
     .buildData = function() {
@@ -615,15 +1182,16 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return(NULL)
       
       data <- as.data.frame(do.call(cbind, data_list))
+      jamovi_row_nums <- rownames(data)
       
       if (!is.null(self$options$indiv)) {
         ids <- as.character(self$data[[self$options$indiv]])
         ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
         rownames(data) <- make.unique(ids)
       } else {
-        rownames(data) <- as.character(seq_len(nrow(data)))
+        rownames(data) <- jamovi_row_nums
       }
-      
+      attr(data, "jamovi_row_nums") <- jamovi_row_nums
       data
     }
   )

@@ -9,6 +9,7 @@ catdesOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             vartochar = NULL,
             descbyvar = NULL,
             tuto = TRUE,
+            showCode = FALSE,
             threshold = 5, ...) {
 
             super$initialize(
@@ -39,6 +40,10 @@ catdesOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "tuto",
                 tuto,
                 default=TRUE)
+            private$..showCode <- jmvcore::OptionBool$new(
+                "showCode",
+                showCode,
+                default=FALSE)
             private$..threshold <- jmvcore::OptionNumber$new(
                 "threshold",
                 threshold,
@@ -47,17 +52,20 @@ catdesOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..vartochar)
             self$.addOption(private$..descbyvar)
             self$.addOption(private$..tuto)
+            self$.addOption(private$..showCode)
             self$.addOption(private$..threshold)
         }),
     active = list(
         vartochar = function() private$..vartochar$value,
         descbyvar = function() private$..descbyvar$value,
         tuto = function() private$..tuto$value,
+        showCode = function() private$..showCode$value,
         threshold = function() private$..threshold$value),
     private = list(
         ..vartochar = NA,
         ..descbyvar = NA,
         ..tuto = NA,
+        ..showCode = NA,
         ..threshold = NA)
 )
 
@@ -69,7 +77,8 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         chigroup = function() private$.items[["chigroup"]],
         categgroup = function() private$.items[["categgroup"]],
         qtvargroup = function() private$.items[["qtvargroup"]],
-        qtgroup = function() private$.items[["qtgroup"]]),
+        qtgroup = function() private$.items[["qtgroup"]],
+        code = function() private$.items[["code"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -99,7 +108,11 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="chi",
-                            title="Link Between the 'Cluster' Variable and the Categorical Variables",
+                            title="Link Between the Variable to Characterize and the Categorical Variables",
+                            clearWith=list(
+                                "vartochar",
+                                "descbyvar",
+                                "threshold"),
                             columns=list(
                                 list(
                                     `name`="varchi", 
@@ -130,7 +143,11 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="categquali",
-                            title="Description of Each 'Cluster' by the Categories",
+                            title="Description of Each Target Category by the Categorical Variables",
+                            clearWith=list(
+                                "vartochar",
+                                "descbyvar",
+                                "threshold"),
                             columns=list(
                                 list(
                                     `name`="varcateg", 
@@ -166,6 +183,10 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             options=options,
                             name="qualir2",
                             title="Link with the Qualitative Variables",
+                            clearWith=list(
+                                "vartochar",
+                                "descbyvar",
+                                "threshold"),
                             columns=list(
                                 list(
                                     `name`="varr2", 
@@ -185,6 +206,10 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             options=options,
                             name="categquanti",
                             title="Description of the Quantitative Variable by the Categories",
+                            clearWith=list(
+                                "vartochar",
+                                "descbyvar",
+                                "threshold"),
                             columns=list(
                                 list(
                                     `name`="varcateg", 
@@ -218,7 +243,11 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="qtvar",
-                            title="Link Between the 'Cluster' Variable and the Quantitative Variables",
+                            title="Link Between the Variable to Characterize and the Quantitative Variables",
+                            clearWith=list(
+                                "vartochar",
+                                "descbyvar",
+                                "threshold"),
                             columns=list(
                                 list(
                                     `name`="varqtvar", 
@@ -248,7 +277,11 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         self$add(jmvcore::Table$new(
                             options=options,
                             name="qt",
-                            title="Description of Each 'Cluster' by the Quantative Variables",
+                            title="Description of Each Target Category by the Quantitative Variables",
+                            clearWith=list(
+                                "vartochar",
+                                "descbyvar",
+                                "threshold"),
                             columns=list(
                                 list(
                                     `name`="varqt", 
@@ -287,6 +320,10 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             options=options,
                             name="qtcor",
                             title="Link with the Quantitative Variables",
+                            clearWith=list(
+                                "vartochar",
+                                "descbyvar",
+                                "threshold"),
                             columns=list(
                                 list(
                                     `name`="varcor", 
@@ -300,7 +337,17 @@ catdesResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `name`="corpvalue", 
                                     `title`="p", 
                                     `type`="number", 
-                                    `format`="zto,pvalue"))))}))$new(options=options))}))
+                                    `format`="zto,pvalue"))))}))$new(options=options))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="code",
+                title="R code",
+                visible="(showCode)",
+                clearWith=list(
+                    "showCode",
+                    "vartochar",
+                    "descbyvar",
+                    "threshold")))}))
 
 catdesBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "catdesBase",
@@ -330,6 +377,7 @@ catdesBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param vartochar .
 #' @param descbyvar .
 #' @param tuto .
+#' @param showCode .
 #' @param threshold .
 #' @return A results object containing:
 #' \tabular{llllll}{
@@ -341,6 +389,7 @@ catdesBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$qtvargroup$qtvar} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$qtgroup$qt} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$qtgroup$qtcor} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
 #' @export
@@ -349,6 +398,7 @@ catdes <- function(
     vartochar,
     descbyvar,
     tuto = TRUE,
+    showCode = FALSE,
     threshold = 5) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -367,6 +417,7 @@ catdes <- function(
         vartochar = vartochar,
         descbyvar = descbyvar,
         tuto = tuto,
+        showCode = showCode,
         threshold = threshold)
 
     analysis <- catdesClass$new(

@@ -42,7 +42,12 @@ options:
   - name: tuto
     title: Read me before running
     type: Bool
-    default: true      
+    default: true
+
+  - name: showCode
+    title: R code
+    type: Bool
+    default: false
 
   - name: nbfact
     title: Number of dimensions

@@ -2,7 +2,7 @@
 name: catdes
 title: Results of the Variable Description
 jrs: '1.1'
-refs: 
+refs:
     - factominer
     - explo
 
@@ -11,15 +11,19 @@ items:
     title: Instructions
     visible: (tuto)
     type: Html
-    
+
   - name: chigroup
     title: Chi-Squared Test
     type: Group
     visible: false
     items:
       - name: chi
-        title: Link Between the 'Cluster' Variable and the Categorical Variables
+        title: Link Between the Variable to Characterize and the Categorical Variables
         type: Table
+        clearWith:
+          - vartochar
+          - descbyvar
+          - threshold
         columns:
           - name: varchi
             title: ''
@@ -38,8 +42,12 @@ items:
     visible: false
     items:
       - name: categquali
-        title: Description of Each 'Cluster' by the Categories
+        title: Description of Each Target Category by the Categorical Variables
         type: Table
+        clearWith:
+          - vartochar
+          - descbyvar
+          - threshold
         columns:
           - name: varcateg
             title: ''
@@ -67,6 +75,10 @@ items:
       - name: qualir2
         title: Link with the Qualitative Variables
         type: Table
+        clearWith:
+          - vartochar
+          - descbyvar
+          - threshold
         columns:
           - name: varr2
             title: ''
@@ -78,10 +90,14 @@ items:
           - name: r2pvalue
             title: p
             type: number
-            format: zto,pvalue      
+            format: zto,pvalue
       - name: categquanti
         title: Description of the Quantitative Variable by the Categories
         type: Table
+        clearWith:
+          - vartochar
+          - descbyvar
+          - threshold
         columns:
           - name: varcateg
             title: ''
@@ -97,15 +113,19 @@ items:
             title: p
             type: number
             format: zto,pvalue
-      
+
   - name: qtvargroup
     title: Global Description by the Quantitative Variables
     type: Group
     visible: false
     items:
       - name: qtvar
-        title: Link Between the 'Cluster' Variable and the Quantitative Variables
+        title: Link Between the Variable to Characterize and the Quantitative Variables
         type: Table
+        clearWith:
+          - vartochar
+          - descbyvar
+          - threshold
         columns:
           - name: varqtvar
             title: ''
@@ -124,8 +144,12 @@ items:
     visible: false
     items:
       - name: qt
-        title: Description of Each 'Cluster' by the Quantative Variables
+        title: Description of Each Target Category by the Quantitative Variables
         type: Table
+        clearWith:
+          - vartochar
+          - descbyvar
+          - threshold
         columns:
           - name: varqt
             title: ''
@@ -155,6 +179,10 @@ items:
       - name: qtcor
         title: Link with the Quantitative Variables
         type: Table
+        clearWith:
+          - vartochar
+          - descbyvar
+          - threshold
         columns:
           - name: varcor
             title: ''
@@ -166,3 +194,13 @@ items:
             title: p
             type: number
             format: zto,pvalue
+            
+  - name: code
+    title: R code
+    type: Preformatted
+    visible: (showCode)
+    clearWith:
+      - showCode
+      - vartochar
+      - descbyvar
+      - threshold

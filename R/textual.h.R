@@ -9,6 +9,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             individuals = NULL,
             words = NULL,
             tuto = TRUE,
+            showCode = FALSE,
             thres = 5,
             lowfreq = 0,
             highfreq = 0, ...) {
@@ -28,11 +29,21 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "factor"))
             private$..words <- jmvcore::OptionVariable$new(
                 "words",
-                words)
+                words,
+                suggested=list(
+                    "nominal",
+                    "id"),
+                permitted=list(
+                    "factor",
+                    "id"))
             private$..tuto <- jmvcore::OptionBool$new(
                 "tuto",
                 tuto,
                 default=TRUE)
+            private$..showCode <- jmvcore::OptionBool$new(
+                "showCode",
+                showCode,
+                default=FALSE)
             private$..thres <- jmvcore::OptionNumber$new(
                 "thres",
                 thres,
@@ -49,6 +60,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..individuals)
             self$.addOption(private$..words)
             self$.addOption(private$..tuto)
+            self$.addOption(private$..showCode)
             self$.addOption(private$..thres)
             self$.addOption(private$..lowfreq)
             self$.addOption(private$..highfreq)
@@ -57,6 +69,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         individuals = function() private$..individuals$value,
         words = function() private$..words$value,
         tuto = function() private$..tuto$value,
+        showCode = function() private$..showCode$value,
         thres = function() private$..thres$value,
         lowfreq = function() private$..lowfreq$value,
         highfreq = function() private$..highfreq$value),
@@ -64,6 +77,7 @@ textualOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..individuals = NA,
         ..words = NA,
         ..tuto = NA,
+        ..showCode = NA,
         ..thres = NA,
         ..lowfreq = NA,
         ..highfreq = NA)
@@ -78,7 +92,8 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         textualgroup = function() private$.items[["textualgroup"]],
         chideuxgroup = function() private$.items[["chideuxgroup"]],
         dfresgroup = function() private$.items[["dfresgroup"]],
-        plottext = function() private$.items[["plottext"]]),
+        plottext = function() private$.items[["plottext"]],
+        code = function() private$.items[["code"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -94,10 +109,27 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="instructions",
                 title="Instructions",
                 visible="(tuto)"))
-            self$add(jmvcore::Preformatted$new(
+            self$add(jmvcore::Table$new(
                 options=options,
                 name="tc",
-                title="Words and their Occurrences"))
+                title="Words and their Occurrences",
+                visible="(individuals)",
+                clearWith=list(
+                    "individuals",
+                    "words"),
+                columns=list(
+                    list(
+                        `name`="word", 
+                        `title`="Word", 
+                        `type`="text"),
+                    list(
+                        `name`="occurrences", 
+                        `title`="Occurrences", 
+                        `type`="integer"),
+                    list(
+                        `name`="lists", 
+                        `title`="Lists", 
+                        `type`="integer"))))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -142,14 +174,15 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                 list(
                                     `name`="value", 
                                     `title`="X-squared", 
-                                    `type`="Integer"),
+                                    `type`="number"),
                                 list(
                                     `name`="df", 
                                     `title`="df", 
-                                    `type`="Integer"),
+                                    `type`="integer"),
                                 list(
                                     `name`="pvalue", 
                                     `title`="p", 
+                                    `type`="number", 
                                     `format`="zto,pvalue"))))}))$new(options=options))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
@@ -167,6 +200,12 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             name="dfres",
                             title="Description of the Rows of the Contingency Table",
                             visible="(individuals)",
+                            clearWith=list(
+                                "individuals",
+                                "words",
+                                "thres",
+                                "lowfreq",
+                                "highfreq"),
                             columns=list(
                                 list(
                                     `name`="component", 
@@ -207,7 +246,24 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Representation of the Words and the Categories",
                 width=600,
                 height=500,
-                renderFun=".plottextual"))}))
+                renderFun=".plottextual",
+                clearWith=list(
+                    "individuals",
+                    "words",
+                    "lowfreq",
+                    "highfreq")))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="code",
+                title="R code",
+                visible="(showCode)",
+                clearWith=list(
+                    "showCode",
+                    "individuals",
+                    "words",
+                    "thres",
+                    "lowfreq",
+                    "highfreq")))}))
 
 textualBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "textualBase",
@@ -237,18 +293,26 @@ textualBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param individuals .
 #' @param words .
 #' @param tuto .
+#' @param showCode .
 #' @param thres .
 #' @param lowfreq .
 #' @param highfreq .
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
-#'   \code{results$tc} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$tc} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$textualgroup$textual} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$chideuxgroup$chideux} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$dfresgroup$dfres} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$plottext} \tab \tab \tab \tab \tab an image \cr
+#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
+#'
+#' Tables can be converted to data frames with \code{asDF} or \code{\link{as.data.frame}}. For example:
+#'
+#' \code{results$tc$asDF}
+#'
+#' \code{as.data.frame(results$tc)}
 #'
 #' @export
 textual <- function(
@@ -256,6 +320,7 @@ textual <- function(
     individuals,
     words,
     tuto = TRUE,
+    showCode = FALSE,
     thres = 5,
     lowfreq = 0,
     highfreq = 0) {
@@ -277,6 +342,7 @@ textual <- function(
         individuals = individuals,
         words = words,
         tuto = tuto,
+        showCode = showCode,
         thres = thres,
         lowfreq = lowfreq,
         highfreq = highfreq)

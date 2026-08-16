@@ -44,6 +44,11 @@ options:
     type: Bool
     default: true
 
+  - name: showCode
+    title: R code
+    type: Bool
+    default: false
+
   - name: nFactors
     title: Number of dimensions
     type: Integer
@@ -83,6 +88,11 @@ options:
     title: Y-axis
     type: Integer
     default: 2
+
+  - name: modality
+    title: Categories displayed
+    type: String
+    default: "cos2 10"
 
   - name: ncp
     title: Number of components

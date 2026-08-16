@@ -2,7 +2,7 @@
 name: descfreq
 title: Description of the Contingency Table
 jrs: '1.1'
-refs: 
+refs:
     - factominer
     - explo
 
@@ -11,11 +11,15 @@ items:
     title: Instructions
     visible: (tuto)
     type: Html
-    
+
   - name: descoftablerow
     title: Description of the Rows
     type: Table
     visible: (rows)
+    clearWith:
+      - rows
+      - columns
+      - threshold
     columns:
       - name: mod
         title: ''
@@ -48,6 +52,10 @@ items:
     title: Description of the Columns
     type: Table
     visible: (rows)
+    clearWith:
+      - rows
+      - columns
+      - threshold
     columns:
       - name: mod
         title: ''
@@ -75,3 +83,13 @@ items:
       - name: vtest
         title: v.test
         type: number
+
+  - name: code
+    title: R code
+    type: Preformatted
+    visible: (showCode)
+    clearWith:
+      - showCode
+      - rows
+      - columns
+      - threshold      

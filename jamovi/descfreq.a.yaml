@@ -33,6 +33,11 @@ options:
     type: Bool
     default: true
 
+  - name: showCode
+    title: R code
+    type: Bool
+    default: false
+
   - name: threshold
     title: Significance threshold (%)
     type: Number

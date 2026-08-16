@@ -9,6 +9,7 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             rows = NULL,
             columns = NULL,
             tuto = TRUE,
+            showCode = FALSE,
             threshold = 5, ...) {
 
             super$initialize(
@@ -35,6 +36,10 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "tuto",
                 tuto,
                 default=TRUE)
+            private$..showCode <- jmvcore::OptionBool$new(
+                "showCode",
+                showCode,
+                default=FALSE)
             private$..threshold <- jmvcore::OptionNumber$new(
                 "threshold",
                 threshold,
@@ -43,17 +48,20 @@ descfreqOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..rows)
             self$.addOption(private$..columns)
             self$.addOption(private$..tuto)
+            self$.addOption(private$..showCode)
             self$.addOption(private$..threshold)
         }),
     active = list(
         rows = function() private$..rows$value,
         columns = function() private$..columns$value,
         tuto = function() private$..tuto$value,
+        showCode = function() private$..showCode$value,
         threshold = function() private$..threshold$value),
     private = list(
         ..rows = NA,
         ..columns = NA,
         ..tuto = NA,
+        ..showCode = NA,
         ..threshold = NA)
 )
 
@@ -63,7 +71,8 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     active = list(
         instructions = function() private$.items[["instructions"]],
         descoftablerow = function() private$.items[["descoftablerow"]],
-        descoftablecol = function() private$.items[["descoftablecol"]]),
+        descoftablecol = function() private$.items[["descoftablecol"]],
+        code = function() private$.items[["code"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -84,6 +93,10 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="descoftablerow",
                 title="Description of the Rows",
                 visible="(rows)",
+                clearWith=list(
+                    "rows",
+                    "columns",
+                    "threshold"),
                 columns=list(
                     list(
                         `name`="mod", 
@@ -124,6 +137,10 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="descoftablecol",
                 title="Description of the Columns",
                 visible="(rows)",
+                clearWith=list(
+                    "rows",
+                    "columns",
+                    "threshold"),
                 columns=list(
                     list(
                         `name`="mod", 
@@ -158,7 +175,17 @@ descfreqResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     list(
                         `name`="vtest", 
                         `title`="v.test", 
-                        `type`="number"))))}))
+                        `type`="number"))))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="code",
+                title="R code",
+                visible="(showCode)",
+                clearWith=list(
+                    "showCode",
+                    "rows",
+                    "columns",
+                    "threshold")))}))
 
 descfreqBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "descfreqBase",
@@ -188,12 +215,14 @@ descfreqBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param rows .
 #' @param columns .
 #' @param tuto .
+#' @param showCode .
 #' @param threshold .
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$descoftablerow} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$descoftablecol} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
 #' Tables can be converted to data frames with \code{asDF} or \code{\link{as.data.frame}}. For example:
@@ -208,6 +237,7 @@ descfreq <- function(
     rows,
     columns,
     tuto = TRUE,
+    showCode = FALSE,
     threshold = 5) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -227,6 +257,7 @@ descfreq <- function(
         rows = rows,
         columns = columns,
         tuto = tuto,
+        showCode = showCode,
         threshold = threshold)
 
     analysis <- descfreqClass$new(

@@ -2,7 +2,7 @@
 name: textual
 title: Results of the Categorical Variable Description
 jrs: '1.1'
-refs: 
+refs:
     - factominer
     - explo
 
@@ -11,10 +11,24 @@ items:
     title: Instructions
     visible: (tuto)
     type: Html
-    
+
   - name: tc
     title: Words and their Occurrences
-    type: Preformatted
+    type: Table
+    visible: (individuals)
+    clearWith:
+      - individuals
+      - words
+    columns:
+      - name: word
+        title: Word
+        type: text
+      - name: occurrences
+        title: Occurrences
+        type: integer
+      - name: lists
+        title: Lists
+        type: integer
 
   - name: textualgroup
     title: Categories by Words Data Table
@@ -44,12 +58,13 @@ items:
         columns:
           - name: value
             title: X-squared
-            type: Integer
+            type: number
           - name: df
             title: df
-            type: Integer
+            type: integer
           - name: pvalue
             title: p
+            type: number
             format: zto,pvalue
 
   - name: dfresgroup
@@ -60,6 +75,12 @@ items:
         title: Description of the Rows of the Contingency Table
         type: Table
         visible: (individuals)
+        clearWith:
+          - individuals
+          - words
+          - thres
+          - lowfreq
+          - highfreq
         columns:
           - name: component
             title: ''
@@ -85,10 +106,27 @@ items:
             format: zto,pvalue
           - name: vtest
             title: Vtest
-            type: Number            
+            type: Number
   - name: plottext
     title: Representation of the Words and the Categories
     type: Image
     width: 600
     height: 500
     renderFun: .plottextual
+    clearWith:
+      - individuals
+      - words
+      - lowfreq
+      - highfreq
+
+  - name: code
+    title: R code
+    type: Preformatted
+    visible: (showCode)
+    clearWith:
+      - showCode
+      - individuals
+      - words
+      - thres
+      - lowfreq
+      - highfreq

@@ -50,7 +50,12 @@ options:
   - name: tuto
     title: Read me before running
     type: Bool
-    default: true      
+    default: true
+
+  - name: showCode
+    title: R code
+    type: Bool
+    default: false
 
   - name: nFactors
     title: Number of dimensions
@@ -123,7 +128,7 @@ options:
     default: 5
 
   - name: modality
-    title: Selection of catagories
+    title: Selection of categories
     type: String
     default: cos2 10
 

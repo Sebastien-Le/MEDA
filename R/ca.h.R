@@ -10,6 +10,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             illustrativecol = NULL,
             indiv = NULL,
             tuto = TRUE,
+            showCode = FALSE,
             nbfact = 2,
             proba = 5,
             abs = 1,
@@ -60,6 +61,10 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "tuto",
                 tuto,
                 default=TRUE)
+            private$..showCode <- jmvcore::OptionBool$new(
+                "showCode",
+                showCode,
+                default=FALSE)
             private$..nbfact <- jmvcore::OptionInteger$new(
                 "nbfact",
                 nbfact,
@@ -141,6 +146,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..illustrativecol)
             self$.addOption(private$..indiv)
             self$.addOption(private$..tuto)
+            self$.addOption(private$..showCode)
             self$.addOption(private$..nbfact)
             self$.addOption(private$..proba)
             self$.addOption(private$..abs)
@@ -167,6 +173,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         illustrativecol = function() private$..illustrativecol$value,
         indiv = function() private$..indiv$value,
         tuto = function() private$..tuto$value,
+        showCode = function() private$..showCode$value,
         nbfact = function() private$..nbfact$value,
         proba = function() private$..proba$value,
         abs = function() private$..abs$value,
@@ -192,6 +199,7 @@ CAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..illustrativecol = NA,
         ..indiv = NA,
         ..tuto = NA,
+        ..showCode = NA,
         ..nbfact = NA,
         ..proba = NA,
         ..abs = NA,
@@ -218,6 +226,8 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "CAResults",
     inherit = jmvcore::Group,
     active = list(
+        caCache = function() private$.items[["caCache"]],
+        classifCache = function() private$.items[["classifCache"]],
         instructions = function() private$.items[["instructions"]],
         plotirow = function() private$.items[["plotirow"]],
         ploticol = function() private$.items[["ploticol"]],
@@ -225,12 +235,12 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         xsqgroup = function() private$.items[["xsqgroup"]],
         eigengroup = function() private$.items[["eigengroup"]],
         descofdimgroup = function() private$.items[["descofdimgroup"]],
-        code = function() private$.items[["code"]],
         rowgroup = function() private$.items[["rowgroup"]],
         colgroup = function() private$.items[["colgroup"]],
         plotclassif = function() private$.items[["plotclassif"]],
         newvar = function() private$.items[["newvar"]],
-        newvar2 = function() private$.items[["newvar2"]]),
+        newvar2 = function() private$.items[["newvar2"]],
+        code = function() private$.items[["code"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -241,6 +251,30 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 refs=list(
                     "factominer",
                     "explo"))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="caCache",
+                title="CA cache",
+                visible=FALSE,
+                clearWith=list(
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "ncp",
+                    "nbfact",
+                    "abs",
+                    "ord")))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="classifCache",
+                title="Classification cache",
+                visible=FALSE,
+                clearWith=list(
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "ncp",
+                    "nbclust")))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="instructions",
@@ -252,21 +286,55 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Representation of the Rows",
                 width=600,
                 height=500,
-                renderFun=".plotrow"))
+                renderFun=".plotrow",
+                clearWith=list(
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "ncp",
+                    "nbfact",
+                    "abs",
+                    "ord",
+                    "limcoscol",
+                    "limcosrow")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="ploticol",
                 title="Representation of the Columns",
                 width=600,
                 height=500,
-                renderFun=".plotcol"))
+                renderFun=".plotcol",
+                clearWith=list(
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "ncp",
+                    "nbfact",
+                    "abs",
+                    "ord",
+                    "limcoscol",
+                    "limcosrow",
+                    "addillucol")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotell",
                 title="Superimposed Representation with Ellipses",
                 width=600,
                 height=500,
-                renderFun=".plotell"))
+                renderFun=".plotell",
+                clearWith=list(
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "ncp",
+                    "nbfact",
+                    "abs",
+                    "ord",
+                    "limcoscol",
+                    "limcosrow",
+                    "ellipsecol",
+                    "ellipserow",
+                    "addillucol")))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -363,10 +431,6 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `name`="coord", 
                                     `title`="Coordinate", 
                                     `type`="number"))))}))$new(options=options))
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="code",
-                title="R code"))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -448,7 +512,16 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 visible="(graphclassif)",
                 width=600,
                 height=500,
-                renderFun=".plotclassif"))
+                renderFun=".plotclassif",
+                clearWith=list(
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "ncp",
+                    "nbclust",
+                    "abs",
+                    "ord",
+                    "graphclassif")))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar",
@@ -459,20 +532,51 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "activecol",
                     "illustrativecol",
                     "indiv",
-                    "nbfact")))
+                    "nbfact",
+                    "ncp")))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar2",
-                title="Coordinates",
-                measureType="continuous",
+                title="Cluster",
+                measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
-                    "actvars",
-                    "quantisup",
-                    "qualisup",
-                    "individus",
-                    "nFactors",
-                    "norme")))}))
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "nbfact",
+                    "nbclust",
+                    "ncp")))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="code",
+                title="R code",
+                visible="(showCode)",
+                clearWith=list(
+                    "showCode",
+                    "activecol",
+                    "illustrativecol",
+                    "indiv",
+                    "nbfact",
+                    "proba",
+                    "abs",
+                    "ord",
+                    "limcoscol",
+                    "limcosrow",
+                    "ellipsecol",
+                    "ellipserow",
+                    "addillucol",
+                    "coordcol",
+                    "contribcol",
+                    "coscol",
+                    "coordrow",
+                    "contribrow",
+                    "cosrow",
+                    "ncp",
+                    "graphclassif",
+                    "nbclust",
+                    "newvar",
+                    "newvar2")))}))
 
 CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "CABase",
@@ -503,6 +607,7 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param illustrativecol .
 #' @param indiv .
 #' @param tuto .
+#' @param showCode .
 #' @param nbfact .
 #' @param proba .
 #' @param abs .
@@ -523,6 +628,8 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param nbclust .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$caCache} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$classifCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotirow} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$ploticol} \tab \tab \tab \tab \tab an image \cr
@@ -530,7 +637,6 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$xsqgroup$xsq} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$eigengroup$eigen} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$descofdimgroup$descofdim} \tab \tab \tab \tab \tab a table \cr
-#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$rowgroup$coordonnees} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$rowgroup$contribution} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$rowgroup$cosinus} \tab \tab \tab \tab \tab a table \cr
@@ -540,6 +646,7 @@ CABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$plotclassif} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
 #'   \code{results$newvar2} \tab \tab \tab \tab \tab an output \cr
+#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
 #' @export
@@ -549,6 +656,7 @@ CA <- function(
     illustrativecol,
     indiv,
     tuto = TRUE,
+    showCode = FALSE,
     nbfact = 2,
     proba = 5,
     abs = 1,
@@ -588,6 +696,7 @@ CA <- function(
         illustrativecol = illustrativecol,
         indiv = indiv,
         tuto = tuto,
+        showCode = showCode,
         nbfact = nbfact,
         proba = proba,
         abs = abs,

@@ -36,11 +36,27 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Instructions
+        label: Instructions and R Code
         stretchFactor: 1
         children:
-          - type: CheckBox
-            name: tuto            
+          - type: Label
+            label: ''
+            cell:
+              column: 0
+              row: 0
+            stretchFactor: 1
+            children:
+              - type: CheckBox
+                name: tuto
+          - type: Label
+            label: ''
+            cell:
+              column: 1
+              row: 0
+            stretchFactor: 1
+            children:
+              - type: CheckBox
+                name: showCode
   - type: LayoutBox
     margin: large
     stretchFactor: 1
@@ -97,6 +113,13 @@ children:
                   - type: TextBox
                     name: ord
                     format: number
+          - type: Label
+            label: Categories to Plot
+            children:
+              - type: TextBox
+                name: modality
+                format: string
+                stretchFactor: 2
   - type: LayoutBox
     margin: large
     stretchFactor: 1
@@ -192,4 +215,3 @@ children:
                 children:
                   - type: Output
                     name: newvar2
-                    enable: (graphclassif)

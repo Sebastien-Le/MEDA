@@ -11,6 +11,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             qualisup = NULL,
             individus = NULL,
             tuto = TRUE,
+            showCode = FALSE,
             norme = TRUE,
             coordvar = FALSE,
             contribvar = FALSE,
@@ -70,6 +71,10 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "tuto",
                 tuto,
                 default=TRUE)
+            private$..showCode <- jmvcore::OptionBool$new(
+                "showCode",
+                showCode,
+                default=FALSE)
             private$..norme <- jmvcore::OptionBool$new(
                 "norme",
                 norme,
@@ -156,6 +161,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..qualisup)
             self$.addOption(private$..individus)
             self$.addOption(private$..tuto)
+            self$.addOption(private$..showCode)
             self$.addOption(private$..norme)
             self$.addOption(private$..coordvar)
             self$.addOption(private$..contribvar)
@@ -184,6 +190,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         qualisup = function() private$..qualisup$value,
         individus = function() private$..individus$value,
         tuto = function() private$..tuto$value,
+        showCode = function() private$..showCode$value,
         norme = function() private$..norme$value,
         coordvar = function() private$..coordvar$value,
         contribvar = function() private$..contribvar$value,
@@ -211,6 +218,7 @@ PCAOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..qualisup = NA,
         ..individus = NA,
         ..tuto = NA,
+        ..showCode = NA,
         ..norme = NA,
         ..coordvar = NA,
         ..contribvar = NA,
@@ -238,6 +246,8 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "PCAResults",
     inherit = jmvcore::Group,
     active = list(
+        pcaCache = function() private$.items[["pcaCache"]],
+        classifCache = function() private$.items[["classifCache"]],
         instructions = function() private$.items[["instructions"]],
         plotind = function() private$.items[["plotind"]],
         plotvar = function() private$.items[["plotvar"]],
@@ -247,13 +257,13 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         plotseulvaract = function() private$.items[["plotseulvaract"]],
         plotseulvarillu = function() private$.items[["plotseulvarillu"]],
         eigengroup = function() private$.items[["eigengroup"]],
-        descdesdim = function() private$.items[["descdesdim"]],
-        code = function() private$.items[["code"]],
+        dimdesc = function() private$.items[["dimdesc"]],
         individus = function() private$.items[["individus"]],
         variables = function() private$.items[["variables"]],
         plotclassif = function() private$.items[["plotclassif"]],
         newvar = function() private$.items[["newvar"]],
-        newvar2 = function() private$.items[["newvar2"]]),
+        newvar2 = function() private$.items[["newvar2"]],
+        code = function() private$.items[["code"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -264,6 +274,34 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 refs=list(
                     "factominer",
                     "explo"))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="pcaCache",
+                title="PCA cache",
+                visible=FALSE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord")))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="classifCache",
+                title="Classification cache",
+                visible=FALSE,
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nbclust")))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="instructions",
@@ -275,14 +313,33 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Representation of the Individuals (and the Categories)",
                 width=800,
                 height=600,
-                renderFun=".plotindividus"))
+                renderFun=".plotindividus",
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotvar",
                 title="Representation of the Variables",
                 width=600,
                 height=600,
-                renderFun=".plotvariables"))
+                renderFun=".plotvariables",
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotseulind",
@@ -290,7 +347,17 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 visible="(graphind)",
                 width=800,
                 height=600,
-                renderFun=".plotseulind"))
+                renderFun=".plotseulind",
+                clearWith=list(
+                    "actvars",
+                    "qualisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord",
+                    "graphind")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotseulmod",
@@ -298,7 +365,17 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 visible="(graphmod)",
                 width=800,
                 height=600,
-                renderFun=".plotseulmod"))
+                renderFun=".plotseulmod",
+                clearWith=list(
+                    "actvars",
+                    "qualisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord",
+                    "graphmod")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plothabillage",
@@ -306,7 +383,18 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 visible="(habillage > 0)",
                 width=800,
                 height=600,
-                renderFun=".plothabillage"))
+                renderFun=".plothabillage",
+                clearWith=list(
+                    "actvars",
+                    "qualisup",
+                    "quantisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord",
+                    "habillage")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotseulvaract",
@@ -314,7 +402,17 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 visible="(graphvaract)",
                 width=600,
                 height=600,
-                renderFun=".plotseulvaract"))
+                renderFun=".plotseulvaract",
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord",
+                    "graphvaract")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotseulvarillu",
@@ -322,7 +420,17 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 visible="(graphvarillu)",
                 width=600,
                 height=600,
-                renderFun=".plotseulvarillu"))
+                renderFun=".plotseulvarillu",
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nFactors",
+                    "abs",
+                    "ord",
+                    "graphvarillu")))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -355,14 +463,95 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                                     `name`="purcentcum", 
                                     `title`="Cumulative %", 
                                     `type`="number"))))}))$new(options=options))
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="descdesdim",
-                title="Automatic Description of the Dimensions"))
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="code",
-                title="R code"))
+            self$add(R6::R6Class(
+                inherit = jmvcore::Group,
+                active = list(
+                    continuous = function() private$.items[["continuous"]],
+                    categorical = function() private$.items[["categorical"]],
+                    categories = function() private$.items[["categories"]]),
+                private = list(),
+                public=list(
+                    initialize=function(options) {
+                        super$initialize(
+                            options=options,
+                            name="dimdesc",
+                            title="Automatic Description of the Dimensions")
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="continuous",
+                            title="Continuous Variables",
+                            columns=list(
+                                list(
+                                    `name`="dimension", 
+                                    `title`="Dimension", 
+                                    `type`="text", 
+                                    `combineBelow`=TRUE),
+                                list(
+                                    `name`="variable", 
+                                    `title`="Variable", 
+                                    `type`="text"),
+                                list(
+                                    `name`="correlation", 
+                                    `title`="Correlation", 
+                                    `type`="number", 
+                                    `format`="zto"),
+                                list(
+                                    `name`="p", 
+                                    `title`="p", 
+                                    `type`="number", 
+                                    `format`="zto,pvalue"),
+                                list(
+                                    `name`="n", 
+                                    `title`="N", 
+                                    `type`="integer"))))
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="categorical",
+                            title="Categorical Variables",
+                            columns=list(
+                                list(
+                                    `name`="dimension", 
+                                    `title`="Dimension", 
+                                    `type`="text", 
+                                    `combineBelow`=TRUE),
+                                list(
+                                    `name`="variable", 
+                                    `title`="Variable", 
+                                    `type`="text"),
+                                list(
+                                    `name`="r2", 
+                                    `title`="R\u00B2", 
+                                    `type`="number", 
+                                    `format`="zto"),
+                                list(
+                                    `name`="p", 
+                                    `title`="p", 
+                                    `type`="number", 
+                                    `format`="zto,pvalue"))))
+                        self$add(jmvcore::Table$new(
+                            options=options,
+                            name="categories",
+                            title="Categories",
+                            columns=list(
+                                list(
+                                    `name`="dimension", 
+                                    `title`="Dimension", 
+                                    `type`="text", 
+                                    `combineBelow`=TRUE),
+                                list(
+                                    `name`="category", 
+                                    `title`="Category", 
+                                    `type`="text"),
+                                list(
+                                    `name`="estimate", 
+                                    `title`="Estimate", 
+                                    `type`="number", 
+                                    `format`="zto"),
+                                list(
+                                    `name`="p", 
+                                    `title`="p", 
+                                    `type`="number", 
+                                    `format`="zto,pvalue"))))}))$new(options=options))
             self$add(R6::R6Class(
                 inherit = jmvcore::Group,
                 active = list(
@@ -444,7 +633,18 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 visible="(graphclassif)",
                 width=800,
                 height=600,
-                renderFun=".plotclassif"))
+                renderFun=".plotclassif",
+                clearWith=list(
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "norme",
+                    "ncp",
+                    "nbclust",
+                    "abs",
+                    "ord",
+                    "graphclassif")))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar",
@@ -457,7 +657,8 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "qualisup",
                     "individus",
                     "nFactors",
-                    "norme")))
+                    "norme",
+                    "ncp")))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar2",
@@ -472,7 +673,39 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nFactors",
                     "norme",
                     "nbclust",
-                    "ncp")))}))
+                    "ncp")))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="code",
+                title="R code",
+                visible="(showCode)",
+                clearWith=list(
+                    "showCode",
+                    "actvars",
+                    "quantisup",
+                    "qualisup",
+                    "individus",
+                    "norme",
+                    "coordvar",
+                    "contribvar",
+                    "cosvar",
+                    "coordind",
+                    "contribind",
+                    "cosind",
+                    "proba",
+                    "nFactors",
+                    "abs",
+                    "ord",
+                    "graphvaract",
+                    "graphvarillu",
+                    "graphind",
+                    "graphmod",
+                    "habillage",
+                    "ncp",
+                    "newvar",
+                    "graphclassif",
+                    "nbclust",
+                    "newvar2")))}))
 
 PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "PCABase",
@@ -504,6 +737,7 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param qualisup .
 #' @param individus .
 #' @param tuto .
+#' @param showCode .
 #' @param norme .
 #' @param coordvar .
 #' @param contribvar .
@@ -525,6 +759,8 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param nbclust .
 #' @return A results object containing:
 #' \tabular{llllll}{
+#'   \code{results$pcaCache} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$classifCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotind} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
@@ -534,8 +770,9 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$plotseulvaract} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotseulvarillu} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$eigengroup$eigen} \tab \tab \tab \tab \tab a table \cr
-#'   \code{results$descdesdim} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$dimdesc$continuous} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$dimdesc$categorical} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$dimdesc$categories} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$individus$coordonnees} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$individus$contribution} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$individus$cosinus} \tab \tab \tab \tab \tab a table \cr
@@ -545,6 +782,7 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$plotclassif} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$newvar} \tab \tab \tab \tab \tab an output \cr
 #'   \code{results$newvar2} \tab \tab \tab \tab \tab an output \cr
+#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
 #' @export
@@ -555,6 +793,7 @@ PCA <- function(
     qualisup,
     individus,
     tuto = TRUE,
+    showCode = FALSE,
     norme = TRUE,
     coordvar = FALSE,
     contribvar = FALSE,
@@ -599,6 +838,7 @@ PCA <- function(
         qualisup = qualisup,
         individus = individus,
         tuto = tuto,
+        showCode = showCode,
         norme = norme,
         coordvar = coordvar,
         contribvar = contribvar,

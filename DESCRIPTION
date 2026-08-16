@@ -1,11 +1,24 @@
 Package: MEDA
 Type: Package
 Title: Multivariate Exploratory Data Analysis
-Version: 0.0.0
-Author: TL/FT
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: Proposes univariate and multivariate analyses based on the FactoMineR package
-License: What license is it under?
+Version: 1.7.0
+Authors@R: c(
+    person("Thomas", "Leblay", role = "aut"),
+    person("Fiona", "Tuffin", role = "aut"),
+    person("Maxime", "Saland", role = "aut"),
+    person("Maïwen", "Faure", role = "aut"),
+    person("Sébastien", "Lê", email = "sebastien.le@agrocampus-ouest.fr",
+           role = c("aut", "cre"))
+    )
+Description: Provides univariate and multivariate exploratory analyses through
+    the 'FactoMineR' framework. The module supports supplementary information,
+    automatic dimension descriptions, clustering on retained components, and
+    concise R code generation for use in the jamovi Rj Editor.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: jmvcore (>= 0.8.5), R6, FactoMineR
+URL: https://sebastien-le.github.io/medasite/index.html
+Imports:
+    FactoMineR,
+    jmvcore (>= 0.8.5),
+    R6

@@ -7,6 +7,49 @@ refs:
     - explo
 
 items:
+  - name: mcaCache
+    title: MCA cache
+    type: Preformatted
+    visible: false
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - ventil
+      - ncp
+      - nFactors
+      - abs
+      - ord
+
+  - name: classifCache
+    title: Classification cache
+    type: Preformatted
+    visible: false
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - ventil
+      - ncp
+      - nFactors
+      - nbclust
+
+  - name: dimdescCache
+    title: Dimension description cache
+    type: Preformatted
+    visible: false
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - ventil
+      - ncp
+      - nFactors
+      - proba
+
   - name: instructions
     title: Instructions
     visible: (tuto)
@@ -18,6 +61,14 @@ items:
     width: 700
     height: 500
     renderFun: .plotindiv
+    clearWith:
+      - actvars
+      - individus
+      - ventil
+      - ncp
+      - nFactors
+      - abs
+      - ord
 
   - name: plotvar
     title: Representation of the Variables
@@ -25,6 +76,15 @@ items:
     width: 700
     height: 500
     renderFun: .plotvar
+    clearWith:
+      - actvars
+      - quantisup
+      - qualisup
+      - ventil
+      - ncp
+      - nFactors
+      - abs
+      - ord
 
   - name: plotitemvar
     title: Representation of the Categories
@@ -32,6 +92,17 @@ items:
     width: 700
     height: 500
     renderFun: .plotitemvar
+    clearWith:
+      - actvars
+      - qualisup
+      - ventil
+      - ncp
+      - nFactors
+      - abs
+      - ord
+      - varmodqualisup
+      - varmodvar
+      - modality
 
   - name: plotquantisup
     title: Representation of the Supplementary Variables
@@ -40,6 +111,15 @@ items:
     width: 700
     height: 500
     renderFun: .plotquantisup
+    clearWith:
+      - actvars
+      - quantisup
+      - ventil
+      - ncp
+      - nFactors
+      - abs
+      - ord
+      - quantimod
 
   - name: eigengroup
     title: Eigenvalue Decomposition
@@ -48,6 +128,10 @@ items:
       - name: eigen
         title: 'Eigenvalue and (Cumulative) Percentage of Variance'
         type: Table
+        clearWith:
+          - actvars
+          - ventil
+          - ncp
         columns:
           - name: component
             title: ''
@@ -64,11 +148,70 @@ items:
 
   - name: dimdesc
     title: Automatic Description of the Dimensions
-    type: Preformatted
+    type: Group
+    items:
+      - name: continuous
+        title: Continuous Variables
+        type: Table
+        columns:
+          - name: dimension
+            title: Dimension
+            type: text
+            combineBelow: true
+          - name: variable
+            title: Variable
+            type: text
+          - name: correlation
+            title: Correlation
+            type: number
+            format: zto
+          - name: p
+            title: p
+            type: number
+            format: zto,pvalue
+          - name: n
+            title: N
+            type: integer
 
-  - name: code
-    title: R code
-    type: Preformatted    
+      - name: categorical
+        title: Categorical Variables
+        type: Table
+        columns:
+          - name: dimension
+            title: Dimension
+            type: text
+            combineBelow: true
+          - name: variable
+            title: Variable
+            type: text
+          - name: r2
+            title: R²
+            type: number
+            format: zto
+          - name: p
+            title: p
+            type: number
+            format: zto,pvalue
+
+      - name: categories
+        title: Categories
+        type: Table
+        columns:
+          - name: dimension
+            title: Dimension
+            type: text
+            combineBelow: true
+          - name: category
+            title: Category
+            type: text
+          - name: estimate
+            title: Estimate
+            type: number
+            format: zto
+          - name: p
+            title: p
+            type: number
+            format: zto,pvalue
 
   - name: individus
     title: Individual Tables
@@ -79,6 +222,10 @@ items:
         type: Table
         visible: (indcoord)
         clearWith:
+          - actvars
+          - individus
+          - ventil
+          - ncp
           - nFactors
         columns: []
 
@@ -87,6 +234,10 @@ items:
         type: Table
         visible: (indcontrib)
         clearWith:
+          - actvars
+          - individus
+          - ventil
+          - ncp
           - nFactors
         columns: []
 
@@ -95,6 +246,10 @@ items:
         type: Table
         visible: (indcos)
         clearWith:
+          - actvars
+          - individus
+          - ventil
+          - ncp
           - nFactors
         columns: []
 
@@ -108,6 +263,8 @@ items:
         visible: (varcoord)
         clearWith:
           - actvars
+          - ventil
+          - ncp
           - nFactors
         columns: []
 
@@ -117,6 +274,8 @@ items:
         visible: (varcontrib)
         clearWith:
           - actvars
+          - ventil
+          - ncp
           - nFactors
         columns: []
 
@@ -126,6 +285,8 @@ items:
         visible: (varcos)
         clearWith:
           - actvars
+          - ventil
+          - ncp
           - nFactors
         columns: []
 
@@ -136,6 +297,15 @@ items:
     width: 700
     height: 500
     renderFun: .plotclassif
+    clearWith:
+      - actvars
+      - individus
+      - ventil
+      - ncp
+      - nFactors
+      - nbclust
+      - abs
+      - ord
 
   - name: newvar
     type: Output
@@ -149,11 +319,12 @@ items:
       - individus
       - nFactors
       - ventil
+      - ncp
 
   - name: newvar2
     type: Output
     title: Cluster
-    measureType: continuous
+    measureType: nominal
     initInRun: true
     clearWith:
       - actvars
@@ -161,6 +332,37 @@ items:
       - qualisup
       - individus
       - nFactors
-      - norme
       - ventil
       - nbclust
+      - ncp
+
+  - name: code
+    title: R code
+    type: Preformatted
+    visible: (showCode)
+    clearWith:
+      - showCode
+      - actvars
+      - quantisup
+      - qualisup
+      - individus
+      - ventil
+      - ncp
+      - nFactors
+      - proba
+      - abs
+      - ord
+      - varmodqualisup
+      - varmodvar
+      - modality
+      - quantimod
+      - indcoord
+      - indcontrib
+      - indcos
+      - varcoord
+      - varcontrib
+      - varcos
+      - graphclassif
+      - nbclust
+      - newvar
+      - newvar2

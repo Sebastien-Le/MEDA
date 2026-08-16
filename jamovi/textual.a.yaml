@@ -24,11 +24,22 @@ options:
   - name: words
     title: Described by
     type: Variable
+    suggested:
+      - nominal
+      - id
+    permitted:
+      - factor
+      - id
 
   - name: tuto
     title: Read me before running
     type: Bool
     default: true    
+
+  - name: showCode
+    title: R code
+    type: Bool
+    default: false
 
   - name: thres
     title: Significance threshold (%)

@@ -37,14 +37,26 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         }
     ),
     private = list(
-      
+
       .dataProcessed = NULL,
       .catdesResult = NULL,
       .condesResult = NULL,
       .catdesCategoryResult = NULL,
       .catdesCategoryQuantiResult = NULL,
 
-    #---------------------------------------------  
+      .resetCache = function() {
+        private$.dataProcessed <- NULL
+        private$.catdesResult <- NULL
+        private$.condesResult <- NULL
+        private$.catdesCategoryResult <- NULL
+        private$.catdesCategoryQuantiResult <- NULL
+      },
+
+      .hasRows = function(x) {
+        !is.null(x) && !is.null(dim(x)) && nrow(x) > 0
+      },
+
+    #---------------------------------------------
     #### Init + run functions ----
 
         .init = function() {
@@ -53,466 +65,587 @@ catdesClass <- if (requireNamespace('jmvcore')) R6::R6Class(
                 self$results$instructions$setVisible(visible = TRUE)
               }
             }
-            
-            self$results$instructions$setContent(
-            "<html>
-            <head>
-            </head>
-            <body>
-            <div class='justified-text'>
-            <p><b>What you should know before characterizing a variable in jamovi</b></p>
-            <p>______________________________________________________________________________</p>
-            <p> The MEDA module provides characterisation of both quantitative and qualitative variables based on their relationships 
-            with all other variables in the dataset. MEDA uses specific statistical tests for different scenarios. 
-            For example, when dealing with two quantitative variables, MEDA uses the correlation coefficient; when dealing with 
-            two qualitative variables, it uses the Chi-square test of independence. Furthermore, when one variable is quantitative 
-            and the other qualitative, the module uses the coefficient of determination to establish their relationship. 
-            This comprehensive approach ensures a thorough analysis of the dataset and provides a comprehensive understanding of the 
-            relationships between the variables.</p>
 
-            <p> At a more granular level, the MEDA module performs association tests specifically for qualitative variables. 
-            Where there are two qualitative variables, MEDA examines the potential over- or under-representation of one category 
-            within another in relation to the total population. In cases where there is both a quantitative and a qualitative variable, 
-            MEDA examines whether the average value of the quantitative variable within a subgroup defined by a particular category is 
-            higher or lower than the average value for the whole population.</p>
+          self$results$instructions$setContent(
+            "
+  <div style='
+      font-family: inherit;
+      margin: 8px 0;
+      padding: 14px 18px;
+      background-color: #F4F7FB;
+      border: 1px solid #CBD8E8;
+      border-left: 5px solid #6B9DE8;
+      border-radius: 6px;
+      color: #333333;
+      line-height: 1.45;
+  '>
 
-           <p> Open the <b>decathlon</b> dataset. Choose <I>Competition</I> as the variable to characterize. Select all others except <I>Ident</I> and
-           <I>Rank</I> to characterize <I>Competition</I>. The variable <I>100m</I> is linked to <I>Competition</I>. Athletes tend to perform 
-           slower at the Decastar than at the Olympic Games, 
-           with an average 100m time of 11.18 seconds at the Decastar compared to an average of 10.92 seconds at the Olympic Games.</p>
+    <p style='
+        margin: 0 0 10px 0;
+        color: #355F98;
+        font-size: 1.08em;
+    '>
+      <b>What you should know before characterizing a variable in jamovi</b>
+    </p>
 
-           <p> Adjusting the significance threshold to 20 would produce similar results for the shot put variable. 
-           Athletes consistently perform better in the Olympic Games, with an average distance of 14.63 metres 
-           compared to 14.16 metres in the Decastar event.</p>
+    <div style='
+        border-top: 1px solid #CBD8E8;
+        margin-bottom: 12px;
+    '></div>
 
-            <p>______________________________________________________________________________</p>
-            
-            </div>
-            </body>
-            </html>"
-            )
-            
+    <p style='margin: 0 0 9px 0;'>
+      <b>Purpose.</b>
+      This analysis identifies the variables that are statistically associated
+      with a selected variable and shows how they characterize it. The
+      variable to characterize may be either categorical or quantitative, and
+      it can be described by both categorical and quantitative variables.
+    </p>
+
+    <p style='margin: 0 0 7px 0;'>
+      <b>When the variable to characterize is categorical:</b>
+    </p>
+
+    <ul style='margin: 0 0 9px 0; padding-left: 22px;'>
+
+      <li style='margin-bottom: 6px;'>
+        categorical descriptive variables are first tested globally using a
+        chi-square test of independence;
+      </li>
+
+      <li style='margin-bottom: 6px;'>
+        the detailed results identify categories that are significantly
+        over-represented or under-represented within each category of the
+        variable to characterize;
+      </li>
+
+      <li>
+        quantitative descriptive variables are evaluated using a one-way
+        analysis of variance, summarized by a squared correlation ratio and
+        an F-test. Their means within each category are then compared with the
+        overall mean.
+      </li>
+
+    </ul>
+
+    <p style='margin: 0 0 7px 0;'>
+      <b>When the variable to characterize is quantitative:</b>
+    </p>
+
+    <ul style='margin: 0 0 9px 0; padding-left: 22px;'>
+
+      <li style='margin-bottom: 6px;'>
+        its relationships with other quantitative variables are described
+        using correlation coefficients and their associated tests;
+      </li>
+
+      <li style='margin-bottom: 6px;'>
+        its relationships with categorical variables are summarized using
+        R<sup>2</sup> and the associated significance test;
+      </li>
+
+      <li>
+        the detailed results indicate which categories are associated with
+        values that are significantly higher or lower than the overall mean
+        of the quantitative variable.
+      </li>
+
+    </ul>
+
+    <div style='
+        margin: 12px 0;
+        padding: 11px 13px;
+        background-color: #FFF8E8;
+        border: 1px solid #E6C878;
+        border-left: 5px solid #E6AC40;
+        border-radius: 4px;
+    '>
+
+      <p style='
+          margin: 0 0 7px 0;
+          color: #7A5A12;
+      '>
+        <b>Interpreting the significance threshold</b>
+      </p>
+
+      <p style='margin: 0;'>
+        Only associations whose p-value is below the selected threshold are
+        displayed. Increasing the threshold reveals weaker associations but
+        does not make them stronger. These results describe statistical
+        relationships and should not be interpreted as evidence of causality.
+      </p>
+
+    </div>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Example.</b>
+      Open the <b>decathlon</b> dataset. Select <i>Competition</i> as the
+      <i>Variable to Characterize</i>, then place all the other variables
+      except <i>Ident</i> and <i>Rank</i> in the <i>Described by</i> field.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      The <i>100m</i> variable is associated with <i>Competition</i>. In this
+      sample, athletes recorded a slower average time at the Decastar than at
+      the Olympic Games: 11.18 seconds compared with 10.92 seconds.
+    </p>
+
+    <p style='margin: 0;'>
+      Increasing the significance threshold to 20% also displays the weaker
+      association with <i>Shot.put</i>. In this sample, the average distance
+      was 14.63 meters at the Olympic Games and 14.16 meters at the Decastar.
+      The 20% threshold is useful for illustrating how the filtering works,
+      but it represents much weaker statistical evidence than the conventional
+      5% threshold.
+    </p>
+
+  </div>
+  "
+          )
         },
 
       .run = function() {
-        
-        if (is.null(self$options$vartochar) || is.null(self$options$descbyvar)) {
-          
+        if (is.null(self$options$vartochar) ||
+            is.null(self$options$descbyvar) ||
+            length(self$options$descbyvar) == 0)
           return()
-        
+
+        private$.resetCache()
+        private$.errorCheck()
+
+        data <- self$dataProcessed
+        if (is.null(data) || nrow(data) == 0)
+          return()
+
+        show_code <- isTRUE(self$options$showCode)
+        self$results$code$setVisible(visible = show_code)
+        if (show_code)
+          self$results$code$setContent(private$.code())
+
+        # Reset parent visibility before populating the outputs relevant to the
+        # current target type. This also prevents empty groups after an option
+        # change that produces fewer significant results.
+        self$results$chigroup$setVisible(visible = FALSE)
+        self$results$categgroup$setVisible(visible = FALSE)
+        self$results$qtvargroup$setVisible(visible = FALSE)
+        self$results$qtgroup$setVisible(visible = FALSE)
+
+        if (is.numeric(data[[1]])) {
+          # Outputs specific to a categorical target are not relevant here.
+          self$results$chigroup$setVisible(visible = FALSE)
+          self$results$categgroup$categquali$setVisible(visible = FALSE)
+          self$results$qtvargroup$setVisible(visible = FALSE)
+          self$results$qtgroup$qt$setVisible(visible = FALSE)
+
+          result <- self$condesResult
+          if (is.null(result))
+            return()
+
+          if (private$.hasRows(result[["quanti"]])) {
+            self$results$qtgroup$setVisible(visible = TRUE)
+            self$results$qtgroup$qtcor$setVisible(visible = TRUE)
+            private$.printCondesCorTable()
+          } else {
+            self$results$qtgroup$qtcor$setVisible(visible = FALSE)
+          }
+
+          if (private$.hasRows(result[["quali"]])) {
+            self$results$categgroup$setVisible(visible = TRUE)
+            self$results$categgroup$qualir2$setVisible(visible = TRUE)
+            private$.printCondesR2Table()
+          } else {
+            self$results$categgroup$qualir2$setVisible(visible = FALSE)
+          }
+
+          if (private$.hasRows(result[["category"]])) {
+            self$results$categgroup$setVisible(visible = TRUE)
+            self$results$categgroup$categquanti$setVisible(visible = TRUE)
+            private$.printCondesCategTable()
+          } else {
+            self$results$categgroup$categquanti$setVisible(visible = FALSE)
+          }
+        } else {
+          # Outputs specific to a quantitative target are not relevant here.
+          self$results$categgroup$categquanti$setVisible(visible = FALSE)
+          self$results$qtgroup$qtcor$setVisible(visible = FALSE)
+          self$results$categgroup$qualir2$setVisible(visible = FALSE)
+
+          result <- self$catdesResult
+          if (is.null(result))
+            return()
+
+          if (private$.hasRows(result[["test.chi2"]])) {
+            self$results$chigroup$setVisible(visible = TRUE)
+            private$.chiTable()
+          } else {
+            self$results$chigroup$setVisible(visible = FALSE)
+          }
+
+          if (!is.null(result[["category"]]) &&
+              length(result[["category"]]) > 0 &&
+              private$.categoryTable()) {
+            self$results$categgroup$setVisible(visible = TRUE)
+            self$results$categgroup$categquali$setVisible(visible = TRUE)
+          } else {
+            self$results$categgroup$categquali$setVisible(visible = FALSE)
+          }
+
+          if (private$.hasRows(result[["quanti.var"]])) {
+            self$results$qtvargroup$setVisible(visible = TRUE)
+            private$.qtvarTable()
+          } else {
+            self$results$qtvargroup$setVisible(visible = FALSE)
+          }
+
+          if (!is.null(result[["quanti"]]) &&
+              length(result[["quanti"]]) > 0 &&
+              private$.qtTable()) {
+            self$results$qtgroup$setVisible(visible = TRUE)
+            self$results$qtgroup$qt$setVisible(visible = TRUE)
+          } else {
+            self$results$qtgroup$qt$setVisible(visible = FALSE)
+          }
         }
-        else {
-          if (is.numeric(self$dataProcessed[,1])==TRUE) {
-            # Hide the output tables of the catdes
-            self$results$chigroup$setVisible(visible=FALSE)
-            self$results$categgroup$categquali$setVisible(visible=FALSE)
-            self$results$qtvargroup$setVisible(visible=FALSE)
-            self$results$qtgroup$qt$setVisible(visible=FALSE)
-
-            # if (names(self$condesResult)=="call"){
-            #   return()
-            # }
-          
-            # if (any(grepl("quanti",names(self$condesResult))) == TRUE) {
-            #   private$.printCondesCorTable()
-            # }
-            # else {
-            #   self$results$qtgroup$qtcor$setVisible(visible=FALSE)
-            # }
-
-            # if (any(grepl("quali",names(self$condesResult))) == TRUE) {
-            #   private$.printCondesR2Table()
-            # }
-            # else {
-            #   self$results$categgroup$qualir2$setVisible(visible=FALSE)
-            # }
-
-            # if (any(grepl("category",names(self$condesResult))) == TRUE) {
-            #   private$.printCondesCategTable()
-            # }
-            # else {
-            #   self$results$categgroup$categquanti$setVisible(visible=FALSE)
-            # }    
-            
-# Define mappings of conditions and actions
-conditions_actions <- list(
-    quanti = list(
-        condition = any(grepl("quanti", names(self$condesResult))),
-        action = private$.printCondesCorTable,
-        hide = self$results$qtgroup$qtcor$setVisible
-    ),
-    quali = list(
-        condition = any(grepl("quali", names(self$condesResult))),
-        action = private$.printCondesR2Table,
-        hide = self$results$categgroup$qualir2$setVisible
-    ),
-    category = list(
-        condition = any(grepl("category", names(self$condesResult))),
-        action = private$.printCondesCategTable,
-        hide = self$results$categgroup$categquanti$setVisible
-    )
-)
-
-# Process each condition and perform actions
-for (key in names(conditions_actions)) {
-    condition_action <- conditions_actions[[key]]
-    if (condition_action$condition) {
-        condition_action$action()
-    } else {
-        condition_action$hide(visible = FALSE)
-    }
-}
-          }
-          else {
-            # Hide the output tables of the condes
-            self$results$categgroup$categquanti$setVisible(visible=FALSE)
-            self$results$qtgroup$qtcor$setVisible(visible=FALSE)
-            self$results$categgroup$qualir2$setVisible(visible=FALSE)
-
-            #if (sum(names(self$catdesResult)=="call")==1){
-            #  return()
-            #}
-
-            # if (any(grepl("test.chi2",names(self$catdesResult))) == TRUE) {
-            # #if (dim(self$catdesResult$test.chi)[1]>0) {
-            #   private$.chiTable()
-            # }
-            # else {
-            #   self$results$chigroup$setVisible(visible=FALSE)
-            # }
-            
-            # if (any(grepl("category",names(self$catdesResult))) == TRUE){
-            #   private$.categoryTable()
-            # }
-            # else {
-            #   self$results$categgroup$setVisible(visible=FALSE)
-            # }
-            
-            # if (any(grepl("quanti.var",names(self$catdesResult))) == TRUE){
-            #   private$.qtvarTable()
-            # }
-            # else {
-            #   self$results$qtvargroup$setVisible(visible=FALSE)
-            # }
-
-            # if (any(grepl("quanti",names(self$catdesResult))) == TRUE){
-            #   private$.qtTable()
-            # }
-            # else {
-            #   self$results$qtgroup$setVisible(visible=FALSE)
-            # }            
-            # Define mappings of conditions and actions
-conditions_actions <- list(
-    test_chi2 = list(
-        condition = any(grepl("test.chi2", names(self$catdesResult))),
-        action = private$.chiTable,
-        hide = self$results$chigroup$setVisible
-    ),
-    category = list(
-        condition = any(grepl("category", names(self$catdesResult))),
-        action = private$.categoryTable,
-        hide = self$results$categgroup$setVisible
-    ),
-    quanti_var = list(
-        condition = any(grepl("quanti.var", names(self$catdesResult))),
-        action = private$.qtvarTable,
-        hide = self$results$qtvargroup$setVisible
-    ),
-    quanti = list(
-        condition = any(grepl("quanti", names(self$catdesResult))),
-        action = private$.qtTable,
-        hide = self$results$qtgroup$setVisible
-    )
-)
-
-# Process each condition and perform actions
-for (key in names(conditions_actions)) {
-    condition_action <- conditions_actions[[key]]
-    if (condition_action$condition) {
-        condition_action$action()
-    } else {
-        condition_action$hide(visible = FALSE)
-    }
-}
-          }
-        }        
       },
-      
+
       #Fonction
 
-      .getcatdesResult = function() {        
-        threshold=self$options$threshold/100
-        r <- FactoMineR::catdes(self$dataProcessed, num.var=1, proba=threshold)
-
-        private$.catdesResult <- r
-        return(private$.catdesResult)
+      .getcatdesResult = function() {
+        threshold <- self$options$threshold / 100
+        private$.catdesResult <- tryCatch(
+          FactoMineR::catdes(
+            self$dataProcessed,
+            num.var = 1,
+            proba = threshold
+          ),
+          error = function(e) {
+            jmvcore::reject(paste(
+              "Categorical variable description failed:",
+              conditionMessage(e)
+            ))
+            NULL
+          }
+        )
+        private$.catdesResult
       },
 
       .getcondesResult = function() {
-        threshold=self$options$threshold/100
-        r <- FactoMineR::condes(self$dataProcessed, num.var=1, proba=threshold)
+        threshold <- self$options$threshold / 100
+        private$.condesResult <- tryCatch(
+          FactoMineR::condes(
+            self$dataProcessed,
+            num.var = 1,
+            proba = threshold
+          ),
+          error = function(e) {
+            jmvcore::reject(paste(
+              "Quantitative variable description failed:",
+              conditionMessage(e)
+            ))
+            NULL
+          }
+        )
+        private$.condesResult
+      },
 
-        private$.condesResult <- r
-        return(private$.condesResult)
+      .code = function() {
+        r_literal <- function(value) {
+          paste(deparse(value, width.cutoff = 500L), collapse = "\n")
+        }
+
+        option_names <- function(value) {
+          if (is.null(value) || length(value) == 0L)
+            return(character(0))
+          value <- as.character(unlist(value, use.names = FALSE))
+          value[!is.na(value) & nzchar(value)]
+        }
+
+        target <- option_names(self$options$vartochar)
+        descriptors <- option_names(self$options$descbyvar)
+        variables <- c(target, descriptors)
+
+        if (length(target) != 1L || !nzchar(target) ||
+            length(descriptors) == 0L)
+          return("# Select a variable to characterize and at least one descriptive variable.")
+
+        proba <- suppressWarnings(as.numeric(self$options$threshold)) / 100
+        if (length(proba) != 1L || !is.finite(proba))
+          proba <- 0.05
+
+        quantitative_target <- is.numeric(self$data[[target]])
+        function_name <- if (quantitative_target) {
+          "FactoMineR::condes"
+        } else {
+          "FactoMineR::catdes"
+        }
+        result_name <- if (quantitative_target) {
+          "res_condes"
+        } else {
+          "res_catdes"
+        }
+
+        code <- c(
+          "library(FactoMineR)",
+          "",
+          "# This script can be pasted directly into the jamovi Rj Editor.",
+          "# The dataset open in jamovi is available as data.",
+          "",
+          "# Keep the variable to characterize in the first column.",
+          paste0(
+            "data_description <- data[, ", r_literal(variables),
+            ", drop = FALSE]"
+          ),
+          "",
+          "# num.var = 1 identifies the first column as the target variable.",
+          paste0(
+            "# proba = ", r_literal(proba),
+            " keeps associations whose p-value is below this threshold."
+          ),
+          paste0(result_name, " <- ", function_name, "("),
+          "  data_description,",
+          "  num.var = 1,",
+          paste0("  proba = ", r_literal(proba)),
+          ")",
+          "",
+          result_name
+        )
+
+        paste(code, collapse = "\n")
       },
 
       .getcatdesCategoryResult = function() {
-        threshold=self$options$threshold/100
         res <- self$catdesResult
-        nlev <- nlevels(self$dataProcessed[,1])
-        lev <- levels(self$dataProcessed[,1])
-        a <- is.null(dim(res$category[[1]]))
-        for (i in 2:nlev) a <- c(a,is.null(dim(res$category[[i]])))
-        dta=NULL
-        
-          if (length(which(a==FALSE))==1){
-            dta <- data.frame(row.names(res$category[[which(a==FALSE)]]),res$category[[which(a==FALSE)]])
-            niv <- rep(lev[which(a==FALSE)],dim(res$category[[which(a==FALSE)]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-          }
-          else {
-            dta <- data.frame(row.names(res$category[[which(a==FALSE)[1]]]),res$category[[which(a==FALSE)[1]]])
-            niv <- rep(lev[which(a==FALSE)[1]],dim(res$category[[which(a==FALSE)[1]]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-
-            for (j in which(a==FALSE)[-1]){
-              dtaj <- data.frame(row.names(res$category[[which(a==FALSE)[1]]]),res$category[[which(a==FALSE)[1]]])
-              nivj <- rep(lev[which(a==FALSE)[1]],dim(res$category[[which(a==FALSE)[1]]])[1])
-              dtaj <- data.frame(nivj,dtaj)
-              names(dtaj)[1:2] <- c("Level","Category")
-              rownames(dtaj) <- NULL
-              rbind(dta,dtaj)
-            }
-          }
-
-          if (length(which(a==FALSE))==1){
-            dta <- data.frame(row.names(res$category[[which(a==FALSE)]]),res$category[[which(a==FALSE)]])
-            niv <- rep(lev[which(a==FALSE)],dim(res$category[[which(a==FALSE)]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-          }
-          else {
-            dta <- data.frame(row.names(res$category[[which(a==FALSE)[1]]]),res$category[[which(a==FALSE)[1]]])
-            niv <- rep(lev[which(a==FALSE)[1]],dim(res$category[[which(a==FALSE)[1]]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-            
-            for (j in which(a==FALSE)[-1]){
-              dtaj <- data.frame(row.names(res$category[[j]]),res$category[[j]])
-              nivj <- rep(lev[j],dim(res$category[[j]])[1])
-              dtaj <- data.frame(nivj,dtaj)
-              names(dtaj)[1:2] <- c("Level","Category")
-              rownames(dtaj) <- NULL
-              dta <- rbind(dta,dtaj)
-              }
-          }
-
-        private$.catdesCategoryResult <- dta
-        return(private$.catdesCategoryResult)
+        private$.catdesCategoryResult <- private$.flattenLevelResults(
+          if (is.null(res)) NULL else res[["category"]],
+          levels(self$dataProcessed[[1]])
+        )
+        private$.catdesCategoryResult
       },
 
       .getcatdesCategoryQuantiResult = function() {
-        threshold=self$options$threshold/100
         res <- self$catdesResult
-        nlev <- nlevels(self$dataProcessed[,1])
-        lev <- levels(self$dataProcessed[,1])
-        a <- is.null(dim(res$quanti[[1]]))
-        for (i in 2:nlev) a <- c(a,is.null(dim(res$quanti[[i]])))
-        dta=NULL
-        
-          if (length(which(a==FALSE))==1){
-            dta <- data.frame(row.names(res$quanti[[which(a==FALSE)]]),res$quanti[[which(a==FALSE)]])
-            niv <- rep(lev[which(a==FALSE)],dim(res$quanti[[which(a==FALSE)]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-          }
-          else {
-            dta <- data.frame(row.names(res$quanti[[which(a==FALSE)[1]]]),res$quanti[[which(a==FALSE)[1]]])
-            niv <- rep(lev[which(a==FALSE)[1]],dim(res$quanti[[which(a==FALSE)[1]]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-
-            for (j in which(a==FALSE)[-1]){
-              dtaj <- data.frame(row.names(res$quanti[[which(a==FALSE)[1]]]),res$quanti[[which(a==FALSE)[1]]])
-              nivj <- rep(lev[which(a==FALSE)[1]],dim(res$quanti[[which(a==FALSE)[1]]])[1])
-              dtaj <- data.frame(nivj,dtaj)
-              names(dtaj)[1:2] <- c("Level","Category")
-              rownames(dtaj) <- NULL
-              rbind(dta,dtaj)
-            }
-          }
-
-          if (length(which(a==FALSE))==1){
-            dta <- data.frame(row.names(res$quanti[[which(a==FALSE)]]),res$quanti[[which(a==FALSE)]])
-            niv <- rep(lev[which(a==FALSE)],dim(res$quanti[[which(a==FALSE)]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-          }
-          else {
-            dta <- data.frame(row.names(res$quanti[[which(a==FALSE)[1]]]),res$quanti[[which(a==FALSE)[1]]])
-            niv <- rep(lev[which(a==FALSE)[1]],dim(res$quanti[[which(a==FALSE)[1]]])[1])
-            dta <- data.frame(niv,dta)
-            names(dta)[1:2] <- c("Level","Category")
-            rownames(dta) <- NULL
-            
-            for (j in which(a==FALSE)[-1]){
-              dtaj <- data.frame(row.names(res$quanti[[j]]),res$quanti[[j]])
-              nivj <- rep(lev[j],dim(res$quanti[[j]])[1])
-              dtaj <- data.frame(nivj,dtaj)
-              names(dtaj)[1:2] <- c("Level","Category")
-              rownames(dtaj) <- NULL
-              dta <- rbind(dta,dtaj)
-              }
-          }
-
-        private$.catdesCategoryQuantiResult <- dta
-        return(private$.catdesCategoryQuantiResult)
-
+        private$.catdesCategoryQuantiResult <- private$.flattenLevelResults(
+          if (is.null(res)) NULL else res[["quanti"]],
+          levels(self$dataProcessed[[1]])
+        )
+        private$.catdesCategoryQuantiResult
       },
-      
+
+      .flattenLevelResults = function(results, target_levels) {
+        if (is.null(results) || length(results) == 0)
+          return(NULL)
+
+        n_items <- min(length(results), length(target_levels))
+        if (n_items < 1)
+          return(NULL)
+
+        pieces <- lapply(seq_len(n_items), function(i) {
+          item <- results[[i]]
+          if (is.null(item) || is.null(dim(item)) || nrow(item) == 0)
+            return(NULL)
+
+          item <- as.data.frame(item, stringsAsFactors = FALSE)
+          labels <- rownames(item)
+          if (is.null(labels) || length(labels) != nrow(item))
+            labels <- rep("", nrow(item))
+
+          piece <- data.frame(
+            Level = rep(target_levels[i], nrow(item)),
+            Category = labels,
+            item,
+            check.names = FALSE,
+            stringsAsFactors = FALSE
+          )
+          rownames(piece) <- NULL
+          piece
+        })
+
+        pieces <- Filter(Negate(is.null), pieces)
+        if (length(pieces) == 0)
+          return(NULL)
+
+        result <- do.call(rbind, pieces)
+        rownames(result) <- NULL
+        result
+      },
+
       ### Table populating functions ----
       .chiTable = function(){
-        table <- self$catdesResult
+        table <- self$catdesResult[["test.chi2"]]
+        if (!private$.hasRows(table)) {
+          self$results$chigroup$setVisible(visible = FALSE)
+          return(invisible(FALSE))
+        }
 
-        if (dim(table$test.chi)[1]>0) {
-        for (i in 1:dim(table$test.chi)[1]){
-          self$results$chigroup$chi$addRow(rowKey=i, values=list(varchi=as.character(rownames(table$test.chi)[i]))) 
+        for (i in seq_len(nrow(table))) {
+          row <- list(
+            varchi = as.character(rownames(table)[i]),
+            chipv = table[i, 1],
+            df = table[i, 2]
+          )
+          self$results$chigroup$chi$addRow(rowKey = i, values = row)
         }
-        chipv=table$test.chi[,1]
-        df=table$test.chi[,2]
-        
-        for (i in seq_along(chipv)) {
-          row=list()
-          row[["chipv"]]=chipv[i]
-          row[["df"]]=df[i]
-          self$results$chigroup$chi$setRow(rowNo=i, values = row)
-        }
-        }
-            else {
-              self$results$chigroup$setVisible(visible=FALSE)
-              }
+        invisible(TRUE)
       },
-      
+
       .categoryTable = function(){
         tab <- self$catdesCategoryResult
-        
-        for (i in 1:dim(tab)[1]){
-          self$results$categgroup$categquali$addRow(rowKey=i, values=list(varcateg=as.character(tab[,1])[i])) 
+        if (!private$.hasRows(tab) || ncol(tab) < 7)
+          return(invisible(FALSE))
+
+        for (i in seq_len(nrow(tab))) {
+          row <- list(
+            varcateg = as.character(tab[i, 1]),
+            vardesccateg = as.character(tab[i, 2]),
+            clamod = tab[i, 3],
+            modcla = tab[i, 4],
+            global = tab[i, 5],
+            categpv = tab[i, 6],
+            vtest = tab[i, 7]
+          )
+          self$results$categgroup$categquali$addRow(
+            rowKey = i,
+            values = row
+          )
         }
-        
-        for (i in 1:dim(tab)[1]) {
-          row=list()
-          row[["vardesccateg"]]=as.character(tab[,2])[i]
-          row[["clamod"]]=tab[,3][i]
-          row[["modcla"]]=tab[,4][i]
-          row[["global"]]=tab[,5][i]
-          row[["categpv"]]=tab[,6][i]
-          row[["vtest"]]=tab[,7][i]
-          self$results$categgroup$categquali$setRow(rowNo=i, values = row)
-        } 
+        invisible(TRUE)
       },
-      
+
       .printCondesCategTable = function() {
-        table <- self$condesResult
-          for (i in 1:nrow(table$category)) {
-            
-            self$results$categgroup$categquanti$addRow(rowKey=i,value=NULL)
-            
-            row=list()
-            row[["varcateg"]] = strsplit(row.names(table$category),"=")[[i]][1]
-            row[["vardesccateg"]] = strsplit(row.names(table$category),"=")[[i]][2]
-            row[["estimate"]] = table$category[i,1]
-            row[["categpv"]] = table$category[i,2]
-            
-            self$results$categgroup$categquanti$setRow(rowKey=i, values=row)
-            
-          }       
-      },
-      
-      .printCondesCorTable = function() {
-        table <- self$condesResult
-          for (i in 1:nrow(table$quanti)) {
-            
-            self$results$qtgroup$qtcor$addRow(rowKey=i, value=NULL)
-            
-            row=list()
-            row[["varcor"]] = row.names(table$quanti)[i]
-            row[["cor"]] = table$quanti[i,1]
-            row[["corpvalue"]] = table$quanti[i,2]
-            
-            self$results$qtgroup$qtcor$setRow(rowKey=i, values=row)
-            
-          }
-      },
-      
-      .printCondesR2Table = function() {
-        table <- self$condesResult
-        for (i in 1:nrow(table$quali)) {
-                      
-            self$results$categgroup$qualir2$addRow(rowKey=i, value=NULL)
-            
-            row=list()
-            row[["varr2"]] = row.names(table$quali)[i]
-            row[["r2"]] = table$quali[i,1]
-            row[["r2pvalue"]] = table$quali[i,2]
-            
-            self$results$categgroup$qualir2$setRow(rowKey=i, values=row)
-          }
-      },
-      
-      .qtvarTable = function(){
-        table <- self$catdesResult
-        for (i in 1:dim(table$quanti.var)[1]){
-          self$results$qtvargroup$qtvar$addRow(rowKey=i, values=list(varqtvar=as.character(rownames(table$quanti.var)[i]))) 
-        } 
-        scc=table$quanti.var[,1]
-        qtvarpv=table$quanti.var[,2]
-        
-        for (i in seq_along(qtvarpv)) {
-          row=list()
-          row[["scc"]]=scc[i]
-          row[["qtvarpv"]]=qtvarpv[i]
-          self$results$qtvargroup$qtvar$setRow(rowNo=i, values = row)
+        table <- self$condesResult[["category"]]
+        if (!private$.hasRows(table))
+          return(invisible(FALSE))
+
+        labels <- rownames(table)
+        for (i in seq_len(nrow(table))) {
+          parts <- strsplit(labels[i], "=", fixed = TRUE)[[1]]
+          row <- list(
+            varcateg = if (length(parts) > 0) parts[1] else "",
+            vardesccateg = if (length(parts) > 1) {
+              paste(parts[-1], collapse = "=")
+            } else {
+              ""
+            },
+            estimate = table[i, 1],
+            categpv = table[i, 2]
+          )
+          self$results$categgroup$categquanti$addRow(
+            rowKey = i,
+            values = row
+          )
         }
+        invisible(TRUE)
       },
-      
+
+      .printCondesCorTable = function() {
+        table <- self$condesResult[["quanti"]]
+        if (!private$.hasRows(table))
+          return(invisible(FALSE))
+
+        for (i in seq_len(nrow(table))) {
+          row <- list(
+            varcor = rownames(table)[i],
+            cor = table[i, 1],
+            corpvalue = table[i, 2]
+          )
+          self$results$qtgroup$qtcor$addRow(rowKey = i, values = row)
+        }
+        invisible(TRUE)
+      },
+
+      .printCondesR2Table = function() {
+        table <- self$condesResult[["quali"]]
+        if (!private$.hasRows(table))
+          return(invisible(FALSE))
+
+        for (i in seq_len(nrow(table))) {
+          row <- list(
+            varr2 = rownames(table)[i],
+            r2 = table[i, 1],
+            r2pvalue = table[i, 2]
+          )
+          self$results$categgroup$qualir2$addRow(rowKey = i, values = row)
+        }
+        invisible(TRUE)
+      },
+
+      .qtvarTable = function(){
+        table <- self$catdesResult[["quanti.var"]]
+        if (!private$.hasRows(table))
+          return(invisible(FALSE))
+
+        for (i in seq_len(nrow(table))) {
+          row <- list(
+            varqtvar = as.character(rownames(table)[i]),
+            scc = table[i, 1],
+            qtvarpv = table[i, 2]
+          )
+          self$results$qtvargroup$qtvar$addRow(rowKey = i, values = row)
+        }
+        invisible(TRUE)
+      },
+
       .qtTable = function(){
         tabqt <- self$catdesCategoryQuantiResult
-        
-        for (i in 1:dim(tabqt)[1]){
-          self$results$qtgroup$qt$addRow(rowKey=i, values=list(varqt=as.character(tabqt[,1])[i])) 
+        if (!private$.hasRows(tabqt) || ncol(tabqt) < 8)
+          return(invisible(FALSE))
+
+        for (i in seq_len(nrow(tabqt))) {
+          row <- list(
+            varqt = as.character(tabqt[i, 1]),
+            vardescqt = as.character(tabqt[i, 2]),
+            vtestqt = tabqt[i, 3],
+            meancateg = tabqt[i, 4],
+            overallmean = tabqt[i, 5],
+            sdcateg = tabqt[i, 6],
+            overallsd = tabqt[i, 7],
+            qtpv = tabqt[i, 8]
+          )
+          self$results$qtgroup$qt$addRow(rowKey = i, values = row)
         }
-        
-        for (i in 1:dim(tabqt)[1]) {
-          row=list()
-          row[["vardescqt"]]=as.character(tabqt[,2])[i]
-          row[["vtestqt"]]=tabqt[,3][i]
-          row[["meancateg"]]=tabqt[,4][i]
-          row[["overallmean"]]=tabqt[,5][i]
-          row[["sdcateg"]]=tabqt[,6][i]
-          row[["overallsd"]]=tabqt[,7][i]
-          row[["qtpv"]]=tabqt[,8][i]
-          self$results$qtgroup$qt$setRow(rowNo=i, values = row)
+        invisible(TRUE)
+      },
+
+      .errorCheck = function() {
+        threshold <- suppressWarnings(as.numeric(self$options$threshold))
+        if (length(threshold) != 1 || !is.finite(threshold) ||
+            threshold < 0 || threshold > 100)
+          jmvcore::reject("Significance threshold must be between 0 and 100")
+
+        if (self$options$vartochar %in% self$options$descbyvar)
+          jmvcore::reject(
+            "The variable to characterize cannot also be used to describe itself"
+          )
+
+        target <- self$data[[self$options$vartochar]]
+        if (is.numeric(target)) {
+          observed <- target[is.finite(target)]
+          if (length(observed) < 2 || length(unique(observed)) < 2)
+            jmvcore::reject(
+              "The quantitative variable to characterize must contain at least two distinct values"
+            )
+        } else {
+          observed <- droplevels(as.factor(target[!is.na(target)]))
+          if (nlevels(observed) < 2)
+            jmvcore::reject(
+              "The categorical variable to characterize must contain at least two observed levels"
+            )
         }
       },
 
       .buildData = function() {
-        data1=data.frame(self$data[,self$options$vartochar])
-        colnames(data1)=self$options$vartochar    
-        data2=data.frame(self$data[,self$options$descbyvar])
-        colnames(data2)=self$options$descbyvar
-        data=data.frame(data1, data2)
-        
-        return(data)
+        data1 <- data.frame(
+          self$data[[self$options$vartochar]],
+          check.names = FALSE
+        )
+        colnames(data1) <- self$options$vartochar
+
+        data2 <- as.data.frame(
+          self$data[, self$options$descbyvar, drop = FALSE],
+          check.names = FALSE
+        )
+        colnames(data2) <- self$options$descbyvar
+
+        data.frame(data1, data2, check.names = FALSE)
       }
     )
 )

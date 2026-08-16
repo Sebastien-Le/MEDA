@@ -4,9 +4,13 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   inherit = PCABase,
   active = list(
     dataProcessed = function() {
-      if (is.null(private$.dataProcessed))
+      key <- private$.makeDataProcessingKey()
+      if (is.null(private$.dataProcessed) ||
+          !identical(private$.dataProcessedKey, key)) {
         private$.dataProcessed <- private$.buildData()
-      return(private$.dataProcessed)
+        private$.dataProcessedKey <- key
+      }
+      private$.dataProcessed
     },
     
     nVaract = function() {
@@ -28,33 +32,65 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     nbclust = function() {
-      if (is.null(private$.nbclust))
-        private$.nbclust <- private$.computeNbclust()
-      return(private$.nbclust)
+      private$.computeNbclust()
     },
     
     classifResult = function() {
-      if (is.null(private$.classifResult))
-        private$.classifResult <- private$.getclassifResult()
-      return(private$.classifResult)
+      key <- private$.makeClassifKey()
+      if (!is.null(private$.classifResult) &&
+          identical(private$.classifResultKey, key))
+        return(private$.classifResult)
+
+      cached <- self$results$classifCache$state
+      if (!is.null(cached) && identical(
+        attr(cached, "MEDA.cache.key", exact = TRUE), key
+      )) {
+        private$.classifResult <- cached
+        private$.classifResultKey <- key
+        return(cached)
+      }
+
+      value <- private$.getclassifResult()
+      if (!is.null(value)) {
+        attr(value, "MEDA.cache.key") <- key
+        private$.classifResult <- value
+        private$.classifResultKey <- key
+        self$results$classifCache$setState(value)
+      }
+      value
     },
     
     PCAResult = function() {
-      if (is.null(private$.PCAResult))
-        private$.PCAResult <- private$.getPCAResult()
-      return(private$.PCAResult)
+      key <- private$.makePCAKey()
+      required_ncp <- private$.requiredNcp()
+      data_key <- private$.dataValueSignature()
+      cached <- private$.readPCAFromCache(key, required_ncp, data_key)
+      if (!is.null(cached))
+        return(cached)
+
+      value <- private$.getPCAResult()
+      if (!is.null(value)) {
+        attr(value, "MEDA.cache.key") <- key
+        attr(value, "MEDA.data.key") <- data_key
+        private$.PCAResult <- value
+        private$.PCAResultKey <- key
+        self$results$pcaCache$setState(value)
+      }
+      value
     }
   ),
   
   private = list(
     
     .dataProcessed = NULL,
+    .dataProcessedKey = NULL,
     .nVaract       = NULL,
     .nQuantsup     = NULL,
     .nQualsup      = NULL,
-    .nbclust       = NULL,
     .classifResult = NULL,
+    .classifResultKey = NULL,
     .PCAResult     = NULL,
+    .PCAResultKey  = NULL,
     
     #---------------------------------------------
     #### Init + run functions ----
@@ -66,29 +102,75 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
       
       self$results$instructions$setContent(
-        "<html>
-            <head>
-            </head>
-            <body>
-            <div class='justified-text'>
-            <p><b>What you should know before running a PCA in jamovi</b></p>
-            <p>______________________________________________________________________________</p>
-            <p> The main aim of Principal Component Analysis (PCA) is to show how individuals are structured according to their description.
-            Therefore, the choice of active variables is of paramount importance as it defines how individuals are described.</p>
-            <p> The choice depends on the problem you are trying to address and therefore the perspective from which you want to answer it.</p>
-            <p> While the <I>Active Variables</I> field is <B>mandatory</B>, the <I>Supplementary Variables</I> fields are optional.
-            However, if you have supplementary variables they may be essential for interpreting the structure on the individuals.</p>
-            <p> Once you have selected the active variables, you can choose whether or not to standardize them. By default,
-            the active variables are standardized. This choice is essential when variables are measured in relation to different units of measurement.</p>
-            <p> Clustering is based on the number of components saved.
-            By default, clustering is based on the first 5 components,
-            <I>i.e.</I> the distance between individuals is calculated on these 5 components.</p>
-            <p> By default, the <I>Number of clusters</I> field is set to -1 which means that the number of clusters
-            is automatically chosen by the computer.</p>
-            <p>______________________________________________________________________________</p>
-            </div>
-            </body>
-            </html>"
+        "
+  <div style='
+      font-family: inherit;
+      margin: 8px 0;
+      padding: 14px 18px;
+      background-color: #F4F7FB;
+      border: 1px solid #CBD8E8;
+      border-left: 5px solid #6B9DE8;
+      border-radius: 6px;
+      color: #333333;
+      line-height: 1.45;
+  '>
+
+    <p style='
+        margin: 0 0 10px 0;
+        color: #355F98;
+        font-size: 1.08em;
+    '>
+      <b>What you should know before running a PCA in jamovi</b>
+    </p>
+
+    <div style='
+        border-top: 1px solid #CBD8E8;
+        margin-bottom: 12px;
+    '></div>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Purpose.</b>
+      The main aim of Principal Component Analysis (PCA) is to show how
+      individuals are structured according to their description. Therefore,
+      the choice of active variables is of paramount importance, as it defines
+      how individuals are described.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      The choice depends on the problem you are trying to address and,
+      therefore, on the perspective from which you want to answer it.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Variables.</b>
+      While the <i>Active Variables</i> field is <b>mandatory</b>, the
+      <i>Supplementary Variables</i> fields are optional. However, supplementary
+      variables may be essential for interpreting the structure of the
+      individuals.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Standardization.</b>
+      Once you have selected the active variables, you can choose whether or
+      not to standardize them. By default, active variables are standardized.
+      This choice is particularly important when variables are expressed in
+      different units of measurement.
+    </p>
+
+    <p style='margin: 0 0 9px 0;'>
+      <b>Clustering.</b>
+      Clustering is based on the number of components saved. By default,
+      clustering uses the first five components; that is, the distance between
+      individuals is calculated from these five components.
+    </p>
+
+    <p style='margin: 0;'>
+      By default, the <i>Number of clusters</i> field is set to −1, which means
+      that the number of clusters is selected automatically.
+    </p>
+
+  </div>
+  "
       )
     },
     
@@ -104,41 +186,49 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return()
       
       res.classif <- NULL
-      need_classif <- isTRUE(self$options$graphclassif) || !self$results$newvar2$isNotFilled()
+      need_classif <- isTRUE(self$options$graphclassif) ||
+        (isTRUE(self$options$newvar2) &&
+         self$results$newvar2$isNotFilled())
       
       if (need_classif)
-        res.classif <- private$.getclassifResult()
+        res.classif <- self$classifResult
       
-      self$results$descdesdim$setContent(private$.dimdesc())
-      self$results$code$setContent(private$.code())
+      .meda_fill_dimdesc_group(self$results$dimdesc, private$.dimdesc())
+      if (isTRUE(self$options$showCode))
+        self$results$code$setContent(private$.code())
       
       private$.printeigenTable()
       private$.printTables("coord")
       private$.printTables("contrib")
       private$.printTables("cos2")
       
-      # Graphes toujours affichés
-      self$results$plotind$setState(self$PCAResult)
-      self$results$plotvar$setState(self$PCAResult)
+      # The complete PCA object is kept once in pcaCache. Images receive a
+      # lightweight marker only, which avoids serializing the same object for
+      # every plot and prevents stale image states after an option change.
+      marker <- list(ready = TRUE)
+      if (is.null(self$results$plotind$state))
+        self$results$plotind$setState(marker)
+      if (is.null(self$results$plotvar$state))
+        self$results$plotvar$setState(marker)
       
       # Graphes supplémentaires optionnels
       if (isTRUE(self$options$graphind))
-        self$results$plotseulind$setState(self$PCAResult)
+        self$results$plotseulind$setState(marker)
       
       if (isTRUE(self$options$graphmod) && !is.null(self$options$qualisup))
-        self$results$plotseulmod$setState(self$PCAResult)
+        self$results$plotseulmod$setState(marker)
       
       if (self$options$habillage > 0)
-        self$results$plothabillage$setState(self$PCAResult)
+        self$results$plothabillage$setState(marker)
       
       if (isTRUE(self$options$graphvaract))
-        self$results$plotseulvaract$setState(self$PCAResult)
+        self$results$plotseulvaract$setState(marker)
       
       if (isTRUE(self$options$graphvarillu) && !is.null(self$options$quantisup))
-        self$results$plotseulvarillu$setState(self$PCAResult)
+        self$results$plotseulvarillu$setState(marker)
       
       if (isTRUE(self$options$graphclassif) && !is.null(res.classif))
-        self$results$plotclassif$setState(res.classif)
+        self$results$plotclassif$setState(marker)
       
       if (!is.null(res.classif))
         private$.output2(res.classif)
@@ -148,6 +238,119 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
 
     #### Compute results ----
+
+    .dataSignature = function() {
+      paste(
+        c(
+          "actvars", self$options$actvars,
+          "quantisup", self$options$quantisup,
+          "qualisup", self$options$qualisup,
+          "individus", self$options$individus
+        ),
+        collapse = "\r"
+      )
+    },
+
+    .dataValueSignature = function() {
+      .meda_selected_data_signature(
+        self$data,
+        c(
+          self$options$actvars,
+          self$options$quantisup,
+          self$options$qualisup,
+          self$options$individus
+        )
+      )
+    },
+
+    .makeDataProcessingKey = function() {
+      paste(private$.dataSignature(), private$.dataValueSignature(), sep = "\n")
+    },
+
+    .requiredNcp = function() {
+      candidates <- suppressWarnings(as.numeric(c(
+        self$options$ncp,
+        self$options$nFactors,
+        self$options$abs,
+        self$options$ord
+      )))
+      candidates <- candidates[is.finite(candidates) & candidates > 0]
+      as.integer(max(c(2, candidates)))
+    },
+
+    .makePCAKey = function() {
+      paste(
+        private$.dataSignature(),
+        isTRUE(self$options$norme),
+        private$.requiredNcp(),
+        sep = "\n"
+      )
+    },
+
+    .makeClassifKey = function() {
+      data_key <- private$.dataValueSignature()
+      if (is.null(data_key)) {
+        cached <- self$results$pcaCache$state
+        if (!is.null(cached) && inherits(cached, "PCA") &&
+            identical(
+              attr(cached, "MEDA.cache.key", exact = TRUE),
+              private$.makePCAKey()
+            )) {
+          data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
+        }
+      }
+      if (is.null(data_key))
+        data_key <- "unavailable"
+
+      paste(
+        private$.makePCAKey(),
+        "data", data_key,
+        self$options$ncp,
+        self$options$nbclust,
+        sep = "\n"
+      )
+    },
+
+    .readPCAFromCache = function(key, required_ncp, data_key) {
+      candidates <- list(private$.PCAResult, self$results$pcaCache$state)
+      for (cached in candidates) {
+        if (is.null(cached) || !inherits(cached, "PCA"))
+          next
+        cached_key <- attr(cached, "MEDA.cache.key", exact = TRUE)
+        cached_data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
+        cached_ncp <- suppressWarnings(as.integer(
+          attr(cached, "MEDA.ncp.requested", exact = TRUE)
+        ))
+        if (length(cached_ncp) == 0L || is.na(cached_ncp))
+          cached_ncp <- if (!is.null(cached$ind$coord)) ncol(cached$ind$coord) else 0L
+        if (identical(cached_key, key) &&
+            identical(cached_data_key, data_key) &&
+            cached_ncp >= required_ncp) {
+          private$.PCAResult <- cached
+          private$.PCAResultKey <- key
+          return(cached)
+        }
+      }
+      NULL
+    },
+
+    .getSharedPCA = function() {
+      key <- private$.makePCAKey()
+      required_ncp <- private$.requiredNcp()
+      candidates <- list(private$.PCAResult, self$results$pcaCache$state)
+      for (cached in candidates) {
+        if (is.null(cached) || !inherits(cached, "PCA") ||
+            !identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
+          next
+        cached_ncp <- suppressWarnings(as.integer(
+          attr(cached, "MEDA.ncp.requested", exact = TRUE)
+        ))
+        if (length(cached_ncp) == 1L && is.finite(cached_ncp) &&
+            cached_ncp >= required_ncp)
+          return(cached)
+      }
+      NULL
+    },
     
     .computeNbclust = function() {
       return(self$options$nbclust)
@@ -172,12 +375,12 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return(NULL)
       
-      reshcpc <- tryCatch(
-        FactoMineR::HCPC(self$PCAResult, nb.clust = self$nbclust, graph = FALSE),
-        error = function(e) NULL
+      .meda_hcpc_coordinates(
+        self$PCAResult$ind$coord,
+        self$options$ncp,
+        self$nbclust,
+        "PCA clustering"
       )
-      private$.classifResult <- reshcpc
-      return(private$.classifResult)
     },
     
     .getPCAResult = function() {
@@ -188,11 +391,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       has_quanti <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
       has_quali  <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
       
-      ncp_candidates <- c(self$options$ncp, self$options$nFactors)
-      ncp_candidates <- suppressWarnings(as.numeric(ncp_candidates))
-      ncp_candidates <- ncp_candidates[!is.na(ncp_candidates) & ncp_candidates > 0]
-      
-      ncp_target <- if (length(ncp_candidates) == 0) 2 else max(ncp_candidates)
+      ncp_target <- private$.requiredNcp()
       ncp_upper  <- min(nrow(data) - 1, self$nVaract)
       
       if (is.na(ncp_upper) || ncp_upper < 1) {
@@ -241,71 +440,484 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return(NULL)
       })
       
-      private$.PCAResult <- r
-      return(private$.PCAResult)
+      if (!is.null(r))
+        attr(r, "MEDA.ncp.requested") <- as.integer(ncp_use)
+      r
+    },
+
+    .getValidAxes = function(res.pca) {
+      if (is.null(res.pca) || is.null(res.pca$eig) ||
+          is.null(res.pca$ind$coord))
+        return(NULL)
+      .meda_valid_axes(
+        self$options$abs,
+        self$options$ord,
+        min(nrow(res.pca$eig), ncol(res.pca$ind$coord))
+      )
     },
     
     .dimdesc = function() {
       table <- self$PCAResult
       if (is.null(table))
-        return("No result available")
+        return(.meda_empty_dimdesc())
       
       nFactors_out <- min(self$options$nFactors, ncol(table$ind$coord))
       if (is.null(nFactors_out) || nFactors_out < 1)
-        return("No dimension available")
+        return(.meda_empty_dimdesc())
       
-      res <- FactoMineR::dimdesc(table, axes = 1:nFactors_out, proba = self$options$proba / 100)
-      paste(capture.output(print(res[-length(res)])), collapse = "\n")
+      res <- tryCatch(
+        FactoMineR::dimdesc(
+          table,
+          axes = seq_len(nFactors_out),
+          proba = self$options$proba / 100
+        ),
+        error = function(e) NULL
+      )
+      if (is.null(res))
+        return(.meda_empty_dimdesc())
+      .meda_tidy_dimdesc(res)
     },
     
     .code = function() {
-      
-      has_quanti <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
-      has_quali  <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
-      
-      names_var <- paste0("'", names(self$PCAResult$call$X), "'", collapse = ", ")
-      data_str  <- paste0("data_PCA <- data[, c(", names_var, ")]")
-      
-      norme_str <- if (isTRUE(self$options$norme)) "TRUE" else "FALSE"
-      ncp_str   <- self$options$ncp
-      
-      code_str <- if (has_quanti && !has_quali) {
-        paste0(
-          "PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", self$nVaract + self$nQuantsup,
-          ", scale.unit=", norme_str,
-          ", ncp=", ncp_str,
-          ", graph=FALSE)"
-        )
-      } else if (!has_quanti && has_quali) {
-        paste0(
-          "PCA(data_PCA, quali.sup=", self$nVaract + 1, ":", self$nVaract + self$nQualsup,
-          ", scale.unit=", norme_str,
-          ", ncp=", ncp_str,
-          ", graph=FALSE)"
-        )
-      } else if (has_quanti && has_quali) {
-        q1 <- self$nVaract + self$nQuantsup
-        paste0(
-          "PCA(data_PCA, quanti.sup=", self$nVaract + 1, ":", q1,
-          ", quali.sup=", q1 + 1, ":", q1 + self$nQualsup,
-          ", scale.unit=", norme_str,
-          ", ncp=", ncp_str,
-          ", graph=FALSE)"
-        )
-      } else {
-        paste0(
-          "PCA(data_PCA, scale.unit=", norme_str,
-          ", ncp=", ncp_str,
-          ", graph=FALSE)"
+      res.pca <- self$PCAResult
+      if (is.null(res.pca))
+        return("# The PCA could not be computed.")
+
+      r_literal <- function(value) {
+        if (is.null(value))
+          return("NULL")
+        paste(deparse(value, width.cutoff = 500L), collapse = "\n")
+      }
+
+      add_call <- function(code, assignment, fun, arguments) {
+        prefix <- if (is.null(assignment)) "" else paste0(assignment, " <- ")
+        suffix <- if (length(arguments) > 1L) {
+          c(rep(",", length(arguments) - 1L), "")
+        } else {
+          ""
+        }
+        c(
+          code,
+          paste0(prefix, fun, "("),
+          paste0("  ", arguments, suffix),
+          ")"
         )
       }
-      
-      out <- list(
-        "dataset" = data_str,
-        "R code"  = code_str
+
+      option_names <- function(value) {
+        if (is.null(value) || length(value) == 0L)
+          return(character(0))
+        value <- as.character(value)
+        value[!is.na(value) & nzchar(value)]
+      }
+
+      active_vars <- option_names(self$options$actvars)
+      quanti_sup_vars <- option_names(self$options$quantisup)
+      quali_sup_vars <- option_names(self$options$qualisup)
+      variable_names <- c(active_vars, quanti_sup_vars, quali_sup_vars)
+
+      if (length(active_vars) < 2L)
+        return("# Select at least two active variables to generate the PCA code.")
+
+      ncp_use <- ncol(res.pca$ind$coord)
+      if (is.null(ncp_use) || !is.finite(ncp_use) || ncp_use < 1L)
+        return("# The PCA did not retain any usable dimension.")
+      ncp_use <- as.integer(ncp_use)
+
+      n_desc <- suppressWarnings(as.integer(self$options$nFactors))
+      if (length(n_desc) == 0L || is.na(n_desc) || n_desc < 1L)
+        n_desc <- 1L
+      n_desc <- min(n_desc, ncp_use)
+
+      proba <- suppressWarnings(as.numeric(self$options$proba)) / 100
+      if (length(proba) == 0L || !is.finite(proba))
+        proba <- 0.05
+
+      axes_candidate <- suppressWarnings(as.integer(c(
+        self$options$abs, self$options$ord
+      )))
+      axes_ok <- NULL
+      if (length(axes_candidate) == 2L &&
+          all(is.finite(axes_candidate)) &&
+          all(axes_candidate >= 1L) &&
+          all(axes_candidate <= ncp_use) &&
+          axes_candidate[1] != axes_candidate[2]) {
+        axes_ok <- axes_candidate
+      } else if (ncp_use >= 2L) {
+        axes_ok <- c(1L, 2L)
+      }
+
+      quanti_sup_indices <- if (length(quanti_sup_vars) > 0L) {
+        length(active_vars) + seq_along(quanti_sup_vars)
+      } else {
+        NULL
+      }
+      quali_sup_indices <- if (length(quali_sup_vars) > 0L) {
+        length(active_vars) + length(quanti_sup_vars) +
+          seq_along(quali_sup_vars)
+      } else {
+        NULL
+      }
+
+      code <- c(
+        "library(FactoMineR)",
+        "",
+        "# This script can be pasted directly into the jamovi Rj Editor.",
+        "# The dataset open in jamovi is available as data.",
+        "",
+        "# Keep active variables first, then supplementary variables.",
+        paste0(
+          "data_PCA <- data[, ", r_literal(variable_names),
+          ", drop = FALSE]"
+        )
       )
-      
-      paste(capture.output(print(out)), collapse = "\n")
+
+      individus <- option_names(self$options$individus)
+      if (length(individus) > 0L) {
+        code <- c(
+          code,
+          "",
+          "# Use the selected identifier as row names.",
+          paste0(
+            "id_PCA <- as.character(data[[",
+            r_literal(individus[1]), "]])"
+          ),
+          "missing_id_PCA <- is.na(id_PCA) | id_PCA == \"\"",
+          "id_PCA[missing_id_PCA] <- as.character(seq_len(sum(missing_id_PCA)))",
+          "rownames(data_PCA) <- make.unique(id_PCA)"
+        )
+      }
+
+      code <- c(
+        code,
+        "",
+        "# Principal Component Analysis",
+        "# scale.unit = TRUE standardizes the active variables.",
+        "# quanti.sup and quali.sup identify supplementary columns.",
+        "# ncp is the number of dimensions retained in the result."
+      )
+
+      pca_arguments <- c(
+        "data_PCA",
+        paste0("scale.unit = ", r_literal(isTRUE(self$options$norme)))
+      )
+      if (!is.null(quanti_sup_indices)) {
+        pca_arguments <- c(
+          pca_arguments,
+          paste0(
+            "quanti.sup = ",
+            r_literal(as.integer(quanti_sup_indices))
+          )
+        )
+      }
+      if (!is.null(quali_sup_indices)) {
+        pca_arguments <- c(
+          pca_arguments,
+          paste0(
+            "quali.sup = ",
+            r_literal(as.integer(quali_sup_indices))
+          )
+        )
+      }
+      pca_arguments <- c(
+        pca_arguments,
+        paste0("ncp = ", r_literal(ncp_use)),
+        "graph = FALSE"
+      )
+      code <- add_call(
+        code, "res_pca", "FactoMineR::PCA", pca_arguments
+      )
+
+      code <- c(
+        code,
+        "",
+        "# Eigenvalues and percentages of explained variance",
+        "res_pca$eig",
+        "",
+        "# Automatic description of the dimensions",
+        "# axes selects the dimensions; proba is the significance threshold.",
+        paste0(
+          "dimensions_pca <- ",
+          r_literal(as.integer(seq_len(n_desc)))
+        )
+      )
+      code <- add_call(
+        code,
+        "desc_pca",
+        "FactoMineR::dimdesc",
+        c(
+          "res_pca",
+          "axes = dimensions_pca",
+          paste0("proba = ", r_literal(proba))
+        )
+      )
+      code <- c(code, "desc_pca")
+
+      if (isTRUE(self$options$coordind)) {
+        code <- c(
+          code, "", "# Individual coordinates",
+          "res_pca$ind$coord[, dimensions_pca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$contribind)) {
+        code <- c(
+          code, "", "# Individual contributions",
+          "res_pca$ind$contrib[, dimensions_pca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$cosind)) {
+        code <- c(
+          code, "", "# Individual squared cosines",
+          "res_pca$ind$cos2[, dimensions_pca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$coordvar)) {
+        code <- c(
+          code, "", "# Active-variable coordinates",
+          "res_pca$var$coord[, dimensions_pca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$contribvar)) {
+        code <- c(
+          code, "", "# Active-variable contributions",
+          "res_pca$var$contrib[, dimensions_pca, drop = FALSE]"
+        )
+      }
+      if (isTRUE(self$options$cosvar)) {
+        code <- c(
+          code, "", "# Active-variable squared cosines",
+          "res_pca$var$cos2[, dimensions_pca, drop = FALSE]"
+        )
+      }
+
+      if (isTRUE(self$options$newvar)) {
+        n_saved <- min(
+          suppressWarnings(as.integer(self$options$ncp)), ncp_use
+        )
+        if (is.finite(n_saved) && n_saved >= 1L) {
+          code <- c(
+            code,
+            "",
+            "# Coordinates saved by MEDA",
+            paste0(
+              "coordinates_pca <- res_pca$ind$coord[, ",
+              r_literal(as.integer(seq_len(n_saved))),
+              ", drop = FALSE]"
+            )
+          )
+        }
+      }
+
+      if (!is.null(axes_ok)) {
+        code <- c(
+          code,
+          "",
+          "# Dimensions used in the following maps",
+          paste0("axes_pca <- ", r_literal(as.integer(axes_ok))),
+          "",
+          "# graph.type = \"classic\" is the safest choice in the Rj Editor.",
+          "# In RStudio, it can be replaced with graph.type = \"ggplot\".",
+          "# choix = \"ind\" draws individuals and qualitative categories.",
+          "# choix = \"var\" draws the correlation circle.",
+          "# autoLab = \"yes\" reduces label overlap but may be slow.",
+          "",
+          "# Individuals and supplementary qualitative categories"
+        )
+        individual_title <- if (length(quali_sup_vars) > 0L) {
+          "Representation of the Individuals and the Categories"
+        } else {
+          "Representation of the Individuals"
+        }
+        code <- add_call(
+          code, NULL, "FactoMineR::plot.PCA",
+          c(
+            "res_pca",
+            "choix = \"ind\"",
+            "axes = axes_pca",
+            paste0("title = ", r_literal(individual_title)),
+            "graph.type = \"classic\"",
+            "autoLab = \"no\""
+          )
+        )
+
+        variable_title <- if (length(quanti_sup_vars) > 0L) {
+          "Representation of the Variables (Active and Supplementary)"
+        } else {
+          "Correlation Circle"
+        }
+        code <- c(code, "", "# Active and supplementary quantitative variables")
+        code <- add_call(
+          code, NULL, "FactoMineR::plot.PCA",
+          c(
+            "res_pca",
+            "choix = \"var\"",
+            "axes = axes_pca",
+            paste0("title = ", r_literal(variable_title)),
+            "graph.type = \"classic\"",
+            "autoLab = \"no\""
+          )
+        )
+
+        if (isTRUE(self$options$graphind)) {
+          individual_only_arguments <- c(
+            "res_pca",
+            "choix = \"ind\"",
+            "axes = axes_pca",
+            "habillage = \"none\""
+          )
+          if (length(quali_sup_vars) > 0L)
+            individual_only_arguments <- c(
+              individual_only_arguments, "invisible = \"quali\""
+            )
+          individual_only_arguments <- c(
+            individual_only_arguments,
+            "title = \"Representation of the Individuals\"",
+            "graph.type = \"classic\"",
+            "autoLab = \"no\""
+          )
+          code <- c(code, "", "# Individuals only")
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.PCA",
+            individual_only_arguments
+          )
+        }
+
+        if (isTRUE(self$options$graphmod) && length(quali_sup_vars) > 0L) {
+          code <- c(code, "", "# Supplementary qualitative categories only")
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.PCA",
+            c(
+              "res_pca",
+              "choix = \"ind\"",
+              "axes = axes_pca",
+              "invisible = \"ind\"",
+              "title = \"Representation of the Categories\"",
+              "graph.type = \"classic\"",
+              "autoLab = \"no\""
+            )
+          )
+        }
+
+        habillage <- suppressWarnings(as.integer(self$options$habillage))
+        if (length(habillage) == 1L && is.finite(habillage) &&
+            habillage >= 1L && habillage <= length(quali_sup_vars)) {
+          code <- c(
+            code,
+            "",
+            "# Individuals colored by a supplementary categorical variable"
+          )
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.PCA",
+            c(
+              "res_pca",
+              "choix = \"ind\"",
+              "axes = axes_pca",
+              paste0(
+                "habillage = ",
+                r_literal(quali_sup_vars[habillage])
+              ),
+              "invisible = \"quali\"",
+              "title = \"Representation of the Individuals (Colored by Variable)\"",
+              "graph.type = \"classic\"",
+              "autoLab = \"no\""
+            )
+          )
+        }
+
+        if (isTRUE(self$options$graphvaract)) {
+          active_variable_arguments <- c(
+            "res_pca",
+            "choix = \"var\"",
+            "axes = axes_pca"
+          )
+          if (length(quanti_sup_vars) > 0L)
+            active_variable_arguments <- c(
+              active_variable_arguments,
+              "invisible = \"quanti.sup\""
+            )
+          active_variable_arguments <- c(
+            active_variable_arguments,
+            "title = \"Representation of the Active Variables\"",
+            "graph.type = \"classic\"",
+            "autoLab = \"no\""
+          )
+          code <- c(code, "", "# Active variables only")
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.PCA",
+            active_variable_arguments
+          )
+        }
+
+        if (isTRUE(self$options$graphvarillu) &&
+            length(quanti_sup_vars) > 0L) {
+          code <- c(code, "", "# Supplementary quantitative variables only")
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.PCA",
+            c(
+              "res_pca",
+              "choix = \"var\"",
+              "axes = axes_pca",
+              "invisible = \"var\"",
+              "title = \"Representation of the Supplementary Variables\"",
+              "graph.type = \"classic\"",
+              "autoLab = \"no\""
+            )
+          )
+        }
+      }
+
+      need_classif <- isTRUE(self$options$graphclassif) ||
+        isTRUE(self$options$newvar2)
+      if (need_classif) {
+        n_classif <- min(
+          suppressWarnings(as.integer(self$options$ncp)), ncp_use
+        )
+        nbclust <- suppressWarnings(as.integer(self$options$nbclust))
+        code <- c(
+          code,
+          "",
+          "# Hierarchical clustering on the retained PCA coordinates",
+          "# nb.clust = -1 lets HCPC choose the number of clusters.",
+          paste0(
+            "coord_hcpc_pca <- as.data.frame(res_pca$ind$coord[, ",
+            r_literal(as.integer(seq_len(n_classif))),
+            ", drop = FALSE])"
+          )
+        )
+        code <- add_call(
+          code,
+          "res_hcpc",
+          "FactoMineR::HCPC",
+          c(
+            "coord_hcpc_pca",
+            paste0("nb.clust = ", r_literal(nbclust)),
+            "graph = FALSE",
+            "description = FALSE"
+          )
+        )
+        if (isTRUE(self$options$newvar2)) {
+          code <- c(
+            code,
+            "cluster_pca <- as.factor(res_hcpc$data.clust[, \"clust\"])"
+          )
+        }
+        if (isTRUE(self$options$graphclassif) && !is.null(axes_ok) &&
+            max(axes_ok) <= n_classif) {
+          code <- c(code, "", "# Cluster map")
+          code <- add_call(
+            code, NULL, "FactoMineR::plot.HCPC",
+            c(
+              "res_hcpc",
+              "axes = axes_pca",
+              "choice = \"map\"",
+              "draw.tree = FALSE",
+              "new.plot = FALSE"
+            )
+          )
+        }
+      }
+
+      paste(code, collapse = "\n")
     },
     
     .printeigenTable = function() {
@@ -456,34 +1068,43 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
     },
     
+    .renderPCAPlot = function(arguments, label) {
+      res.pca <- private$.getSharedPCA()
+      axes_ok <- private$.getValidAxes(res.pca)
+      if (is.null(res.pca) || is.null(axes_ok))
+        return(FALSE)
+
+      ok <- tryCatch({
+        graph <- do.call(
+          FactoMineR::plot.PCA,
+          c(list(res.pca, axes = axes_ok), arguments)
+        )
+        if (!is.null(graph))
+          print(graph)
+        TRUE
+      }, error = function(e) {
+        jmvcore::reject(paste0(label, " failed: ", conditionMessage(e)))
+        FALSE
+      })
+      ok
+    },
+
     .plotindividus = function(image, ...) {
-      if (self$nVaract < 2) return()
-      
-      res.pca <- image$state
-      
-      if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0) {
-        plot <- FactoMineR::plot.PCA(res.pca,
-                                     axes  = c(self$options$abs, self$options$ord),
-                                     title = "Representation of the Individuals and the Categories"
-        )
+      if (self$nVaract < 2) return(FALSE)
+      title <- if (!is.null(self$options$qualisup) &&
+                   length(self$options$qualisup) > 0) {
+        "Representation of the Individuals and the Categories"
       } else {
-        plot <- FactoMineR::plot.PCA(res.pca,
-                                     axes  = c(self$options$abs, self$options$ord),
-                                     title = "Representation of the Individuals"
-        )
+        "Representation of the Individuals"
       }
-      print(plot)
-      TRUE
+      private$.renderPCAPlot(list(title = title), "Individuals plot")
     },
     
     .plothabillage = function(image, ...) {
-      if (self$nVaract < 2) return()
-      res.pca <- image$state
+      if (self$nVaract < 2) return(FALSE)
       habillage_value <- self$nVaract + self$nQuantsup + self$options$habillage
       
       args <- list(
-        res.pca,
-        axes      = c(self$options$abs, self$options$ord),
         habillage = habillage_value,
         title     = "Representation of the Individuals (Colored by Variable)"
       )
@@ -491,17 +1112,12 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0)
         args$invisible <- "quali"
       
-      plot <- do.call(FactoMineR::plot.PCA, args)
-      print(plot)
-      TRUE
+      private$.renderPCAPlot(args, "Colored-individuals plot")
     },
     
     .plotseulind = function(image, ...) {
-      if (self$nVaract < 2) return()
-      res.pca <- image$state
+      if (self$nVaract < 2) return(FALSE)
       args <- list(
-        res.pca,
-        axes      = c(self$options$abs, self$options$ord),
         habillage = "none",
         title     = "Representation of the Individuals"
       )
@@ -509,119 +1125,151 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0)
         args$invisible <- "quali"
       
-      plot <- do.call(FactoMineR::plot.PCA, args)
-      print(plot)
-      TRUE
+      private$.renderPCAPlot(args, "Individuals-only plot")
       
     },
     
     .plotseulmod = function(image, ...) {
-      if (self$nVaract < 2) return()
-      if (is.null(self$options$qualisup) || length(self$options$qualisup) == 0) return()
-      res.pca <- image$state
-      plot <- FactoMineR::plot.PCA(res.pca,
-                                   axes      = c(self$options$abs, self$options$ord),
-                                   invisible = "ind",
-                                   title     = "Representation of the Categories"
+      if (self$nVaract < 2) return(FALSE)
+      if (is.null(self$options$qualisup) || length(self$options$qualisup) == 0)
+        return(FALSE)
+      private$.renderPCAPlot(
+        list(invisible = "ind", title = "Representation of the Categories"),
+        "Categories plot"
       )
-      print(plot)
-      TRUE
     },
     
     .plotvariables = function(image, ...) {
-      if (self$nVaract < 2) return()
-      
-      res.pca <- image$state
-      abs_gui <- self$options$abs
-      ord_gui <- self$options$ord
-      
-      # Graphe principal : variables actives + illustratives si quantisup présent
-      if (!is.null(self$options$quantisup) && length(self$options$quantisup) > 0) {
-        plot <- FactoMineR::plot.PCA(res.pca,
-                                     choix = "var",
-                                     axes  = c(abs_gui, ord_gui),
-                                     title = "Representation of the Variables (Active and Supplementary)"
-        )
+      if (self$nVaract < 2) return(FALSE)
+      title <- if (!is.null(self$options$quantisup) &&
+                   length(self$options$quantisup) > 0) {
+        "Representation of the Variables (Active and Supplementary)"
       } else {
-        plot <- FactoMineR::plot.PCA(res.pca,
-                                     choix = "var",
-                                     axes  = c(abs_gui, ord_gui),
-                                     title = "Correlation Circle"
-        )
+        "Correlation Circle"
       }
-      print(plot)
-      TRUE
+      private$.renderPCAPlot(
+        list(choix = "var", title = title),
+        "Variables plot"
+      )
     },
     
     .plotseulvaract = function(image, ...) {
-      if (self$nVaract < 2) return()
-      res.pca <- image$state
+      if (self$nVaract < 2) return(FALSE)
       args <- list(
-        res.pca,
         choix = "var",
-        axes  = c(self$options$abs, self$options$ord),
         title = "Representation of the Active Variables"
       )
       if (!is.null(self$options$quantisup) && length(self$options$quantisup) > 0)
         args$invisible <- "quanti.sup"
       
-      plot <- do.call(FactoMineR::plot.PCA, args)
-      print(plot)
-      TRUE
+      private$.renderPCAPlot(args, "Active-variables plot")
     },
     
     .plotseulvarillu = function(image, ...) {
-      if (self$nVaract < 2) return()
-      if (is.null(self$options$quantisup) || length(self$options$quantisup) == 0) return()
-      res.pca <- image$state
-      plot <- FactoMineR::plot.PCA(res.pca,
-                                   choix     = "var",
-                                   axes      = c(self$options$abs, self$options$ord),
-                                   invisible = "var",
-                                   title     = "Representation of the Supplementary Variables"
+      if (self$nVaract < 2) return(FALSE)
+      if (is.null(self$options$quantisup) || length(self$options$quantisup) == 0)
+        return(FALSE)
+      private$.renderPCAPlot(
+        list(
+          choix = "var",
+          invisible = "var",
+          title = "Representation of the Supplementary Variables"
+        ),
+        "Supplementary-variables plot"
       )
-      print(plot)
-      TRUE
     },
     
     .plotclassif = function(image, ...) {
-      if (is.null(self$options$actvars) || self$nVaract < 2) return()
-      
-      res.classif <- image$state
-      plot <- FactoMineR::plot.HCPC(res.classif,
-                                    axes      = c(self$options$abs, self$options$ord),
-                                    choice    = "map",
-                                    draw.tree = FALSE,
-                                    title     = "Representation of the Individuals According to Clusters"
-      )
-      print(plot)
-      TRUE
+      if (is.null(self$options$actvars) || self$nVaract < 2)
+        return(FALSE)
+      res.classif <- self$results$classifCache$state
+      if (is.null(res.classif) || !identical(
+        attr(res.classif, "MEDA.cache.key", exact = TRUE),
+        private$.makeClassifKey()
+      ))
+        return(FALSE)
+      n_axes <- suppressWarnings(as.integer(
+        attr(res.classif, "MEDA.ncp.classified", exact = TRUE)
+      ))
+      axes_ok <- .meda_valid_axes(self$options$abs, self$options$ord, n_axes)
+      if (is.null(axes_ok))
+        return(FALSE)
+      tryCatch({
+        FactoMineR::plot.HCPC(
+          res.classif,
+          axes = axes_ok,
+          choice = "map",
+          draw.tree = FALSE,
+          new.plot = FALSE,
+          title = "Representation of the Individuals According to Clusters"
+        )
+        TRUE
+      }, error = function(e) {
+        jmvcore::reject(paste0("Cluster plot failed: ", conditionMessage(e)))
+        FALSE
+      })
     },
     
     #---------------------------------------------
     ### Helper functions ----
     
     .errorCheck = function() {
-      if (self$options$nFactors > self$nVaract)
-        jmvcore::reject('Number of components cannot be bigger than number of variables')
+      if (!.meda_integer_scalar(self$options$nFactors, minimum = 1L))
+        jmvcore::reject("The number of displayed components must be a positive integer")
+      if (!.meda_integer_scalar(self$options$ncp, minimum = 1L))
+        jmvcore::reject("The number of saved components must be a positive integer")
+      if (!.meda_integer_scalar(self$options$abs, minimum = 1L) ||
+          !.meda_integer_scalar(self$options$ord, minimum = 1L) ||
+          self$options$abs == self$options$ord)
+        jmvcore::reject("The two plotted dimensions must be distinct positive integers")
+      if (isTRUE(self$options$graphclassif) &&
+          max(self$options$abs, self$options$ord) > self$options$ncp)
+        jmvcore::reject("The cluster-map axes must not exceed the number of components used for clustering")
+      if (!is.numeric(self$options$proba) || length(self$options$proba) != 1L ||
+          !is.finite(self$options$proba) || self$options$proba < 0 ||
+          self$options$proba > 100)
+        jmvcore::reject("The significance threshold must be between 0 and 100")
+
+      data <- self$dataProcessed
+      upper <- min(nrow(data) - 1L, self$nVaract)
+      if (upper < 2L)
+        jmvcore::reject("PCA requires enough observations to compute at least two dimensions")
+      if (is.null(.meda_valid_axes(self$options$abs, self$options$ord, upper)))
+        jmvcore::reject(paste0("The plotted dimensions must be between 1 and ", upper))
+
+      active <- self$data[, self$options$actvars, drop = FALSE]
+      for (variable in self$options$actvars) {
+        values <- active[[variable]]
+        if (!is.numeric(values))
+          jmvcore::reject(paste0("Active variable '", variable, "' must be numeric"))
+        if (any(is.infinite(values), na.rm = TRUE))
+          jmvcore::reject(paste0("Active variable '", variable, "' contains infinite values"))
+        observed <- values[is.finite(values)]
+        if (length(observed) < 2L || length(unique(observed)) < 2L)
+          jmvcore::reject(paste0("Active variable '", variable, "' has no usable variance"))
+      }
     },
     
     .output = function() {
+      output <- self$results$newvar
+      if (!isTRUE(self$options$newvar) || !output$isNotFilled())
+        return()
       nFactors_out <- min(self$options$ncp, ncol(self$PCAResult$ind$coord))
-      
-      if (self$results$newvar$isNotFilled()) {
-        self$results$newvar$set(
-          keys         = 1:nFactors_out,
-          titles       = paste("Dim.", 1:nFactors_out),
-          descriptions = rep("PCA component", nFactors_out),
-          measureTypes = rep("continuous", nFactors_out)
-        )
-      }
+      if (nFactors_out < 1L)
+        return()
+      output$set(
+        keys         = seq_len(nFactors_out),
+        titles       = paste("Dim.", seq_len(nFactors_out)),
+        descriptions = rep("PCA component", nFactors_out),
+        measureTypes = rep("continuous", nFactors_out)
+      )
       
       for (i in seq_len(nFactors_out))
-        self$results$newvar$setValues(index = i, as.numeric(self$PCAResult$ind$coord[, i]))
-      
-      self$results$newvar$setRowNums(seq_len(nrow(self$dataProcessed)))
+        output$setValues(index = i, as.numeric(self$PCAResult$ind$coord[, i]))
+      row_nums <- attr(self$dataProcessed, "jamovi_row_nums")
+      if (is.null(row_nums))
+        row_nums <- rownames(self$dataProcessed)
+      output$setRowNums(row_nums)
     },
     
     .output2 = function(res.classif) {
@@ -629,18 +1277,20 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return()
       
       output <- self$results$newvar2
-      
-      if (output$isNotFilled()) {
-        output$set(
-          keys         = 1,
-          titles       = "Cluster",
-          descriptions = "Cluster variable",
-          measureTypes = "nominal"
-        )
-      }
+      if (!isTRUE(self$options$newvar2) || !output$isNotFilled())
+        return()
+      output$set(
+        keys         = 1,
+        titles       = "Cluster",
+        descriptions = "Cluster variable",
+        measureTypes = "nominal"
+      )
       
       output$setValues(index = 1, as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)]))
-      output$setRowNums(seq_len(nrow(self$dataProcessed)))
+      row_nums <- attr(self$dataProcessed, "jamovi_row_nums")
+      if (is.null(row_nums))
+        row_nums <- rownames(self$dataProcessed)
+      output$setRowNums(row_nums)
     },
     
     .buildData = function() {
@@ -669,15 +1319,16 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return(NULL)
       
       data <- as.data.frame(do.call(cbind, data_list))
+      jamovi_row_nums <- rownames(data)
       
       if (!is.null(self$options$individus)) {
         ids <- as.character(self$data[[self$options$individus]])
         ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
         rownames(data) <- make.unique(ids)
       } else {
-        rownames(data) <- as.character(seq_len(nrow(data)))
+        rownames(data) <- jamovi_row_nums
       }
-      
+      attr(data, "jamovi_row_nums") <- jamovi_row_nums
       return(data)
     }
   )

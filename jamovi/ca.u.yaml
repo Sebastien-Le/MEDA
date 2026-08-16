@@ -32,11 +32,27 @@ children:
     stretchFactor: 1
     children:
       - type: Label
-        label: Instructions
+        label: Instructions and R Code
         stretchFactor: 1
         children:
-          - type: CheckBox
-            name: tuto                                    
+          - type: Label
+            label: ''
+            cell:
+              column: 0
+              row: 0
+            stretchFactor: 1
+            children:
+              - type: CheckBox
+                name: tuto
+          - type: Label
+            label: ''
+            cell:
+              column: 1
+              row: 0
+            stretchFactor: 1
+            children:
+              - type: CheckBox
+                name: showCode
   - type: LayoutBox
     margin: large
     stretchFactor: 1
