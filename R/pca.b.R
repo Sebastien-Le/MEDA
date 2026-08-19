@@ -4,12 +4,10 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   inherit = PCABase,
   active = list(
     dataProcessed = function() {
-      key <- private$.makeDataProcessingKey()
-      if (is.null(private$.dataProcessed) ||
-          !identical(private$.dataProcessedKey, key)) {
+      # dataProcessed is an in-run cache only. Data changes are handled by
+      # jamovi through clearWith: data on persistent result states.
+      if (is.null(private$.dataProcessed))
         private$.dataProcessed <- private$.buildData()
-        private$.dataProcessedKey <- key
-      }
       private$.dataProcessed
     },
     
@@ -37,24 +35,15 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     
     classifResult = function() {
       key <- private$.makeClassifKey()
-      if (!is.null(private$.classifResult) &&
-          identical(private$.classifResultKey, key))
-        return(private$.classifResult)
-
       cached <- self$results$classifCache$state
       if (!is.null(cached) && identical(
         attr(cached, "MEDA.cache.key", exact = TRUE), key
-      )) {
-        private$.classifResult <- cached
-        private$.classifResultKey <- key
+      ))
         return(cached)
-      }
 
       value <- private$.getclassifResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        private$.classifResult <- value
-        private$.classifResultKey <- key
         self$results$classifCache$setState(value)
       }
       value
@@ -63,17 +52,13 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     PCAResult = function() {
       key <- private$.makePCAKey()
       required_ncp <- private$.requiredNcp()
-      data_key <- private$.dataValueSignature()
-      cached <- private$.readPCAFromCache(key, required_ncp, data_key)
+      cached <- private$.readPCAFromCache(key, required_ncp)
       if (!is.null(cached))
         return(cached)
 
       value <- private$.getPCAResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        attr(value, "MEDA.data.key") <- data_key
-        private$.PCAResult <- value
-        private$.PCAResultKey <- key
         self$results$pcaCache$setState(value)
       }
       value
@@ -83,14 +68,9 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   private = list(
     
     .dataProcessed = NULL,
-    .dataProcessedKey = NULL,
     .nVaract       = NULL,
     .nQuantsup     = NULL,
     .nQualsup      = NULL,
-    .classifResult = NULL,
-    .classifResultKey = NULL,
-    .PCAResult     = NULL,
-    .PCAResultKey  = NULL,
     
     #---------------------------------------------
     #### Init + run functions ----
@@ -176,6 +156,10 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     
     .run = function() {
       
+      # Private R6 caches are valid only within the current run/redraw cycle.
+      # Persistent freshness across runs is governed by jamovi result states.
+      private$.resetRunCaches()
+
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return()
       
@@ -251,22 +235,6 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       )
     },
 
-    .dataValueSignature = function() {
-      .meda_selected_data_signature(
-        self$data,
-        c(
-          self$options$actvars,
-          self$options$quantisup,
-          self$options$qualisup,
-          self$options$individus
-        )
-      )
-    },
-
-    .makeDataProcessingKey = function() {
-      paste(private$.dataSignature(), private$.dataValueSignature(), sep = "\n")
-    },
-
     .requiredNcp = function() {
       candidates <- suppressWarnings(as.numeric(c(
         self$options$ncp,
@@ -279,77 +247,51 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
 
     .makePCAKey = function() {
+      # The cache key identifies the statistical PCA model only. The number
+      # of computed dimensions is tracked separately in MEDA.ncp.requested.
       paste(
         private$.dataSignature(),
         isTRUE(self$options$norme),
-        private$.requiredNcp(),
         sep = "\n"
       )
     },
-
     .makeClassifKey = function() {
-      data_key <- private$.dataValueSignature()
-      if (is.null(data_key)) {
-        cached <- self$results$pcaCache$state
-        if (!is.null(cached) && inherits(cached, "PCA") &&
-            identical(
-              attr(cached, "MEDA.cache.key", exact = TRUE),
-              private$.makePCAKey()
-            )) {
-          data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
-        }
-      }
-      if (is.null(data_key))
-        data_key <- "unavailable"
-
       paste(
         private$.makePCAKey(),
-        "data", data_key,
         self$options$ncp,
         self$options$nbclust,
         sep = "\n"
       )
     },
+    .readPCAFromCache = function(key, required_ncp) {
+      cached <- self$results$pcaCache$state
+      if (is.null(cached) || !inherits(cached, "PCA"))
+        return(NULL)
 
-    .readPCAFromCache = function(key, required_ncp, data_key) {
-      candidates <- list(private$.PCAResult, self$results$pcaCache$state)
-      for (cached in candidates) {
-        if (is.null(cached) || !inherits(cached, "PCA"))
-          next
-        cached_key <- attr(cached, "MEDA.cache.key", exact = TRUE)
-        cached_data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
-        cached_ncp <- suppressWarnings(as.integer(
-          attr(cached, "MEDA.ncp.requested", exact = TRUE)
-        ))
-        if (length(cached_ncp) == 0L || is.na(cached_ncp))
-          cached_ncp <- if (!is.null(cached$ind$coord)) ncol(cached$ind$coord) else 0L
-        if (identical(cached_key, key) &&
-            identical(cached_data_key, data_key) &&
-            cached_ncp >= required_ncp) {
-          private$.PCAResult <- cached
-          private$.PCAResultKey <- key
-          return(cached)
-        }
-      }
+      cached_key <- attr(cached, "MEDA.cache.key", exact = TRUE)
+      cached_ncp <- suppressWarnings(as.integer(
+        attr(cached, "MEDA.ncp.requested", exact = TRUE)
+      ))
+      if (length(cached_ncp) == 0L || is.na(cached_ncp))
+        cached_ncp <- if (!is.null(cached$ind$coord)) ncol(cached$ind$coord) else 0L
+
+      if (identical(cached_key, key) && cached_ncp >= required_ncp)
+        return(cached)
+
       NULL
     },
-
     .getSharedPCA = function() {
-      key <- private$.makePCAKey()
-      required_ncp <- private$.requiredNcp()
-      candidates <- list(private$.PCAResult, self$results$pcaCache$state)
-      for (cached in candidates) {
-        if (is.null(cached) || !inherits(cached, "PCA") ||
-            !identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
-          next
-        cached_ncp <- suppressWarnings(as.integer(
-          attr(cached, "MEDA.ncp.requested", exact = TRUE)
-        ))
-        if (length(cached_ncp) == 1L && is.finite(cached_ncp) &&
-            cached_ncp >= required_ncp)
-          return(cached)
-      }
-      NULL
+      private$.readPCAFromCache(
+        private$.makePCAKey(),
+        private$.requiredNcp()
+      )
+    },
+
+    .resetRunCaches = function() {
+      private$.dataProcessed <- NULL
+      private$.nVaract <- NULL
+      private$.nQuantsup <- NULL
+      private$.nQualsup <- NULL
     },
     
     .computeNbclust = function() {

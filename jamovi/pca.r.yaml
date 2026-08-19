@@ -12,21 +12,19 @@ items:
     type: Preformatted
     visible: false
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
       - individus
       - norme
-      - ncp
-      - nFactors
-      - abs
-      - ord
 
   - name: classifCache
     title: Classification cache
     type: Preformatted
     visible: false
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
@@ -46,7 +44,7 @@ items:
     width: 800
     height: 600
     renderFun: .plotindividus
-    clearWith: [actvars, quantisup, qualisup, individus, norme, ncp, nFactors, abs, ord]
+    clearWith: [data, actvars, quantisup, qualisup, individus, norme, ncp, nFactors, abs, ord]
 
   - name: plotvar
     title: Representation of the Variables
@@ -54,7 +52,7 @@ items:
     width: 600
     height: 600
     renderFun: .plotvariables
-    clearWith: [actvars, quantisup, individus, norme, ncp, nFactors, abs, ord]
+    clearWith: [data, actvars, quantisup, individus, norme, ncp, nFactors, abs, ord]
     
   - name: plotseulind
     title: Representation of the Individuals Only
@@ -63,7 +61,7 @@ items:
     width: 800
     height: 600
     renderFun: .plotseulind
-    clearWith: [actvars, qualisup, individus, norme, ncp, nFactors, abs, ord, graphind]
+    clearWith: [data, actvars, qualisup, individus, norme, ncp, nFactors, abs, ord, graphind]
 
   - name: plotseulmod
     title: Representation of the Categories Only
@@ -72,7 +70,7 @@ items:
     width: 800
     height: 600
     renderFun: .plotseulmod
-    clearWith: [actvars, qualisup, individus, norme, ncp, nFactors, abs, ord, graphmod]
+    clearWith: [data, actvars, qualisup, individus, norme, ncp, nFactors, abs, ord, graphmod]
     
   - name: plothabillage
     title: Representation of the Individuals Colored by Variable
@@ -81,7 +79,7 @@ items:
     width: 800
     height: 600
     renderFun: .plothabillage  
-    clearWith: [actvars, qualisup, quantisup, individus, norme, ncp, nFactors, abs, ord, habillage]
+    clearWith: [data, actvars, qualisup, quantisup, individus, norme, ncp, nFactors, abs, ord, habillage]
 
   - name: plotseulvaract
     title: Representation of the Active Variables Only
@@ -90,7 +88,7 @@ items:
     width: 600
     height: 600
     renderFun: .plotseulvaract
-    clearWith: [actvars, quantisup, individus, norme, ncp, nFactors, abs, ord, graphvaract]
+    clearWith: [data, actvars, quantisup, individus, norme, ncp, nFactors, abs, ord, graphvaract]
 
   - name: plotseulvarillu
     title: Representation of the Supplementary Variables Only
@@ -99,7 +97,7 @@ items:
     width: 600
     height: 600
     renderFun: .plotseulvarillu
-    clearWith: [actvars, quantisup, individus, norme, ncp, nFactors, abs, ord, graphvarillu]
+    clearWith: [data, actvars, quantisup, individus, norme, ncp, nFactors, abs, ord, graphvarillu]
 
   - name: eigengroup
     title: Eigenvalue Decomposition
@@ -215,7 +213,7 @@ items:
     width: 800
     height: 600
     renderFun: .plotclassif
-    clearWith: [actvars, quantisup, qualisup, individus, norme, ncp, nbclust, abs, ord, graphclassif]
+    clearWith: [data, actvars, quantisup, qualisup, individus, norme, ncp, nbclust, abs, ord, graphclassif]
 
   - name: newvar
     type: Output
@@ -223,6 +221,7 @@ items:
     measureType: continuous
     initInRun: true
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
@@ -237,6 +236,7 @@ items:
     measureType: nominal
     initInRun: true
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup

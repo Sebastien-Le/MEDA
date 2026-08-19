@@ -280,21 +280,19 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="PCA cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
-                    "norme",
-                    "ncp",
-                    "nFactors",
-                    "abs",
-                    "ord")))
+                    "norme")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="classifCache",
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -315,6 +313,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotindividus",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -332,6 +331,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotvariables",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "individus",
@@ -349,6 +349,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulind",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "individus",
@@ -367,6 +368,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulmod",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "individus",
@@ -385,6 +387,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plothabillage",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "quantisup",
@@ -404,6 +407,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulvaract",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "individus",
@@ -422,6 +426,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulvarillu",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "individus",
@@ -635,6 +640,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotclassif",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -652,6 +658,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -666,6 +673,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
