@@ -210,23 +210,21 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="MFA cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
                     "groupdef",
                     "grouptype",
                     "groupill",
-                    "groupname",
-                    "ncp",
-                    "nFactors",
-                    "abs",
-                    "ord")))
+                    "groupname")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="classifCache",
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -235,7 +233,6 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "groupill",
                     "groupname",
                     "ncp",
-                    "nFactors",
                     "nbclust")))
             self$add(jmvcore::Html$new(
                 options=options,
@@ -250,6 +247,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotgroups",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -268,6 +266,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotaxes",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -286,6 +285,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotindividus",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -306,6 +306,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotcategory",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -326,6 +327,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=700,
                 renderFun=".plotvariables",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -352,6 +354,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             name="eigen",
                             title="Eigenvalue and (Cumulative) Percentage of Variance",
                             clearWith=list(
+                                "data",
                                 "quantivar",
                                 "qualivar",
                                 "groupdef",
@@ -389,6 +392,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             name="dimdesc",
                             title="Automatic Description of the Dimensions",
                             clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -482,6 +486,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotclassif",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -500,6 +505,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -514,6 +520,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",

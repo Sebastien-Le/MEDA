@@ -3,12 +3,10 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   inherit = MFABase,
   active = list(
     dataProcessed = function() {
-      key <- private$.makeDataProcessingKey()
-      if (is.null(private$.dataProcessed) ||
-          !identical(private$.dataProcessedKey, key)) {
+      # dataProcessed is an in-run cache only. Data changes are handled by
+      # jamovi through clearWith: data on persistent result states.
+      if (is.null(private$.dataProcessed))
         private$.dataProcessed <- private$.buildData()
-        private$.dataProcessedKey <- key
-      }
       private$.dataProcessed
     },
     
@@ -19,24 +17,15 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     classifResult = function() {
       key <- private$.makeClassifKey()
 
-      if (!is.null(private$.classifResult) &&
-          identical(private$.classifResultKey, key))
-        return(private$.classifResult)
-
       cached <- self$results$classifCache$state
       if (!is.null(cached) && identical(
         attr(cached, "MEDA.cache.key", exact = TRUE), key
-      )) {
-        private$.classifResult <- cached
-        private$.classifResultKey <- key
+      ))
         return(cached)
-      }
       
       value <- private$.getclassifResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        private$.classifResult <- value
-        private$.classifResultKey <- key
         self$results$classifCache$setState(value)
       }
       value
@@ -45,12 +34,10 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     MFAResult = function() {
       key <- private$.makeMFAKey()
       required_ncp <- private$.requiredNcp()
-      data_key <- private$.dataValueSignature()
 
       cached <- private$.readMFAFromCache(
         key = key,
-        required_ncp = required_ncp,
-        data_key = data_key
+        required_ncp = required_ncp
       )
       if (!is.null(cached))
         return(cached)
@@ -58,9 +45,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       value <- private$.getMFAResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        attr(value, "MEDA.data.key") <- data_key
         private$.MFAResult <- value
-        private$.MFAResultKey <- key
         self$results$mfaCache$setState(private$.packMFAState(value))
       }
       value
@@ -69,11 +54,9 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   
   private = list(
     .dataProcessed = NULL,
-    .dataProcessedKey = NULL,
+    # Unpacked mirror of mfaCache used only within the current run/redraw
+    # cycle. The jamovi state remains the authority for persistence/freshness.
     .MFAResult = NULL,
-    .MFAResultKey = NULL,
-    .classifResult = NULL,
-    .classifResultKey = NULL,
     
     #---------------------------------------------  
     #### Init + run functions ----
@@ -221,6 +204,10 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .run = function() {
+      # Private R6 caches are valid only within the current run/redraw cycle.
+      # Persistent freshness across runs is governed by jamovi result states.
+      private$.resetRunCaches()
+
       if (is.null(self$options$quantivar) && is.null(self$options$qualivar))
         return()
 
@@ -281,23 +268,6 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     #---------------------------------------------
     #### Compute results ----
 
-    .rawSignature = function(value) {
-      bytes <- as.integer(serialize(value, connection = NULL, version = 2))
-      index <- seq_along(bytes)
-      hash1 <- sum(
-        (bytes + 1) * ((index %% 65521) + 1)
-      ) %% 2147483647
-      hash2 <- sum(
-        (bytes + 1) * (((index * 17) %% 65519) + 1)
-      ) %% 2147483629
-      paste(
-        length(bytes),
-        sprintf("%.0f", hash1),
-        sprintf("%.0f", hash2),
-        sep = ":"
-      )
-    },
-    
     .dataSignature = function() {
       paste(
         c(
@@ -309,48 +279,6 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       )
     },
 
-    .dataValueSignature = function() {
-      variables <- unique(c(
-        self$options$quantivar,
-        self$options$qualivar,
-        self$options$individus
-      ))
-      variables <- variables[
-        !is.na(variables) & nzchar(as.character(variables))
-      ]
-      if (length(variables) == 0L || is.null(self$data))
-        return(NULL)
-
-      snapshot <- tryCatch({
-        columns <- self$data[, variables, drop = FALSE]
-        if (ncol(columns) != length(variables))
-          return(NULL)
-        columns <- data.frame(columns, check.names = FALSE)
-        colnames(columns) <- as.character(variables)
-        list(
-          columns = columns,
-          row.names = rownames(columns)
-        )
-      }, error = function(e) {
-        NULL
-      })
-      if (is.null(snapshot))
-        return(NULL)
-
-      private$.rawSignature(snapshot)
-    },
-
-    .makeDataProcessingKey = function() {
-      data_key <- private$.dataValueSignature()
-      if (is.null(data_key))
-        data_key <- "unavailable"
-      paste(
-        private$.dataSignature(),
-        "data", data_key,
-        sep = "\r"
-      )
-    },
-    
     .requiredNcp = function() {
       candidates <- c(
         self$options$ncp,
@@ -368,31 +296,24 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
 
     .makeMFAKey = function() {
+      # The cache key identifies the statistical MFA model only. The number
+      # of computed dimensions is tracked separately in MEDA.ncp.requested.
       paste(
         c(
           private$.dataSignature(),
           "groupdef", self$options$groupdef,
           "grouptype", self$options$grouptype,
           "groupill", self$options$groupill,
-          "groupname", self$options$groupname,
-          "ncp", private$.requiredNcp()
+          "groupname", self$options$groupname
         ),
         collapse = "\r"
       )
     },
 
     .makeClassifKey = function() {
-      res.mfa <- private$.readMFAFromCache()
-      data_key <- if (is.null(res.mfa)) {
-        NULL
-      } else {
-        attr(res.mfa, "MEDA.data.key", exact = TRUE)
-      }
-      if (is.null(data_key))
-        data_key <- "unavailable"
       paste(
         private$.makeMFAKey(),
-        "data", data_key,
+        "ncp", self$options$ncp,
         "nbclust", self$options$nbclust,
         sep = "\r"
       )
@@ -441,22 +362,25 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }, error = function(e) NULL)
     },
 
-    .readMFAFromCache = function(key = NULL, required_ncp = NULL,
-                                 data_key = NULL) {
+    .readMFAFromCache = function(key = NULL, required_ncp = NULL) {
       if (is.null(key))
         key <- private$.makeMFAKey()
       if (is.null(required_ncp))
         required_ncp <- private$.requiredNcp()
+
+      # The jamovi state is authoritative. If clearWith invalidated it, an
+      # unpacked private mirror must never be allowed to survive on its own.
+      state <- self$results$mfaCache$state
+      if (is.null(state)) {
+        private$.MFAResult <- NULL
+        return(NULL)
+      }
 
       is_current <- function(value) {
         if (is.null(value) || !inherits(value, "MFA"))
           return(FALSE)
         if (!identical(
           attr(value, "MEDA.cache.key", exact = TRUE), key
-        ))
-          return(FALSE)
-        if (!is.null(data_key) && !identical(
-          attr(value, "MEDA.data.key", exact = TRUE), data_key
         ))
           return(FALSE)
 
@@ -471,12 +395,11 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is_current(private$.MFAResult))
         return(private$.MFAResult)
 
-      cached <- private$.unpackMFAState(self$results$mfaCache$state)
+      cached <- private$.unpackMFAState(state)
       if (!is_current(cached))
         return(NULL)
 
       private$.MFAResult <- cached
-      private$.MFAResultKey <- key
       cached
     },
 
@@ -485,6 +408,11 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       # They must therefore read the validated fitted object and never try to
       # rebuild the dataset or refit the MFA themselves.
       private$.readMFAFromCache()
+    },
+
+    .resetRunCaches = function() {
+      private$.dataProcessed <- NULL
+      private$.MFAResult <- NULL
     },
     
     .computeNbclust = function() {
@@ -996,7 +924,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
               "axes = axes_mfa",
               "choice = \"map\"",
               "draw.tree = FALSE",
-              "ind.names = FALSE",
+              "ind.names = TRUE",
               "new.plot = FALSE",
               "centers.plot = TRUE"
             )
@@ -1489,7 +1417,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           axes        = axes_ok,
           choice      = "map",
           draw.tree   = FALSE,
-          ind.names   = FALSE,
+          ind.names   = TRUE,
           new.plot    = FALSE,
           centers.plot = TRUE,
           title       = "Representation of the Individuals According to Clusters"
