@@ -21,4 +21,5 @@ URL: https://sebastien-le.github.io/medasite/index.html
 Imports:
     FactoMineR,
     jmvcore (>= 0.8.5),
-    R6
+    R6,
+    stats
