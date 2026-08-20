@@ -88,6 +88,7 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     inherit = jmvcore::Group,
     active = list(
         instructions = function() private$.items[["instructions"]],
+        missingNotice = function() private$.items[["missingNotice"]],
         tc = function() private$.items[["tc"]],
         textualgroup = function() private$.items[["textualgroup"]],
         chideuxgroup = function() private$.items[["chideuxgroup"]],
@@ -109,6 +110,14 @@ textualResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="instructions",
                 title="Instructions",
                 visible="(tuto)"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="missingNotice",
+                visible=FALSE,
+                clearWith=list(
+                    "data",
+                    "individuals",
+                    "words")))
             self$add(jmvcore::Table$new(
                 options=options,
                 name="tc",
@@ -300,6 +309,7 @@ textualBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
+#'   \code{results$missingNotice} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$tc} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$textualgroup$textual} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$chideuxgroup$chideux} \tab \tab \tab \tab \tab a table \cr

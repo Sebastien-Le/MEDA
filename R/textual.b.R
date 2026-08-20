@@ -180,6 +180,7 @@ textualClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           return()
 
         private$.errorCheck()
+        private$.updateMissingNotice()
         data <- private$.buildData()
 
         show_code <- isTRUE(self$options$showCode)
@@ -619,6 +620,39 @@ textualClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           jmvcore::reject(
             "The grouping variable and the textual variable must be different"
           )
+      },
+
+      .updateMissingNotice = function() {
+        notice <- self$results$missingNotice
+
+        groups <- self$data[[self$options$individuals]]
+        words <- self$data[[self$options$words]]
+        word_text <- as.character(words)
+
+        keep <- !is.na(groups) & !is.na(words) & nzchar(trimws(word_text))
+        n_excluded <- sum(!keep)
+
+        if (n_excluded == 0L) {
+          notice$setVisible(FALSE)
+          return(invisible(NULL))
+        }
+
+        label <- if (n_excluded == 1L) "observation was" else "observations were"
+
+        notice$setContent(paste0(
+          "<div style='",
+          "margin: 6px 0; padding: 10px 14px; ",
+          "background-color: #F4F7FB; border: 1px solid #CBD8E8; ",
+          "border-left: 4px solid #6B9DE8; border-radius: 5px; ",
+          "line-height: 1.4;'>",
+          "<b>Excluded observations.</b> ",
+          n_excluded, " ", label,
+          " excluded before the textual analysis because the grouping ",
+          "variable was missing or the textual response was missing or empty.",
+          "</div>"
+        ))
+        notice$setVisible(TRUE)
+        invisible(NULL)
       },
 
       .buildData = function() {
