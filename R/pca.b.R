@@ -10,29 +10,29 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         private$.dataProcessed <- private$.buildData()
       private$.dataProcessed
     },
-    
+
     nVaract = function() {
       if (is.null(private$.nVaract))
         private$.nVaract <- private$.computeNVaract()
       return(private$.nVaract)
     },
-    
+
     nQualsup = function() {
       if (is.null(private$.nQualsup))
         private$.nQualsup <- private$.computeNQualsup()
       return(private$.nQualsup)
     },
-    
+
     nQuantsup = function() {
       if (is.null(private$.nQuantsup))
         private$.nQuantsup <- private$.computeNQuantsup()
       return(private$.nQuantsup)
     },
-    
+
     nbclust = function() {
       private$.computeNbclust()
     },
-    
+
     classifResult = function() {
       key <- private$.makeClassifKey()
       cached <- self$results$classifCache$state
@@ -48,7 +48,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
       value
     },
-    
+
     PCAResult = function() {
       key <- private$.makePCAKey()
       required_ncp <- private$.requiredNcp()
@@ -64,23 +64,23 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       value
     }
   ),
-  
+
   private = list(
-    
+
     .dataProcessed = NULL,
     .nVaract       = NULL,
     .nQuantsup     = NULL,
     .nQualsup      = NULL,
-    
+
     #---------------------------------------------
     #### Init + run functions ----
-    
+
     .init = function() {
       if (is.null(self$options$actvars) || self$nVaract < 2) {
         if (isTRUE(self$options$tuto))
           self$results$instructions$setVisible(visible = TRUE)
       }
-      
+
       self$results$instructions$setContent(
         "
   <div style='
@@ -153,39 +153,41 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   "
       )
     },
-    
+
     .run = function() {
-      
+
       # Private R6 caches are valid only within the current run/redraw cycle.
       # Persistent freshness across runs is governed by jamovi result states.
       private$.resetRunCaches()
 
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return()
-      
-      private$.errorCheck() 
-      
+
+      private$.errorCheck()
+
+      private$.updateMissingNotice()
+
       res.pca <- self$PCAResult
       if (is.null(res.pca))
         return()
-      
+
       res.classif <- NULL
       need_classif <- isTRUE(self$options$graphclassif) ||
         (isTRUE(self$options$newvar2) &&
          self$results$newvar2$isNotFilled())
-      
+
       if (need_classif)
         res.classif <- self$classifResult
-      
+
       .meda_fill_dimdesc_group(self$results$dimdesc, private$.dimdesc())
       if (isTRUE(self$options$showCode))
         self$results$code$setContent(private$.code())
-      
+
       private$.printeigenTable()
       private$.printTables("coord")
       private$.printTables("contrib")
       private$.printTables("cos2")
-      
+
       # The complete PCA object is kept once in pcaCache. Images receive a
       # lightweight marker only, which avoids serializing the same object for
       # every plot and prevents stale image states after an option change.
@@ -194,30 +196,30 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         self$results$plotind$setState(marker)
       if (is.null(self$results$plotvar$state))
         self$results$plotvar$setState(marker)
-      
+
       # Graphes supplémentaires optionnels
       if (isTRUE(self$options$graphind))
         self$results$plotseulind$setState(marker)
-      
+
       if (isTRUE(self$options$graphmod) && !is.null(self$options$qualisup))
         self$results$plotseulmod$setState(marker)
-      
+
       if (self$options$habillage > 0)
         self$results$plothabillage$setState(marker)
-      
+
       if (isTRUE(self$options$graphvaract))
         self$results$plotseulvaract$setState(marker)
-      
+
       if (isTRUE(self$options$graphvarillu) && !is.null(self$options$quantisup))
         self$results$plotseulvarillu$setState(marker)
-      
+
       if (isTRUE(self$options$graphclassif) && !is.null(res.classif))
         self$results$plotclassif$setState(marker)
-      
+
       if (!is.null(res.classif))
         private$.output2(res.classif)
-      
-      
+
+
       private$.output()
     },
 
@@ -293,30 +295,123 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       private$.nQuantsup <- NULL
       private$.nQualsup <- NULL
     },
-    
+
+    .updateMissingNotice = function() {
+      notice <- self$results$missingNotice
+
+      summarize_missing <- function(vars) {
+        if (is.null(vars) || length(vars) == 0L)
+          return(c(values = 0L, rows = 0L))
+
+        selected <- self$data[, vars, drop = FALSE]
+        missing <- is.na(selected)
+        c(
+          values = sum(missing),
+          rows = sum(rowSums(missing) > 0L)
+        )
+      }
+
+      plural <- function(n, singular, plural_form = paste0(singular, "s")) {
+        if (n == 1L) singular else plural_form
+      }
+
+      active_missing <- summarize_missing(self$options$actvars)
+      quanti_missing <- summarize_missing(self$options$quantisup)
+      quali_missing <- summarize_missing(self$options$qualisup)
+
+      if (sum(c(
+        active_missing[["values"]],
+        quanti_missing[["values"]],
+        quali_missing[["values"]]
+      )) == 0L) {
+        notice$setVisible(FALSE)
+        return(invisible(NULL))
+      }
+
+      messages <- character(0)
+
+      if (active_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            active_missing[["values"]], " missing ",
+            plural(active_missing[["values"]], "value"),
+            " across ", active_missing[["rows"]], " ",
+            plural(active_missing[["rows"]], "individual"),
+            " were detected in the active variables. ",
+            "Following FactoMineR::PCA(), missing numeric values are replaced ",
+            "by the corresponding variable mean."
+          )
+        )
+      }
+
+      if (quanti_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            quanti_missing[["values"]], " missing ",
+            plural(quanti_missing[["values"]], "value"),
+            " across ", quanti_missing[["rows"]], " ",
+            plural(quanti_missing[["rows"]], "individual"),
+            " were detected in the supplementary quantitative variables. ",
+            "FactoMineR applies the same variable-mean replacement to these ",
+            "missing numeric values."
+          )
+        )
+      }
+
+      if (quali_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            quali_missing[["values"]], " missing ",
+            plural(quali_missing[["values"]], "value"),
+            " across ", quali_missing[["rows"]], " ",
+            plural(quali_missing[["rows"]], "individual"),
+            " were detected in the supplementary categorical variables. ",
+            "FactoMineR excludes missing entries from calculations involving ",
+            "the corresponding supplementary categorical variable."
+          )
+        )
+      }
+
+      notice$setContent(paste0(
+        "<div style='",
+        "margin: 6px 0; padding: 10px 14px; ",
+        "background-color: #F4F7FB; border: 1px solid #CBD8E8; ",
+        "border-left: 4px solid #6B9DE8; border-radius: 5px; ",
+        "line-height: 1.4;'>",
+        "<b>Missing values.</b> ",
+        paste(messages, collapse = " "),
+        "</div>"
+      ))
+      notice$setVisible(TRUE)
+      invisible(NULL)
+    },
+
     .computeNbclust = function() {
       return(self$options$nbclust)
     },
-    
+
     .computeNQuantsup = function() {
       if (is.null(self$options$quantisup)) return(0)
       length(self$options$quantisup)
     },
-    
+
     .computeNQualsup = function() {
       if (is.null(self$options$qualisup)) return(0)
       length(self$options$qualisup)
     },
-    
+
     .computeNVaract = function() {
       if (is.null(self$options$actvars)) return(0)
       length(self$options$actvars)
     },
-    
+
     .getclassifResult = function() {
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return(NULL)
-      
+
       .meda_hcpc_coordinates(
         self$PCAResult$ind$coord,
         self$options$ncp,
@@ -324,25 +419,25 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         "PCA clustering"
       )
     },
-    
+
     .getPCAResult = function() {
-      
+
       data <- self$dataProcessed
       if (is.null(data)) return(NULL)
-      
+
       has_quanti <- !is.null(self$options$quantisup) && length(self$options$quantisup) > 0
       has_quali  <- !is.null(self$options$qualisup)  && length(self$options$qualisup)  > 0
-      
+
       ncp_target <- private$.requiredNcp()
       ncp_upper  <- min(nrow(data) - 1, self$nVaract)
-      
+
       if (is.na(ncp_upper) || ncp_upper < 1) {
         jmvcore::reject("PCA failed: not enough rows or active variables to compute at least one component")
         return(NULL)
       }
-      
+
       ncp_use <- min(ncp_target, ncp_upper)
-      
+
       r <- tryCatch({
         if (has_quanti && !has_quali) {
           FactoMineR::PCA(
@@ -381,7 +476,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         jmvcore::reject(paste("PCA failed:", e$message))
         return(NULL)
       })
-      
+
       if (!is.null(r))
         attr(r, "MEDA.ncp.requested") <- as.integer(ncp_use)
       r
@@ -397,16 +492,16 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         min(nrow(res.pca$eig), ncol(res.pca$ind$coord))
       )
     },
-    
+
     .dimdesc = function() {
       table <- self$PCAResult
       if (is.null(table))
         return(.meda_empty_dimdesc())
-      
+
       nFactors_out <- min(self$options$nFactors, ncol(table$ind$coord))
       if (is.null(nFactors_out) || nFactors_out < 1)
         return(.meda_empty_dimdesc())
-      
+
       res <- tryCatch(
         FactoMineR::dimdesc(
           table,
@@ -419,7 +514,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return(.meda_empty_dimdesc())
       .meda_tidy_dimdesc(res)
     },
-    
+
     .code = function() {
       res.pca <- self$PCAResult
       if (is.null(res.pca))
@@ -861,13 +956,13 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
       paste(code, collapse = "\n")
     },
-    
+
     .printeigenTable = function() {
       table      <- self$PCAResult$eig
       eigen      <- table[, 1]
       purcent    <- table[, 2]
       purcentcum <- table[, 3]
-      
+
       for (i in seq_along(eigen)) {
         self$results$eigengroup$eigen$addRow(rowKey = i, values = list(
           component  = paste("Dim.", i),
@@ -877,15 +972,15 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         ))
       }
     },
-    
+
     # .printTables = function(quoi) {
-    #   
+    #
     #   table <- self$PCAResult
     #   individus_gui <- if (!is.null(self$options$individus))
     #     self$data[[self$options$individus]]
     #   else
     #     seq_len(nrow(self$data))
-    #   
+    #
     #   if (quoi == "coord") {
     #     quoivar  <- table$var$coord
     #     quoiind  <- table$ind$coord
@@ -904,29 +999,29 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     #   } else {
     #     return()
     #   }
-    #   
+    #
     #   nFactors_out <- min(self$options$nFactors, ncol(quoivar), ncol(quoiind))
-    #   
+    #
     #   tableind$addColumn(name = "individus", title = "", type = "text")
     #   for (i in seq_len(nrow(quoiind)))
     #     tableind$addRow(rowKey = i, value = NULL)
-    #   
+    #
     #   tablevar$addColumn(name = "variables", title = "", type = "text")
     #   for (i in seq_len(nrow(quoivar)))
     #     tablevar$addRow(rowKey = i, value = NULL)
-    #   
+    #
     #   for (i in seq_len(nFactors_out)) {
     #     tablevar$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
     #     tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
     #   }
-    #   
+    #
     #   for (var in seq_len(nrow(quoivar))) {
     #     row <- list(variables = rownames(quoivar)[var])
     #     for (i in seq_len(nFactors_out))
     #       row[[paste0("dim", i)]] <- quoivar[var, i]
     #     tablevar$setRow(rowNo = var, values = row)
     #   }
-    #   
+    #
     #   for (ind in seq_along(individus_gui)) {
     #     row <- list(individus = if (is.null(self$options$individus))
     #       individus_gui[ind] else rownames(quoiind)[ind])
@@ -935,9 +1030,9 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     #     tableind$setRow(rowNo = ind, values = row)
     #   }
     # },
-    
+
     .printTables = function(quoi) {
-      
+
       # Ne calculer que si au moins un des deux tableaux est demandé
       show_ind <- switch(quoi,
                          "coord"  = isTRUE(self$options$coordind),
@@ -951,15 +1046,15 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
                          "cos2"   = isTRUE(self$options$cosvar),
                          FALSE
       )
-      
+
       if (!show_ind && !show_var) return()
-      
+
       table <- self$PCAResult
       individus_gui <- if (!is.null(self$options$individus))
         as.character(self$data[[self$options$individus]])
       else
         as.character(seq_len(nrow(self$data)))
-      
+
       if (quoi == "coord") {
         quoivar  <- table$var$coord
         quoiind  <- table$ind$coord
@@ -978,9 +1073,9 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       } else {
         return()
       }
-      
+
       nFactors_out <- min(self$options$nFactors, ncol(quoivar), ncol(quoiind))
-      
+
       if (show_var) {
         tablevar$addColumn(name = "variables", title = "", type = "text")
         for (i in seq_len(nrow(quoivar)))
@@ -994,7 +1089,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           tablevar$setRow(rowNo = var, values = row)
         }
       }
-      
+
       if (show_ind) {
         tableind$addColumn(name = "individus", title = "", type = "text")
         for (i in seq_len(nrow(quoiind)))
@@ -1009,7 +1104,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         }
       }
     },
-    
+
     .renderPCAPlot = function(arguments, label) {
       res.pca <- private$.getSharedPCA()
       axes_ok <- private$.getValidAxes(res.pca)
@@ -1041,36 +1136,36 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
       private$.renderPCAPlot(list(title = title), "Individuals plot")
     },
-    
+
     .plothabillage = function(image, ...) {
       if (self$nVaract < 2) return(FALSE)
       habillage_value <- self$nVaract + self$nQuantsup + self$options$habillage
-      
+
       args <- list(
         habillage = habillage_value,
         title     = "Representation of the Individuals (Colored by Variable)"
       )
-      
+
       if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0)
         args$invisible <- "quali"
-      
+
       private$.renderPCAPlot(args, "Colored-individuals plot")
     },
-    
+
     .plotseulind = function(image, ...) {
       if (self$nVaract < 2) return(FALSE)
       args <- list(
         habillage = "none",
         title     = "Representation of the Individuals"
       )
-      
+
       if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0)
         args$invisible <- "quali"
-      
+
       private$.renderPCAPlot(args, "Individuals-only plot")
-      
+
     },
-    
+
     .plotseulmod = function(image, ...) {
       if (self$nVaract < 2) return(FALSE)
       if (is.null(self$options$qualisup) || length(self$options$qualisup) == 0)
@@ -1080,7 +1175,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         "Categories plot"
       )
     },
-    
+
     .plotvariables = function(image, ...) {
       if (self$nVaract < 2) return(FALSE)
       title <- if (!is.null(self$options$quantisup) &&
@@ -1094,7 +1189,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         "Variables plot"
       )
     },
-    
+
     .plotseulvaract = function(image, ...) {
       if (self$nVaract < 2) return(FALSE)
       args <- list(
@@ -1103,10 +1198,10 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       )
       if (!is.null(self$options$quantisup) && length(self$options$quantisup) > 0)
         args$invisible <- "quanti.sup"
-      
+
       private$.renderPCAPlot(args, "Active-variables plot")
     },
-    
+
     .plotseulvarillu = function(image, ...) {
       if (self$nVaract < 2) return(FALSE)
       if (is.null(self$options$quantisup) || length(self$options$quantisup) == 0)
@@ -1120,7 +1215,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         "Supplementary-variables plot"
       )
     },
-    
+
     .plotclassif = function(image, ...) {
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return(FALSE)
@@ -1151,10 +1246,10 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         FALSE
       })
     },
-    
+
     #---------------------------------------------
     ### Helper functions ----
-    
+
     .errorCheck = function() {
       if (!.meda_integer_scalar(self$options$nFactors, minimum = 1L))
         jmvcore::reject("The number of displayed components must be a positive integer")
@@ -1191,7 +1286,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           jmvcore::reject(paste0("Active variable '", variable, "' has no usable variance"))
       }
     },
-    
+
     .output = function() {
       output <- self$results$newvar
       if (!isTRUE(self$options$newvar) || !output$isNotFilled())
@@ -1205,7 +1300,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         descriptions = rep("PCA component", nFactors_out),
         measureTypes = rep("continuous", nFactors_out)
       )
-      
+
       for (i in seq_len(nFactors_out))
         output$setValues(index = i, as.numeric(self$PCAResult$ind$coord[, i]))
       row_nums <- attr(self$dataProcessed, "jamovi_row_nums")
@@ -1213,11 +1308,11 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         row_nums <- rownames(self$dataProcessed)
       output$setRowNums(row_nums)
     },
-    
+
     .output2 = function(res.classif) {
       if (is.null(res.classif) || is.null(res.classif$data.clust))
         return()
-      
+
       output <- self$results$newvar2
       if (!isTRUE(self$options$newvar2) || !output$isNotFilled())
         return()
@@ -1227,42 +1322,42 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         descriptions = "Cluster variable",
         measureTypes = "nominal"
       )
-      
+
       output$setValues(index = 1, as.factor(res.classif$data.clust[, ncol(res.classif$data.clust)]))
       row_nums <- attr(self$dataProcessed, "jamovi_row_nums")
       if (is.null(row_nums))
         row_nums <- rownames(self$dataProcessed)
       output$setRowNums(row_nums)
     },
-    
+
     .buildData = function() {
-      
+
       data_list <- list()
-      
+
       if (!is.null(self$options$actvars) && length(self$options$actvars) > 0) {
         dataactvars <- data.frame(self$data[, self$options$actvars, drop = FALSE])
         colnames(dataactvars) <- self$options$actvars
         data_list <- c(data_list, list(dataactvars))
       }
-      
+
       if (!is.null(self$options$quantisup) && length(self$options$quantisup) > 0) {
         dataquantisup <- data.frame(self$data[, self$options$quantisup, drop = FALSE])
         colnames(dataquantisup) <- self$options$quantisup
         data_list <- c(data_list, list(dataquantisup))
       }
-      
+
       if (!is.null(self$options$qualisup) && length(self$options$qualisup) > 0) {
         dataqualisup <- data.frame(self$data[, self$options$qualisup, drop = FALSE])
         colnames(dataqualisup) <- self$options$qualisup
         data_list <- c(data_list, list(dataqualisup))
       }
-      
+
       if (length(data_list) == 0)
         return(NULL)
-      
+
       data <- as.data.frame(do.call(cbind, data_list))
       jamovi_row_nums <- rownames(data)
-      
+
       if (!is.null(self$options$individus)) {
         ids <- as.character(self$data[[self$options$individus]])
         missing <- is.na(ids) | ids == ""

@@ -2,7 +2,7 @@
 name: PCA
 title: Results of the Principal Component Analysis
 jrs: '1.1'
-refs: 
+refs:
     - factominer
     - explo
 
@@ -37,7 +37,16 @@ items:
     title: Instructions
     visible: (tuto)
     type: Html
-  
+
+  - name: missingNotice
+    type: Html
+    visible: false
+    clearWith:
+      - data
+      - actvars
+      - quantisup
+      - qualisup
+
   - name: plotind
     title: Representation of the Individuals (and the Categories)
     type: Image
@@ -53,7 +62,7 @@ items:
     height: 600
     renderFun: .plotvariables
     clearWith: [data, actvars, quantisup, individus, norme, ncp, nFactors, abs, ord]
-    
+
   - name: plotseulind
     title: Representation of the Individuals Only
     visible: (graphind)
@@ -71,14 +80,14 @@ items:
     height: 600
     renderFun: .plotseulmod
     clearWith: [data, actvars, qualisup, individus, norme, ncp, nFactors, abs, ord, graphmod]
-    
+
   - name: plothabillage
     title: Representation of the Individuals Colored by Variable
     visible: (habillage > 0)
     type: Image
     width: 800
     height: 600
-    renderFun: .plothabillage  
+    renderFun: .plothabillage
     clearWith: [data, actvars, qualisup, quantisup, individus, norme, ncp, nFactors, abs, ord, habillage]
 
   - name: plotseulvaract
@@ -205,7 +214,7 @@ items:
         clearWith:
           - nFactors
         columns: []
-  
+
   - name: plotclassif
     title: Representation of the Individuals According to Clusters
     visible: (graphclassif)
@@ -276,4 +285,4 @@ items:
       - newvar
       - graphclassif
       - nbclust
-      - newvar2    
+      - newvar2
