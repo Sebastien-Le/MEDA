@@ -1267,6 +1267,21 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           self$options$proba > 100)
         jmvcore::reject("The significance threshold must be between 0 and 100")
 
+      if (!.meda_integer_scalar(self$options$habillage, minimum = 0L))
+        jmvcore::reject("The grouping variable index must be a non-negative integer")
+      if (self$options$habillage > self$nQualsup) {
+        if (self$nQualsup == 0L)
+          jmvcore::reject(
+            "A grouping variable can only be selected when at least one supplementary categorical variable is available"
+          )
+        jmvcore::reject(
+          paste0(
+            "The grouping variable index must be between 0 and ",
+            self$nQualsup
+          )
+        )
+      }
+
       data <- self$dataProcessed
       upper <- min(nrow(data) - 1L, self$nVaract)
       if (upper < 2L)
