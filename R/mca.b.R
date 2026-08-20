@@ -13,24 +13,26 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     dataProcessed = function() {
-      key <- private$.makeDataProcessingKey()
-      if (is.null(private$.dataProcessed) ||
-          !identical(private$.dataProcessedKey, key)) {
+      # dataProcessed is an in-run cache only. Data changes are handled by
+      # jamovi through clearWith: data on persistent result states.
+      if (is.null(private$.dataProcessed))
         private$.dataProcessed <- private$.buildData()
-        private$.dataProcessedKey <- key
-      }
       private$.dataProcessed
     },
 
     classifResult = function() {
-      key <- private$.makeClassifKey()
+      res.mca <- self$MCAResult
+      if (is.null(res.mca))
+        return(NULL)
+
+      key <- private$.makeClassifKey(res.mca)
       cached <- self$results$classifCache$state
       if (!is.null(cached) && identical(
         attr(cached, "MEDA.cache.key", exact = TRUE), key
       ))
         return(cached)
 
-      value <- private$.getClassifResult()
+      value <- private$.getClassifResult(res.mca)
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
         self$results$classifCache$setState(value)
@@ -39,25 +41,15 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     MCAResult = function() {
-      cached <- self$results$mcaCache$state
-      required_ncp <- private$.requiredNcp()
       key <- private$.makeMCAKey()
-      data_key <- private$.dataValueSignature()
-
-      if (!is.null(cached) && inherits(cached, "MCA") &&
-          identical(attr(cached, "MEDA.cache.key", exact = TRUE), key) &&
-          identical(attr(cached, "MEDA.data.key", exact = TRUE), data_key)) {
-        cached_ncp <- suppressWarnings(as.integer(attr(cached, "MEDA.ncp.requested")))
-        if (length(cached_ncp) == 0 || is.na(cached_ncp))
-          cached_ncp <- if (!is.null(cached$ind$coord)) ncol(cached$ind$coord) else 0L
-        if (cached_ncp >= required_ncp)
-          return(cached)
-      }
+      required_ncp <- private$.requiredNcp()
+      cached <- private$.readMCAFromCache(key, required_ncp)
+      if (!is.null(cached))
+        return(cached)
 
       value <- private$.getMCAResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        attr(value, "MEDA.data.key") <- data_key
         self$results$mcaCache$setState(value)
       }
       value
@@ -67,7 +59,6 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   private = list(
     
     .dataProcessed = NULL,
-    .dataProcessedKey = NULL,
     
     #---------------------------------------------
     #### Init + run functions ----
@@ -165,7 +156,10 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .run = function() {
-      
+      # Private R6 caches are valid only within the current run/redraw cycle.
+      # Persistent freshness across runs is governed by jamovi result states.
+      private$.resetRunCaches()
+
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return()
       
@@ -184,7 +178,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         res.classif <- self$classifResult
       
       desc <- self$results$dimdescCache$state
-      desc_key <- private$.makeDimdescKey()
+      desc_key <- private$.makeDimdescKey(res.mca)
       if (is.null(desc) || !identical(
         attr(desc, "MEDA.cache.key", exact = TRUE), desc_key
       )) {
@@ -243,58 +237,44 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       )
     },
 
-    .dataValueSignature = function() {
-      .meda_selected_data_signature(
-        self$data,
-        c(
-          self$options$actvars,
-          self$options$quantisup,
-          self$options$qualisup,
-          self$options$individus
-        )
-      )
-    },
-
-    .makeDataProcessingKey = function() {
-      paste(private$.dataSignature(), private$.dataValueSignature(), sep = "\n")
-    },
-
     .makeMCAKey = function() {
+      # The cache key identifies the statistical MCA model only. The number
+      # of computed dimensions is tracked separately in MEDA.ncp.requested.
       paste(
         private$.dataSignature(),
         self$options$ventil,
-        private$.requiredNcp(),
         sep = "\n"
       )
     },
 
-    .makeClassifKey = function() {
-      data_key <- private$.dataValueSignature()
-      if (is.null(data_key)) {
-        cached <- self$results$mcaCache$state
-        if (!is.null(cached) && inherits(cached, "MCA") &&
-            identical(
-              attr(cached, "MEDA.cache.key", exact = TRUE),
-              private$.makeMCAKey()
-            )) {
-          data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
-        }
-      }
-      if (is.null(data_key))
-        data_key <- "unavailable"
+    .resultNcp = function(result) {
+      if (is.null(result))
+        return(0L)
+      value <- suppressWarnings(as.integer(
+        attr(result, "MEDA.ncp.requested", exact = TRUE)
+      ))
+      if (length(value) != 1L || !is.finite(value))
+        value <- if (!is.null(result$ind$coord)) ncol(result$ind$coord) else 0L
+      as.integer(value)
+    },
 
+    .makeClassifKey = function(res.mca) {
+      # MCA ventilation can be stochastic. If the MCA is refitted solely to
+      # increase its dimensional capacity, derived caches must follow that
+      # specific fit rather than an earlier ventilation realisation.
       paste(
         private$.makeMCAKey(),
-        "data", data_key,
+        "fit.ncp", private$.resultNcp(res.mca),
         self$options$ncp,
         self$options$nbclust,
         sep = "\n"
       )
     },
 
-    .makeDimdescKey = function() {
+    .makeDimdescKey = function(res.mca) {
       paste(
         private$.makeMCAKey(),
+        "fit.ncp", private$.resultNcp(res.mca),
         self$options$nFactors,
         self$options$proba,
         sep = "\n"
@@ -389,24 +369,29 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       .meda_valid_axes(self$options$abs, self$options$ord, nrow(res$eig))
     },
     
-    .getSharedMCA = function() {
+    .readMCAFromCache = function(key, required_ncp) {
       cached <- self$results$mcaCache$state
-      key <- private$.makeMCAKey()
-      required_ncp <- private$.requiredNcp()
-      if (is.null(cached) || !inherits(cached, "MCA") ||
-          !identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
+      if (is.null(cached) || !inherits(cached, "MCA"))
         return(NULL)
-      cached_ncp <- suppressWarnings(as.integer(
-        attr(cached, "MEDA.ncp.requested", exact = TRUE)
-      ))
-      if (length(cached_ncp) != 1L || !is.finite(cached_ncp) ||
-          cached_ncp < required_ncp)
+      if (!identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
+        return(NULL)
+      if (private$.resultNcp(cached) < required_ncp)
         return(NULL)
       cached
     },
 
-    .getClassifResult = function() {
-      res.mca <- self$MCAResult
+    .getSharedMCA = function() {
+      private$.readMCAFromCache(
+        private$.makeMCAKey(),
+        private$.requiredNcp()
+      )
+    },
+
+    .resetRunCaches = function() {
+      private$.dataProcessed <- NULL
+    },
+
+    .getClassifResult = function(res.mca = self$MCAResult) {
       if (is.null(res.mca) || is.null(res.mca$ind$coord))
         return(NULL)
 
@@ -1024,11 +1009,15 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     .plotclassif = function(image, ...) {
       if (is.null(self$options$actvars))
         return(FALSE)
-      
+
+      res.mca <- private$.getSharedMCA()
+      if (is.null(res.mca))
+        return(FALSE)
+
       res.classif <- self$results$classifCache$state
       if (is.null(res.classif) || !identical(
         attr(res.classif, "MEDA.cache.key", exact = TRUE),
-        private$.makeClassifKey()
+        private$.makeClassifKey(res.mca)
       ))
         return(FALSE)
       

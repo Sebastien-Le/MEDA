@@ -271,28 +271,25 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="MCA cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
-                    "ventil",
-                    "ncp",
-                    "nFactors",
-                    "abs",
-                    "ord")))
+                    "ventil")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="classifCache",
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
                     "ventil",
                     "ncp",
-                    "nFactors",
                     "nbclust")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
@@ -300,12 +297,12 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Dimension description cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
                     "ventil",
-                    "ncp",
                     "nFactors",
                     "proba")))
             self$add(jmvcore::Html$new(
@@ -321,6 +318,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotindiv",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "individus",
                     "ventil",
@@ -336,6 +334,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotvar",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -352,6 +351,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotitemvar",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "ventil",
@@ -371,6 +371,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotquantisup",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "ventil",
@@ -608,6 +609,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotclassif",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "individus",
                     "ventil",
@@ -623,13 +625,16 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
                     "nFactors",
                     "ventil",
-                    "ncp")))
+                    "ncp",
+                    "abs",
+                    "ord")))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar2",
@@ -637,6 +642,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -644,7 +650,9 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nFactors",
                     "ventil",
                     "nbclust",
-                    "ncp")))
+                    "ncp",
+                    "abs",
+                    "ord")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="code",
