@@ -1,7 +1,7 @@
 Package: MEDA
 Type: Package
 Title: Multivariate Exploratory Data Analysis
-Version: 1.7.0
+Version: 1.7.1
 Authors@R: c(
     person("Thomas", "Leblay", role = "aut"),
     person("Fiona", "Tuffin", role = "aut"),
