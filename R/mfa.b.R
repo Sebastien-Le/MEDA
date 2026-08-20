@@ -672,7 +672,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             r_literal(as.character(individus)[1]), "]])"
           ),
           "missing_id_MFA <- is.na(id_MFA) | id_MFA == \"\"",
-          "id_MFA[missing_id_MFA] <- as.character(seq_len(sum(missing_id_MFA)))",
+          "id_MFA[missing_id_MFA] <- as.character(which(missing_id_MFA))",
           "rownames(data_MFA) <- make.unique(id_MFA)"
         )
       }
@@ -1531,7 +1531,8 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$individus)) {
         ids <- as.character(self$data[[self$options$individus]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(data) <- make.unique(ids)
       } else {
         rownames(data) <- jamovi_row_nums

@@ -533,7 +533,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             r_literal(individus[1]), "]])"
           ),
           "missing_id_MCA <- is.na(id_MCA) | id_MCA == \"\"",
-          "id_MCA[missing_id_MCA] <- as.character(seq_len(sum(missing_id_MCA)))",
+          "id_MCA[missing_id_MCA] <- as.character(which(missing_id_MCA))",
           "rownames(data_MCA) <- make.unique(id_MCA)"
         )
       }
@@ -1156,7 +1156,8 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$individus)) {
         ids <- as.character(self$data[[self$options$individus]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(data) <- make.unique(ids)
       } else {
         rownames(data) <- jamovi_row_nums

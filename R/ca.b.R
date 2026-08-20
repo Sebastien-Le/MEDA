@@ -396,7 +396,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             r_literal(indiv[1]), "]])"
           ),
           "missing_id_CA <- is.na(id_CA) | id_CA == \"\"",
-          "id_CA[missing_id_CA] <- as.character(seq_len(sum(missing_id_CA)))",
+          "id_CA[missing_id_CA] <- as.character(which(missing_id_CA))",
           "rownames(data_CA) <- make.unique(id_CA)"
         )
       }
@@ -736,7 +736,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$indiv)) {
         ids <- as.character(self$data[[self$options$indiv]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(dataactcol) <- make.unique(ids)
       }
       
@@ -1176,7 +1177,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$indiv)) {
         ids <- as.character(self$data[[self$options$indiv]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(data) <- make.unique(ids)
       } else {
         rownames(data) <- jamovi_row_nums
