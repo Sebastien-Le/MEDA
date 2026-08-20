@@ -13,24 +13,26 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     dataProcessed = function() {
-      key <- private$.makeDataProcessingKey()
-      if (is.null(private$.dataProcessed) ||
-          !identical(private$.dataProcessedKey, key)) {
+      # dataProcessed is an in-run cache only. Data changes are handled by
+      # jamovi through clearWith: data on persistent result states.
+      if (is.null(private$.dataProcessed))
         private$.dataProcessed <- private$.buildData()
-        private$.dataProcessedKey <- key
-      }
       private$.dataProcessed
     },
 
     classifResult = function() {
-      key <- private$.makeClassifKey()
+      res.mca <- self$MCAResult
+      if (is.null(res.mca))
+        return(NULL)
+
+      key <- private$.makeClassifKey(res.mca)
       cached <- self$results$classifCache$state
       if (!is.null(cached) && identical(
         attr(cached, "MEDA.cache.key", exact = TRUE), key
       ))
         return(cached)
 
-      value <- private$.getClassifResult()
+      value <- private$.getClassifResult(res.mca)
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
         self$results$classifCache$setState(value)
@@ -39,25 +41,15 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     MCAResult = function() {
-      cached <- self$results$mcaCache$state
-      required_ncp <- private$.requiredNcp()
       key <- private$.makeMCAKey()
-      data_key <- private$.dataValueSignature()
-
-      if (!is.null(cached) && inherits(cached, "MCA") &&
-          identical(attr(cached, "MEDA.cache.key", exact = TRUE), key) &&
-          identical(attr(cached, "MEDA.data.key", exact = TRUE), data_key)) {
-        cached_ncp <- suppressWarnings(as.integer(attr(cached, "MEDA.ncp.requested")))
-        if (length(cached_ncp) == 0 || is.na(cached_ncp))
-          cached_ncp <- if (!is.null(cached$ind$coord)) ncol(cached$ind$coord) else 0L
-        if (cached_ncp >= required_ncp)
-          return(cached)
-      }
+      required_ncp <- private$.requiredNcp()
+      cached <- private$.readMCAFromCache(key, required_ncp)
+      if (!is.null(cached))
+        return(cached)
 
       value <- private$.getMCAResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        attr(value, "MEDA.data.key") <- data_key
         self$results$mcaCache$setState(value)
       }
       value
@@ -67,7 +59,6 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   private = list(
     
     .dataProcessed = NULL,
-    .dataProcessedKey = NULL,
     
     #---------------------------------------------
     #### Init + run functions ----
@@ -165,9 +156,14 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .run = function() {
-      
+      # Private R6 caches are valid only within the current run/redraw cycle.
+      # Persistent freshness across runs is governed by jamovi result states.
+      private$.resetRunCaches()
+
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return()
+
+      private$.updateMissingNotice()
       
       private$.errorCheck()
       
@@ -184,7 +180,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         res.classif <- self$classifResult
       
       desc <- self$results$dimdescCache$state
-      desc_key <- private$.makeDimdescKey()
+      desc_key <- private$.makeDimdescKey(res.mca)
       if (is.null(desc) || !identical(
         attr(desc, "MEDA.cache.key", exact = TRUE), desc_key
       )) {
@@ -243,58 +239,44 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       )
     },
 
-    .dataValueSignature = function() {
-      .meda_selected_data_signature(
-        self$data,
-        c(
-          self$options$actvars,
-          self$options$quantisup,
-          self$options$qualisup,
-          self$options$individus
-        )
-      )
-    },
-
-    .makeDataProcessingKey = function() {
-      paste(private$.dataSignature(), private$.dataValueSignature(), sep = "\n")
-    },
-
     .makeMCAKey = function() {
+      # The cache key identifies the statistical MCA model only. The number
+      # of computed dimensions is tracked separately in MEDA.ncp.requested.
       paste(
         private$.dataSignature(),
         self$options$ventil,
-        private$.requiredNcp(),
         sep = "\n"
       )
     },
 
-    .makeClassifKey = function() {
-      data_key <- private$.dataValueSignature()
-      if (is.null(data_key)) {
-        cached <- self$results$mcaCache$state
-        if (!is.null(cached) && inherits(cached, "MCA") &&
-            identical(
-              attr(cached, "MEDA.cache.key", exact = TRUE),
-              private$.makeMCAKey()
-            )) {
-          data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
-        }
-      }
-      if (is.null(data_key))
-        data_key <- "unavailable"
+    .resultNcp = function(result) {
+      if (is.null(result))
+        return(0L)
+      value <- suppressWarnings(as.integer(
+        attr(result, "MEDA.ncp.requested", exact = TRUE)
+      ))
+      if (length(value) != 1L || !is.finite(value))
+        value <- if (!is.null(result$ind$coord)) ncol(result$ind$coord) else 0L
+      as.integer(value)
+    },
 
+    .makeClassifKey = function(res.mca) {
+      # MCA ventilation can be stochastic. If the MCA is refitted solely to
+      # increase its dimensional capacity, derived caches must follow that
+      # specific fit rather than an earlier ventilation realisation.
       paste(
         private$.makeMCAKey(),
-        "data", data_key,
+        "fit.ncp", private$.resultNcp(res.mca),
         self$options$ncp,
         self$options$nbclust,
         sep = "\n"
       )
     },
 
-    .makeDimdescKey = function() {
+    .makeDimdescKey = function(res.mca) {
       paste(
         private$.makeMCAKey(),
+        "fit.ncp", private$.resultNcp(res.mca),
         self$options$nFactors,
         self$options$proba,
         sep = "\n"
@@ -389,24 +371,29 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       .meda_valid_axes(self$options$abs, self$options$ord, nrow(res$eig))
     },
     
-    .getSharedMCA = function() {
+    .readMCAFromCache = function(key, required_ncp) {
       cached <- self$results$mcaCache$state
-      key <- private$.makeMCAKey()
-      required_ncp <- private$.requiredNcp()
-      if (is.null(cached) || !inherits(cached, "MCA") ||
-          !identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
+      if (is.null(cached) || !inherits(cached, "MCA"))
         return(NULL)
-      cached_ncp <- suppressWarnings(as.integer(
-        attr(cached, "MEDA.ncp.requested", exact = TRUE)
-      ))
-      if (length(cached_ncp) != 1L || !is.finite(cached_ncp) ||
-          cached_ncp < required_ncp)
+      if (!identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
+        return(NULL)
+      if (private$.resultNcp(cached) < required_ncp)
         return(NULL)
       cached
     },
 
-    .getClassifResult = function() {
-      res.mca <- self$MCAResult
+    .getSharedMCA = function() {
+      private$.readMCAFromCache(
+        private$.makeMCAKey(),
+        private$.requiredNcp()
+      )
+    },
+
+    .resetRunCaches = function() {
+      private$.dataProcessed <- NULL
+    },
+
+    .getClassifResult = function(res.mca = self$MCAResult) {
       if (is.null(res.mca) || is.null(res.mca$ind$coord))
         return(NULL)
 
@@ -548,7 +535,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             r_literal(individus[1]), "]])"
           ),
           "missing_id_MCA <- is.na(id_MCA) | id_MCA == \"\"",
-          "id_MCA[missing_id_MCA] <- as.character(seq_len(sum(missing_id_MCA)))",
+          "id_MCA[missing_id_MCA] <- as.character(which(missing_id_MCA))",
           "rownames(data_MCA) <- make.unique(id_MCA)"
         )
       }
@@ -1024,11 +1011,15 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     .plotclassif = function(image, ...) {
       if (is.null(self$options$actvars))
         return(FALSE)
-      
+
+      res.mca <- private$.getSharedMCA()
+      if (is.null(res.mca))
+        return(FALSE)
+
       res.classif <- self$results$classifCache$state
       if (is.null(res.classif) || !identical(
         attr(res.classif, "MEDA.cache.key", exact = TRUE),
-        private$.makeClassifKey()
+        private$.makeClassifKey(res.mca)
       ))
         return(FALSE)
       
@@ -1094,6 +1085,100 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
     },
     
+    .updateMissingNotice = function() {
+      notice <- self$results$missingNotice
+
+      summarize_missing <- function(vars) {
+        if (is.null(vars) || length(vars) == 0L)
+          return(c(values = 0L, rows = 0L))
+
+        selected <- self$data[, vars, drop = FALSE]
+        missing <- is.na(selected)
+        c(
+          values = sum(missing),
+          rows = sum(rowSums(missing) > 0L)
+        )
+      }
+
+      plural <- function(n, singular, plural_form = paste0(singular, "s")) {
+        if (n == 1L) singular else plural_form
+      }
+
+      active_missing <- summarize_missing(self$options$actvars)
+      quanti_missing <- summarize_missing(self$options$quantisup)
+      quali_missing <- summarize_missing(self$options$qualisup)
+
+      if (sum(c(
+        active_missing[["values"]],
+        quanti_missing[["values"]],
+        quali_missing[["values"]]
+      )) == 0L) {
+        notice$setVisible(FALSE)
+        return(invisible(NULL))
+      }
+
+      messages <- character(0)
+
+      if (active_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            active_missing[["values"]], " missing ",
+            plural(active_missing[["values"]], "value"),
+            " across ", active_missing[["rows"]], " ",
+            plural(active_missing[["rows"]], "individual"),
+            " were detected in the active categorical variables. ",
+            "Following the default FactoMineR::MCA() procedure ",
+            "(na.method = \"NA\"), missing values are treated as an ",
+            "additional category."
+          )
+        )
+      }
+
+      if (quali_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            quali_missing[["values"]], " missing ",
+            plural(quali_missing[["values"]], "value"),
+            " across ", quali_missing[["rows"]], " ",
+            plural(quali_missing[["rows"]], "individual"),
+            " were detected in the supplementary categorical variables. ",
+            "FactoMineR represents these missing entries as an additional ",
+            "category for the corresponding supplementary variable."
+          )
+        )
+      }
+
+      if (quanti_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            quanti_missing[["values"]], " missing ",
+            plural(quanti_missing[["values"]], "value"),
+            " across ", quanti_missing[["rows"]], " ",
+            plural(quanti_missing[["rows"]], "individual"),
+            " were detected in the supplementary quantitative variables. ",
+            "FactoMineR replaces these missing numeric values by the ",
+            "corresponding variable mean."
+          )
+        )
+      }
+
+      notice$setContent(paste0(
+        "<div style='",
+        "margin: 6px 0; padding: 10px 14px; ",
+        "background-color: #F4F7FB; border: 1px solid #CBD8E8; ",
+        "border-left: 4px solid #6B9DE8; border-radius: 5px; ",
+        "line-height: 1.4;'>",
+        "<b>Missing values.</b> ",
+        paste(messages, collapse = " "),
+        "</div>"
+      ))
+      notice$setVisible(TRUE)
+      invisible(NULL)
+    },
+
     .output = function(res.mca) {
       output <- self$results$newvar
       if (!isTRUE(self$options$newvar) || !output$isNotFilled())
@@ -1167,7 +1252,8 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$individus)) {
         ids <- as.character(self$data[[self$options$individus]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(data) <- make.unique(ids)
       } else {
         rownames(data) <- jamovi_row_nums

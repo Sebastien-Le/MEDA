@@ -3,12 +3,10 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   inherit = MFABase,
   active = list(
     dataProcessed = function() {
-      key <- private$.makeDataProcessingKey()
-      if (is.null(private$.dataProcessed) ||
-          !identical(private$.dataProcessedKey, key)) {
+      # dataProcessed is an in-run cache only. Data changes are handled by
+      # jamovi through clearWith: data on persistent result states.
+      if (is.null(private$.dataProcessed))
         private$.dataProcessed <- private$.buildData()
-        private$.dataProcessedKey <- key
-      }
       private$.dataProcessed
     },
     
@@ -19,24 +17,15 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     classifResult = function() {
       key <- private$.makeClassifKey()
 
-      if (!is.null(private$.classifResult) &&
-          identical(private$.classifResultKey, key))
-        return(private$.classifResult)
-
       cached <- self$results$classifCache$state
       if (!is.null(cached) && identical(
         attr(cached, "MEDA.cache.key", exact = TRUE), key
-      )) {
-        private$.classifResult <- cached
-        private$.classifResultKey <- key
+      ))
         return(cached)
-      }
       
       value <- private$.getclassifResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        private$.classifResult <- value
-        private$.classifResultKey <- key
         self$results$classifCache$setState(value)
       }
       value
@@ -45,12 +34,10 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     MFAResult = function() {
       key <- private$.makeMFAKey()
       required_ncp <- private$.requiredNcp()
-      data_key <- private$.dataValueSignature()
 
       cached <- private$.readMFAFromCache(
         key = key,
-        required_ncp = required_ncp,
-        data_key = data_key
+        required_ncp = required_ncp
       )
       if (!is.null(cached))
         return(cached)
@@ -58,9 +45,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       value <- private$.getMFAResult()
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        attr(value, "MEDA.data.key") <- data_key
         private$.MFAResult <- value
-        private$.MFAResultKey <- key
         self$results$mfaCache$setState(private$.packMFAState(value))
       }
       value
@@ -69,11 +54,9 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   
   private = list(
     .dataProcessed = NULL,
-    .dataProcessedKey = NULL,
+    # Unpacked mirror of mfaCache used only within the current run/redraw
+    # cycle. The jamovi state remains the authority for persistence/freshness.
     .MFAResult = NULL,
-    .MFAResultKey = NULL,
-    .classifResult = NULL,
-    .classifResultKey = NULL,
     
     #---------------------------------------------  
     #### Init + run functions ----
@@ -221,10 +204,15 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .run = function() {
+      # Private R6 caches are valid only within the current run/redraw cycle.
+      # Persistent freshness across runs is governed by jamovi result states.
+      private$.resetRunCaches()
+
       if (is.null(self$options$quantivar) && is.null(self$options$qualivar))
         return()
 
       private$.errorCheck()
+      private$.updateMissingNotice()
 
       # The complete FactoMineR object is cached once, in a lossless packed
       # form. Image states contain only a tiny marker, so the same large MFA
@@ -281,23 +269,6 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     #---------------------------------------------
     #### Compute results ----
 
-    .rawSignature = function(value) {
-      bytes <- as.integer(serialize(value, connection = NULL, version = 2))
-      index <- seq_along(bytes)
-      hash1 <- sum(
-        (bytes + 1) * ((index %% 65521) + 1)
-      ) %% 2147483647
-      hash2 <- sum(
-        (bytes + 1) * (((index * 17) %% 65519) + 1)
-      ) %% 2147483629
-      paste(
-        length(bytes),
-        sprintf("%.0f", hash1),
-        sprintf("%.0f", hash2),
-        sep = ":"
-      )
-    },
-    
     .dataSignature = function() {
       paste(
         c(
@@ -309,48 +280,6 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       )
     },
 
-    .dataValueSignature = function() {
-      variables <- unique(c(
-        self$options$quantivar,
-        self$options$qualivar,
-        self$options$individus
-      ))
-      variables <- variables[
-        !is.na(variables) & nzchar(as.character(variables))
-      ]
-      if (length(variables) == 0L || is.null(self$data))
-        return(NULL)
-
-      snapshot <- tryCatch({
-        columns <- self$data[, variables, drop = FALSE]
-        if (ncol(columns) != length(variables))
-          return(NULL)
-        columns <- data.frame(columns, check.names = FALSE)
-        colnames(columns) <- as.character(variables)
-        list(
-          columns = columns,
-          row.names = rownames(columns)
-        )
-      }, error = function(e) {
-        NULL
-      })
-      if (is.null(snapshot))
-        return(NULL)
-
-      private$.rawSignature(snapshot)
-    },
-
-    .makeDataProcessingKey = function() {
-      data_key <- private$.dataValueSignature()
-      if (is.null(data_key))
-        data_key <- "unavailable"
-      paste(
-        private$.dataSignature(),
-        "data", data_key,
-        sep = "\r"
-      )
-    },
-    
     .requiredNcp = function() {
       candidates <- c(
         self$options$ncp,
@@ -368,31 +297,24 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
 
     .makeMFAKey = function() {
+      # The cache key identifies the statistical MFA model only. The number
+      # of computed dimensions is tracked separately in MEDA.ncp.requested.
       paste(
         c(
           private$.dataSignature(),
           "groupdef", self$options$groupdef,
           "grouptype", self$options$grouptype,
           "groupill", self$options$groupill,
-          "groupname", self$options$groupname,
-          "ncp", private$.requiredNcp()
+          "groupname", self$options$groupname
         ),
         collapse = "\r"
       )
     },
 
     .makeClassifKey = function() {
-      res.mfa <- private$.readMFAFromCache()
-      data_key <- if (is.null(res.mfa)) {
-        NULL
-      } else {
-        attr(res.mfa, "MEDA.data.key", exact = TRUE)
-      }
-      if (is.null(data_key))
-        data_key <- "unavailable"
       paste(
         private$.makeMFAKey(),
-        "data", data_key,
+        "ncp", self$options$ncp,
         "nbclust", self$options$nbclust,
         sep = "\r"
       )
@@ -441,22 +363,25 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }, error = function(e) NULL)
     },
 
-    .readMFAFromCache = function(key = NULL, required_ncp = NULL,
-                                 data_key = NULL) {
+    .readMFAFromCache = function(key = NULL, required_ncp = NULL) {
       if (is.null(key))
         key <- private$.makeMFAKey()
       if (is.null(required_ncp))
         required_ncp <- private$.requiredNcp()
+
+      # The jamovi state is authoritative. If clearWith invalidated it, an
+      # unpacked private mirror must never be allowed to survive on its own.
+      state <- self$results$mfaCache$state
+      if (is.null(state)) {
+        private$.MFAResult <- NULL
+        return(NULL)
+      }
 
       is_current <- function(value) {
         if (is.null(value) || !inherits(value, "MFA"))
           return(FALSE)
         if (!identical(
           attr(value, "MEDA.cache.key", exact = TRUE), key
-        ))
-          return(FALSE)
-        if (!is.null(data_key) && !identical(
-          attr(value, "MEDA.data.key", exact = TRUE), data_key
         ))
           return(FALSE)
 
@@ -471,12 +396,11 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is_current(private$.MFAResult))
         return(private$.MFAResult)
 
-      cached <- private$.unpackMFAState(self$results$mfaCache$state)
+      cached <- private$.unpackMFAState(state)
       if (!is_current(cached))
         return(NULL)
 
       private$.MFAResult <- cached
-      private$.MFAResultKey <- key
       cached
     },
 
@@ -485,6 +409,11 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       # They must therefore read the validated fitted object and never try to
       # rebuild the dataset or refit the MFA themselves.
       private$.readMFAFromCache()
+    },
+
+    .resetRunCaches = function() {
+      private$.dataProcessed <- NULL
+      private$.MFAResult <- NULL
     },
     
     .computeNbclust = function() {
@@ -744,7 +673,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             r_literal(as.character(individus)[1]), "]])"
           ),
           "missing_id_MFA <- is.na(id_MFA) | id_MFA == \"\"",
-          "id_MFA[missing_id_MFA] <- as.character(seq_len(sum(missing_id_MFA)))",
+          "id_MFA[missing_id_MFA] <- as.character(which(missing_id_MFA))",
           "rownames(data_MFA) <- make.unique(id_MFA)"
         )
       }
@@ -996,7 +925,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
               "axes = axes_mfa",
               "choice = \"map\"",
               "draw.tree = FALSE",
-              "ind.names = FALSE",
+              "ind.names = TRUE",
               "new.plot = FALSE",
               "centers.plot = TRUE"
             )
@@ -1373,14 +1302,16 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         ", quali.sup.exact=", !is.null(res.plot[["quali.var.sup"]])
       )
       
-      jmvcore::reject(paste0(
-        "Plot of categories failed. Classic renderer: ",
-        classic_error,
-        "; ggplot renderer: ",
-        ggplot_error,
-        ". MEDA MFA v5 diagnostics: ",
-        metadata_status
+      message(paste0(
+        "MEDA MFA category plot diagnostics: ",
+        "classic renderer: ", classic_error,
+        "; ggplot renderer: ", ggplot_error,
+        "; ", metadata_status
       ))
+
+      jmvcore::reject(
+        "The category plot could not be drawn for this combination of groups."
+      )
       FALSE
     },
     
@@ -1489,7 +1420,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           axes        = axes_ok,
           choice      = "map",
           draw.tree   = FALSE,
-          ind.names   = FALSE,
+          ind.names   = TRUE,
           new.plot    = FALSE,
           centers.plot = TRUE,
           title       = "Representation of the Individuals According to Clusters"
@@ -1557,6 +1488,93 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       output$setRowNums(row_nums)
     },
 
+    .updateMissingNotice = function() {
+      notice <- self$results$missingNotice
+
+      selected_vars <- c(self$options$quantivar, self$options$qualivar)
+      if (is.null(selected_vars) || length(selected_vars) == 0L) {
+        notice$setVisible(FALSE)
+        return(invisible(NULL))
+      }
+
+      selected <- self$data[, selected_vars, drop = FALSE]
+      is_numeric <- vapply(selected, is.numeric, logical(1))
+
+      numeric_missing <- if (any(is_numeric)) {
+        missing <- is.na(selected[, is_numeric, drop = FALSE])
+        c(
+          values = sum(missing),
+          rows = sum(rowSums(missing) > 0L)
+        )
+      } else {
+        c(values = 0L, rows = 0L)
+      }
+
+      categorical_missing <- if (any(!is_numeric)) {
+        missing <- is.na(selected[, !is_numeric, drop = FALSE])
+        c(
+          values = sum(missing),
+          rows = sum(rowSums(missing) > 0L)
+        )
+      } else {
+        c(values = 0L, rows = 0L)
+      }
+
+      if (numeric_missing[["values"]] == 0L &&
+          categorical_missing[["values"]] == 0L) {
+        notice$setVisible(FALSE)
+        return(invisible(NULL))
+      }
+
+      plural <- function(n, singular, plural_form = paste0(singular, "s")) {
+        if (n == 1L) singular else plural_form
+      }
+
+      messages <- character(0)
+
+      if (numeric_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            numeric_missing[["values"]], " missing ",
+            plural(numeric_missing[["values"]], "numeric value"),
+            " across ", numeric_missing[["rows"]], " ",
+            plural(numeric_missing[["rows"]], "individual"),
+            " were detected. Following FactoMineR::MFA(), missing numeric ",
+            "values are replaced by the corresponding variable mean."
+          )
+        )
+      }
+
+      if (categorical_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            categorical_missing[["values"]], " missing ",
+            plural(categorical_missing[["values"]], "categorical value"),
+            " across ", categorical_missing[["rows"]], " ",
+            plural(categorical_missing[["rows"]], "individual"),
+            " were detected. Following FactoMineR::MFA(), each missing ",
+            "categorical value is represented by an explicit additional ",
+            "category named after the variable (for example, variable.NA)."
+          )
+        )
+      }
+
+      notice$setContent(paste0(
+        "<div style='",
+        "margin: 6px 0; padding: 10px 14px; ",
+        "background-color: #F4F7FB; border: 1px solid #CBD8E8; ",
+        "border-left: 4px solid #6B9DE8; border-radius: 5px; ",
+        "line-height: 1.4;'>",
+        "<b>Missing values.</b> ",
+        paste(messages, collapse = " "),
+        "</div>"
+      ))
+      notice$setVisible(TRUE)
+      invisible(NULL)
+    },
+
     .output2 = function(res.classif) {
       if (is.null(res.classif) || is.null(res.classif$data.clust))
         return()
@@ -1603,7 +1621,8 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$individus)) {
         ids <- as.character(self$data[[self$options$individus]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(data) <- make.unique(ids)
       } else {
         rownames(data) <- jamovi_row_nums

@@ -257,19 +257,17 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="CA cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
-                    "indiv",
-                    "ncp",
-                    "nbfact",
-                    "abs",
-                    "ord")))
+                    "indiv")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="classifCache",
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -288,6 +286,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotrow",
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -305,6 +304,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotcol",
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -323,6 +323,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotell",
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -514,6 +515,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotclassif",
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -529,6 +531,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -541,6 +544,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "activecol",
                     "illustrativecol",
                     "indiv",

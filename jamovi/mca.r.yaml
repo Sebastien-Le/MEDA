@@ -12,28 +12,25 @@ items:
     type: Preformatted
     visible: false
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
       - individus
       - ventil
-      - ncp
-      - nFactors
-      - abs
-      - ord
 
   - name: classifCache
     title: Classification cache
     type: Preformatted
     visible: false
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
       - individus
       - ventil
       - ncp
-      - nFactors
       - nbclust
 
   - name: dimdescCache
@@ -41,12 +38,12 @@ items:
     type: Preformatted
     visible: false
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
       - individus
       - ventil
-      - ncp
       - nFactors
       - proba
 
@@ -55,6 +52,15 @@ items:
     visible: (tuto)
     type: Html
 
+  - name: missingNotice
+    type: Html
+    visible: false
+    clearWith:
+      - data
+      - actvars
+      - quantisup
+      - qualisup
+
   - name: plotindiv
     title: Representation of the Individuals
     type: Image
@@ -62,6 +68,7 @@ items:
     height: 500
     renderFun: .plotindiv
     clearWith:
+      - data
       - actvars
       - individus
       - ventil
@@ -77,6 +84,7 @@ items:
     height: 500
     renderFun: .plotvar
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
@@ -93,6 +101,7 @@ items:
     height: 500
     renderFun: .plotitemvar
     clearWith:
+      - data
       - actvars
       - qualisup
       - ventil
@@ -112,6 +121,7 @@ items:
     height: 500
     renderFun: .plotquantisup
     clearWith:
+      - data
       - actvars
       - quantisup
       - ventil
@@ -298,6 +308,7 @@ items:
     height: 500
     renderFun: .plotclassif
     clearWith:
+      - data
       - actvars
       - individus
       - ventil
@@ -313,6 +324,7 @@ items:
     measureType: continuous
     initInRun: true
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
@@ -320,6 +332,8 @@ items:
       - nFactors
       - ventil
       - ncp
+      - abs
+      - ord
 
   - name: newvar2
     type: Output
@@ -327,6 +341,7 @@ items:
     measureType: nominal
     initInRun: true
     clearWith:
+      - data
       - actvars
       - quantisup
       - qualisup
@@ -335,6 +350,8 @@ items:
       - ventil
       - nbclust
       - ncp
+      - abs
+      - ord
 
   - name: code
     title: R code

@@ -182,6 +182,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         mfaCache = function() private$.items[["mfaCache"]],
         classifCache = function() private$.items[["classifCache"]],
         instructions = function() private$.items[["instructions"]],
+        missingNotice = function() private$.items[["missingNotice"]],
         plotgroup = function() private$.items[["plotgroup"]],
         plotaxe = function() private$.items[["plotaxe"]],
         plotind = function() private$.items[["plotind"]],
@@ -210,23 +211,21 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="MFA cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
                     "groupdef",
                     "grouptype",
                     "groupill",
-                    "groupname",
-                    "ncp",
-                    "nFactors",
-                    "abs",
-                    "ord")))
+                    "groupname")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="classifCache",
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -235,13 +234,23 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "groupill",
                     "groupname",
                     "ncp",
-                    "nFactors",
                     "nbclust")))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="instructions",
                 title="Instructions",
                 visible="(tuto)"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="missingNotice",
+                visible=FALSE,
+                clearWith=list(
+                    "data",
+                    "quantivar",
+                    "qualivar",
+                    "groupdef",
+                    "grouptype",
+                    "groupill")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotgroup",
@@ -250,6 +259,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotgroups",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -268,6 +278,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotaxes",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -286,6 +297,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotindividus",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -306,6 +318,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotcategory",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -326,6 +339,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=700,
                 renderFun=".plotvariables",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -352,6 +366,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             name="eigen",
                             title="Eigenvalue and (Cumulative) Percentage of Variance",
                             clearWith=list(
+                                "data",
                                 "quantivar",
                                 "qualivar",
                                 "groupdef",
@@ -389,6 +404,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                             name="dimdesc",
                             title="Automatic Description of the Dimensions",
                             clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "groupdef",
@@ -482,6 +498,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotclassif",
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -500,6 +517,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -514,6 +532,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "quantivar",
                     "qualivar",
                     "individus",
@@ -593,6 +612,7 @@ MFABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$mfaCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$classifCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
+#'   \code{results$missingNotice} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotgroup} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotaxe} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotind} \tab \tab \tab \tab \tab an image \cr

@@ -4,12 +4,10 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   inherit = CABase,
   active = list(
     dataProcessed = function() {
-      key <- private$.makeDataProcessingKey()
-      if (is.null(private$.dataProcessed) ||
-          !identical(private$.dataProcessedKey, key)) {
+      # dataProcessed is an in-run cache only. Data changes are handled by
+      # jamovi through clearWith: data on persistent result states.
+      if (is.null(private$.dataProcessed))
         private$.dataProcessed <- private$.buildData()
-        private$.dataProcessedKey <- key
-      }
       private$.dataProcessed
     },
 
@@ -19,17 +17,14 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
     CAResult = function() {
       key <- private$.makeCAKey()
-      data_key <- private$.dataValueSignature()
-      cached <- self$results$caCache$state
-      if (!is.null(cached) && inherits(cached, "CA") &&
-          identical(attr(cached, "MEDA.cache.key", exact = TRUE), key) &&
-          identical(attr(cached, "MEDA.data.key", exact = TRUE), data_key))
+      required_ncp <- private$.requiredNcp()
+      cached <- private$.readCAFromCache(key, required_ncp)
+      if (!is.null(cached))
         return(cached)
 
       value <- private$.CA(self$dataProcessed)
       if (!is.null(value)) {
         attr(value, "MEDA.cache.key") <- key
-        attr(value, "MEDA.data.key") <- data_key
         self$results$caCache$setState(value)
       }
       value
@@ -54,7 +49,6 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   
   private = list(
     .dataProcessed = NULL,
-    .dataProcessedKey = NULL,
     
     #---------------------------------------------
     #### Init + run functions ----
@@ -141,6 +135,10 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
     
     .run = function() {
+      # Private R6 caches are valid only within the current run/redraw cycle.
+      # Persistent freshness across runs is governed by jamovi result states.
+      private$.resetRunCaches()
+
       if (is.null(self$options$activecol))
         return()
       
@@ -206,17 +204,6 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       )
     },
 
-    .dataValueSignature = function() {
-      .meda_selected_data_signature(
-        self$data,
-        c(self$options$activecol, self$options$illustrativecol, self$options$indiv)
-      )
-    },
-
-    .makeDataProcessingKey = function() {
-      paste(private$.dataSignature(), private$.dataValueSignature(), sep = "\n")
-    },
-
     .requiredNcp = function() {
       candidates <- suppressWarnings(as.numeric(c(
         self$options$ncp,
@@ -229,44 +216,47 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
     },
 
     .makeCAKey = function() {
-      paste(
-        private$.dataSignature(),
-        private$.requiredNcp(),
-        sep = "\n"
-      )
+      # The cache key identifies the statistical CA model only. The number
+      # of computed dimensions is tracked separately in MEDA.ncp.requested.
+      private$.dataSignature()
     },
 
     .makeClassifKey = function() {
-      data_key <- private$.dataValueSignature()
-      if (is.null(data_key)) {
-        cached <- self$results$caCache$state
-        if (!is.null(cached) && inherits(cached, "CA") &&
-            identical(
-              attr(cached, "MEDA.cache.key", exact = TRUE),
-              private$.makeCAKey()
-            )) {
-          data_key <- attr(cached, "MEDA.data.key", exact = TRUE)
-        }
-      }
-      if (is.null(data_key))
-        data_key <- "unavailable"
-
       paste(
         private$.makeCAKey(),
-        "data", data_key,
         self$options$ncp,
         self$options$nbclust,
         sep = "\n"
       )
     },
 
-    .getSharedCA = function() {
+    .readCAFromCache = function(key, required_ncp) {
       cached <- self$results$caCache$state
-      key <- private$.makeCAKey()
-      if (is.null(cached) || !inherits(cached, "CA") ||
-          !identical(attr(cached, "MEDA.cache.key", exact = TRUE), key))
+      if (is.null(cached) || !inherits(cached, "CA"))
         return(NULL)
-      cached
+
+      cached_key <- attr(cached, "MEDA.cache.key", exact = TRUE)
+      cached_ncp <- suppressWarnings(as.integer(
+        attr(cached, "MEDA.ncp.requested", exact = TRUE)
+      ))
+      if (length(cached_ncp) == 0L || is.na(cached_ncp))
+        cached_ncp <- if (!is.null(cached$row$coord)) ncol(cached$row$coord) else 0L
+
+      if (identical(cached_key, key) && cached_ncp >= required_ncp)
+        return(cached)
+
+      NULL
+    },
+
+    .getSharedCA = function() {
+      private$.readCAFromCache(
+        private$.makeCAKey(),
+        private$.requiredNcp()
+      )
+    },
+
+    .resetRunCaches = function() {
+      private$.dataProcessed <- NULL
     },
     
     .computeNbclust = function() {
@@ -406,7 +396,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             r_literal(indiv[1]), "]])"
           ),
           "missing_id_CA <- is.na(id_CA) | id_CA == \"\"",
-          "id_CA[missing_id_CA] <- as.character(seq_len(sum(missing_id_CA)))",
+          "id_CA[missing_id_CA] <- as.character(which(missing_id_CA))",
           "rownames(data_CA) <- make.unique(id_CA)"
         )
       }
@@ -746,7 +736,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$indiv)) {
         ids <- as.character(self$data[[self$options$indiv]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(dataactcol) <- make.unique(ids)
       }
       
@@ -1186,7 +1177,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       if (!is.null(self$options$indiv)) {
         ids <- as.character(self$data[[self$options$indiv]])
-        ids[is.na(ids) | ids == ""] <- as.character(seq_len(sum(is.na(ids) | ids == "")))
+        missing <- is.na(ids) | ids == ""
+        ids[missing] <- as.character(which(missing))
         rownames(data) <- make.unique(ids)
       } else {
         rownames(data) <- jamovi_row_nums

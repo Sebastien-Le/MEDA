@@ -243,6 +243,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         classifCache = function() private$.items[["classifCache"]],
         dimdescCache = function() private$.items[["dimdescCache"]],
         instructions = function() private$.items[["instructions"]],
+        missingNotice = function() private$.items[["missingNotice"]],
         plotindiv = function() private$.items[["plotindiv"]],
         plotvar = function() private$.items[["plotvar"]],
         plotitemvar = function() private$.items[["plotitemvar"]],
@@ -271,28 +272,25 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="MCA cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
-                    "ventil",
-                    "ncp",
-                    "nFactors",
-                    "abs",
-                    "ord")))
+                    "ventil")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="classifCache",
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
                     "ventil",
                     "ncp",
-                    "nFactors",
                     "nbclust")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
@@ -300,12 +298,12 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Dimension description cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
                     "ventil",
-                    "ncp",
                     "nFactors",
                     "proba")))
             self$add(jmvcore::Html$new(
@@ -313,6 +311,15 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="instructions",
                 title="Instructions",
                 visible="(tuto)"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="missingNotice",
+                visible=FALSE,
+                clearWith=list(
+                    "data",
+                    "actvars",
+                    "quantisup",
+                    "qualisup")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotindiv",
@@ -321,6 +328,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotindiv",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "individus",
                     "ventil",
@@ -336,6 +344,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotvar",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -352,6 +361,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotitemvar",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "ventil",
@@ -371,6 +381,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotquantisup",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "ventil",
@@ -608,6 +619,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotclassif",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "individus",
                     "ventil",
@@ -623,13 +635,16 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
                     "nFactors",
                     "ventil",
-                    "ncp")))
+                    "ncp",
+                    "abs",
+                    "ord")))
             self$add(jmvcore::Output$new(
                 options=options,
                 name="newvar2",
@@ -637,6 +652,7 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -644,7 +660,9 @@ MCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nFactors",
                     "ventil",
                     "nbclust",
-                    "ncp")))
+                    "ncp",
+                    "abs",
+                    "ord")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="code",
@@ -732,6 +750,7 @@ MCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$classifCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$dimdescCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
+#'   \code{results$missingNotice} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotindiv} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotitemvar} \tab \tab \tab \tab \tab an image \cr

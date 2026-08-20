@@ -249,6 +249,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         pcaCache = function() private$.items[["pcaCache"]],
         classifCache = function() private$.items[["classifCache"]],
         instructions = function() private$.items[["instructions"]],
+        missingNotice = function() private$.items[["missingNotice"]],
         plotind = function() private$.items[["plotind"]],
         plotvar = function() private$.items[["plotvar"]],
         plotseulind = function() private$.items[["plotseulind"]],
@@ -280,21 +281,19 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="PCA cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
                     "individus",
-                    "norme",
-                    "ncp",
-                    "nFactors",
-                    "abs",
-                    "ord")))
+                    "norme")))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="classifCache",
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -307,6 +306,15 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="instructions",
                 title="Instructions",
                 visible="(tuto)"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="missingNotice",
+                visible=FALSE,
+                clearWith=list(
+                    "data",
+                    "actvars",
+                    "quantisup",
+                    "qualisup")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotind",
@@ -315,6 +323,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotindividus",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -332,6 +341,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotvariables",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "individus",
@@ -349,6 +359,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulind",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "individus",
@@ -367,6 +378,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulmod",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "individus",
@@ -385,6 +397,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plothabillage",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "qualisup",
                     "quantisup",
@@ -404,6 +417,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulvaract",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "individus",
@@ -422,6 +436,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotseulvarillu",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "individus",
@@ -635,6 +650,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=600,
                 renderFun=".plotclassif",
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -652,6 +668,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -666,6 +683,7 @@ PCAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
+                    "data",
                     "actvars",
                     "quantisup",
                     "qualisup",
@@ -762,6 +780,7 @@ PCABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$pcaCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$classifCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
+#'   \code{results$missingNotice} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotind} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotvar} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotseulind} \tab \tab \tab \tab \tab an image \cr

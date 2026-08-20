@@ -13,6 +13,7 @@ items:
     type: Preformatted
     visible: false
     clearWith:
+      - data
       - quantivar
       - qualivar
       - individus
@@ -20,16 +21,13 @@ items:
       - grouptype
       - groupill
       - groupname
-      - ncp
-      - nFactors
-      - abs
-      - ord
 
   - name: classifCache
     title: Classification cache
     type: Preformatted
     visible: false
     clearWith:
+      - data
       - quantivar
       - qualivar
       - individus
@@ -38,13 +36,23 @@ items:
       - groupill
       - groupname
       - ncp
-      - nFactors
       - nbclust
 
   - name: instructions
     title: Instructions
     visible: (tuto)
     type: Html
+
+  - name: missingNotice
+    type: Html
+    visible: false
+    clearWith:
+      - data
+      - quantivar
+      - qualivar
+      - groupdef
+      - grouptype
+      - groupill
 
   - name: plotgroup
     title: Representation of the Groups
@@ -53,6 +61,7 @@ items:
     height: 600
     renderFun: .plotgroups
     clearWith:
+      - data
       - quantivar
       - qualivar
       - groupdef
@@ -71,6 +80,7 @@ items:
     height: 600
     renderFun: .plotaxes
     clearWith:
+      - data
       - quantivar
       - qualivar
       - groupdef
@@ -89,6 +99,7 @@ items:
     height: 600
     renderFun: .plotindividus
     clearWith:
+      - data
       - quantivar
       - qualivar
       - individus
@@ -109,6 +120,7 @@ items:
     height: 600
     renderFun: .plotcategory
     clearWith:
+      - data
       - quantivar
       - qualivar
       - groupdef
@@ -129,6 +141,7 @@ items:
     height: 700
     renderFun: .plotvariables
     clearWith:
+      - data
       - quantivar
       - qualivar
       - groupdef
@@ -148,6 +161,7 @@ items:
         title: Eigenvalue and (Cumulative) Percentage of Variance
         type: Table
         clearWith:
+          - data
           - quantivar
           - qualivar
           - groupdef
@@ -172,6 +186,7 @@ items:
     title: Automatic Description of the Dimensions
     type: Group
     clearWith:
+      - data
       - quantivar
       - qualivar
       - groupdef
@@ -215,6 +230,7 @@ items:
     height: 600
     renderFun: .plotclassif
     clearWith:
+      - data
       - quantivar
       - qualivar
       - individus
@@ -233,6 +249,7 @@ items:
     measureType: continuous
     initInRun: true
     clearWith:
+      - data
       - quantivar
       - qualivar
       - individus
@@ -247,6 +264,7 @@ items:
     measureType: nominal
     initInRun: true
     clearWith:
+      - data
       - quantivar
       - qualivar
       - individus

@@ -12,6 +12,14 @@ items:
     visible: (tuto)
     type: Html
 
+  - name: missingNotice
+    type: Html
+    visible: false
+    clearWith:
+      - data
+      - individuals
+      - words
+
   - name: tc
     title: Words and their Occurrences
     type: Table
