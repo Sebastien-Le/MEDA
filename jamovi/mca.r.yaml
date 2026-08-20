@@ -52,6 +52,15 @@ items:
     visible: (tuto)
     type: Html
 
+  - name: missingNotice
+    type: Html
+    visible: false
+    clearWith:
+      - data
+      - actvars
+      - quantisup
+      - qualisup
+
   - name: plotindiv
     title: Representation of the Individuals
     type: Image

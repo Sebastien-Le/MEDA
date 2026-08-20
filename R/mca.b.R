@@ -162,6 +162,8 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
       if (is.null(self$options$actvars) || self$nVaract < 2)
         return()
+
+      private$.updateMissingNotice()
       
       private$.errorCheck()
       
@@ -1083,6 +1085,100 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
     },
     
+    .updateMissingNotice = function() {
+      notice <- self$results$missingNotice
+
+      summarize_missing <- function(vars) {
+        if (is.null(vars) || length(vars) == 0L)
+          return(c(values = 0L, rows = 0L))
+
+        selected <- self$data[, vars, drop = FALSE]
+        missing <- is.na(selected)
+        c(
+          values = sum(missing),
+          rows = sum(rowSums(missing) > 0L)
+        )
+      }
+
+      plural <- function(n, singular, plural_form = paste0(singular, "s")) {
+        if (n == 1L) singular else plural_form
+      }
+
+      active_missing <- summarize_missing(self$options$actvars)
+      quanti_missing <- summarize_missing(self$options$quantisup)
+      quali_missing <- summarize_missing(self$options$qualisup)
+
+      if (sum(c(
+        active_missing[["values"]],
+        quanti_missing[["values"]],
+        quali_missing[["values"]]
+      )) == 0L) {
+        notice$setVisible(FALSE)
+        return(invisible(NULL))
+      }
+
+      messages <- character(0)
+
+      if (active_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            active_missing[["values"]], " missing ",
+            plural(active_missing[["values"]], "value"),
+            " across ", active_missing[["rows"]], " ",
+            plural(active_missing[["rows"]], "individual"),
+            " were detected in the active categorical variables. ",
+            "Following the default FactoMineR::MCA() procedure ",
+            "(na.method = \"NA\"), missing values are treated as an ",
+            "additional category."
+          )
+        )
+      }
+
+      if (quali_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            quali_missing[["values"]], " missing ",
+            plural(quali_missing[["values"]], "value"),
+            " across ", quali_missing[["rows"]], " ",
+            plural(quali_missing[["rows"]], "individual"),
+            " were detected in the supplementary categorical variables. ",
+            "FactoMineR represents these missing entries as an additional ",
+            "category for the corresponding supplementary variable."
+          )
+        )
+      }
+
+      if (quanti_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            quanti_missing[["values"]], " missing ",
+            plural(quanti_missing[["values"]], "value"),
+            " across ", quanti_missing[["rows"]], " ",
+            plural(quanti_missing[["rows"]], "individual"),
+            " were detected in the supplementary quantitative variables. ",
+            "FactoMineR replaces these missing numeric values by the ",
+            "corresponding variable mean."
+          )
+        )
+      }
+
+      notice$setContent(paste0(
+        "<div style='",
+        "margin: 6px 0; padding: 10px 14px; ",
+        "background-color: #F4F7FB; border: 1px solid #CBD8E8; ",
+        "border-left: 4px solid #6B9DE8; border-radius: 5px; ",
+        "line-height: 1.4;'>",
+        "<b>Missing values.</b> ",
+        paste(messages, collapse = " "),
+        "</div>"
+      ))
+      notice$setVisible(TRUE)
+      invisible(NULL)
+    },
+
     .output = function(res.mca) {
       output <- self$results$newvar
       if (!isTRUE(self$options$newvar) || !output$isNotFilled())
