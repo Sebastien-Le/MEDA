@@ -1301,14 +1301,16 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         ", quali.sup.exact=", !is.null(res.plot[["quali.var.sup"]])
       )
       
-      jmvcore::reject(paste0(
-        "Plot of categories failed. Classic renderer: ",
-        classic_error,
-        "; ggplot renderer: ",
-        ggplot_error,
-        ". MEDA MFA v5 diagnostics: ",
-        metadata_status
+      message(paste0(
+        "MEDA MFA category plot diagnostics: ",
+        "classic renderer: ", classic_error,
+        "; ggplot renderer: ", ggplot_error,
+        "; ", metadata_status
       ))
+
+      jmvcore::reject(
+        "The category plot could not be drawn for this combination of groups."
+      )
       FALSE
     },
     
