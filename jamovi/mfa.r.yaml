@@ -43,6 +43,17 @@ items:
     visible: (tuto)
     type: Html
 
+  - name: missingNotice
+    type: Html
+    visible: false
+    clearWith:
+      - data
+      - quantivar
+      - qualivar
+      - groupdef
+      - grouptype
+      - groupill
+
   - name: plotgroup
     title: Representation of the Groups
     type: Image

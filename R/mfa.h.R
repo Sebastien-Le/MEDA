@@ -182,6 +182,7 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         mfaCache = function() private$.items[["mfaCache"]],
         classifCache = function() private$.items[["classifCache"]],
         instructions = function() private$.items[["instructions"]],
+        missingNotice = function() private$.items[["missingNotice"]],
         plotgroup = function() private$.items[["plotgroup"]],
         plotaxe = function() private$.items[["plotaxe"]],
         plotind = function() private$.items[["plotind"]],
@@ -239,6 +240,17 @@ MFAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="instructions",
                 title="Instructions",
                 visible="(tuto)"))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="missingNotice",
+                visible=FALSE,
+                clearWith=list(
+                    "data",
+                    "quantivar",
+                    "qualivar",
+                    "groupdef",
+                    "grouptype",
+                    "groupill")))
             self$add(jmvcore::Image$new(
                 options=options,
                 name="plotgroup",
@@ -600,6 +612,7 @@ MFABase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$mfaCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$classifCache} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a html \cr
+#'   \code{results$missingNotice} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$plotgroup} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotaxe} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$plotind} \tab \tab \tab \tab \tab an image \cr

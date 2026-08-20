@@ -212,6 +212,7 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         return()
 
       private$.errorCheck()
+      private$.updateMissingNotice()
 
       # The complete FactoMineR object is cached once, in a lossless packed
       # form. Image states contain only a tiny marker, so the same large MFA
@@ -1485,6 +1486,93 @@ MFAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (is.null(row_nums))
         row_nums <- rownames(self$dataProcessed)
       output$setRowNums(row_nums)
+    },
+
+    .updateMissingNotice = function() {
+      notice <- self$results$missingNotice
+
+      selected_vars <- c(self$options$quantivar, self$options$qualivar)
+      if (is.null(selected_vars) || length(selected_vars) == 0L) {
+        notice$setVisible(FALSE)
+        return(invisible(NULL))
+      }
+
+      selected <- self$data[, selected_vars, drop = FALSE]
+      is_numeric <- vapply(selected, is.numeric, logical(1))
+
+      numeric_missing <- if (any(is_numeric)) {
+        missing <- is.na(selected[, is_numeric, drop = FALSE])
+        c(
+          values = sum(missing),
+          rows = sum(rowSums(missing) > 0L)
+        )
+      } else {
+        c(values = 0L, rows = 0L)
+      }
+
+      categorical_missing <- if (any(!is_numeric)) {
+        missing <- is.na(selected[, !is_numeric, drop = FALSE])
+        c(
+          values = sum(missing),
+          rows = sum(rowSums(missing) > 0L)
+        )
+      } else {
+        c(values = 0L, rows = 0L)
+      }
+
+      if (numeric_missing[["values"]] == 0L &&
+          categorical_missing[["values"]] == 0L) {
+        notice$setVisible(FALSE)
+        return(invisible(NULL))
+      }
+
+      plural <- function(n, singular, plural_form = paste0(singular, "s")) {
+        if (n == 1L) singular else plural_form
+      }
+
+      messages <- character(0)
+
+      if (numeric_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            numeric_missing[["values"]], " missing ",
+            plural(numeric_missing[["values"]], "numeric value"),
+            " across ", numeric_missing[["rows"]], " ",
+            plural(numeric_missing[["rows"]], "individual"),
+            " were detected. Following FactoMineR::MFA(), missing numeric ",
+            "values are replaced by the corresponding variable mean."
+          )
+        )
+      }
+
+      if (categorical_missing[["values"]] > 0L) {
+        messages <- c(
+          messages,
+          paste0(
+            categorical_missing[["values"]], " missing ",
+            plural(categorical_missing[["values"]], "categorical value"),
+            " across ", categorical_missing[["rows"]], " ",
+            plural(categorical_missing[["rows"]], "individual"),
+            " were detected. Following FactoMineR::MFA(), each missing ",
+            "categorical value is represented by an explicit additional ",
+            "category named after the variable (for example, variable.NA)."
+          )
+        )
+      }
+
+      notice$setContent(paste0(
+        "<div style='",
+        "margin: 6px 0; padding: 10px 14px; ",
+        "background-color: #F4F7FB; border: 1px solid #CBD8E8; ",
+        "border-left: 4px solid #6B9DE8; border-radius: 5px; ",
+        "line-height: 1.4;'>",
+        "<b>Missing values.</b> ",
+        paste(messages, collapse = " "),
+        "</div>"
+      ))
+      notice$setVisible(TRUE)
+      invisible(NULL)
     },
 
     .output2 = function(res.classif) {
