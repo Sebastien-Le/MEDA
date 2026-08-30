@@ -973,64 +973,6 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       }
     },
 
-    # .printTables = function(quoi) {
-    #
-    #   table <- self$PCAResult
-    #   individus_gui <- if (!is.null(self$options$individus))
-    #     self$data[[self$options$individus]]
-    #   else
-    #     seq_len(nrow(self$data))
-    #
-    #   if (quoi == "coord") {
-    #     quoivar  <- table$var$coord
-    #     quoiind  <- table$ind$coord
-    #     tablevar <- self$results$variables$coordonnees
-    #     tableind <- self$results$individus$coordonnees
-    #   } else if (quoi == "contrib") {
-    #     quoivar  <- table$var$contrib
-    #     quoiind  <- table$ind$contrib
-    #     tablevar <- self$results$variables$contribution
-    #     tableind <- self$results$individus$contribution
-    #   } else if (quoi == "cos2") {
-    #     quoivar  <- table$var$cos2
-    #     quoiind  <- table$ind$cos2
-    #     tablevar <- self$results$variables$cosinus
-    #     tableind <- self$results$individus$cosinus
-    #   } else {
-    #     return()
-    #   }
-    #
-    #   nFactors_out <- min(self$options$nFactors, ncol(quoivar), ncol(quoiind))
-    #
-    #   tableind$addColumn(name = "individus", title = "", type = "text")
-    #   for (i in seq_len(nrow(quoiind)))
-    #     tableind$addRow(rowKey = i, value = NULL)
-    #
-    #   tablevar$addColumn(name = "variables", title = "", type = "text")
-    #   for (i in seq_len(nrow(quoivar)))
-    #     tablevar$addRow(rowKey = i, value = NULL)
-    #
-    #   for (i in seq_len(nFactors_out)) {
-    #     tablevar$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
-    #     tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
-    #   }
-    #
-    #   for (var in seq_len(nrow(quoivar))) {
-    #     row <- list(variables = rownames(quoivar)[var])
-    #     for (i in seq_len(nFactors_out))
-    #       row[[paste0("dim", i)]] <- quoivar[var, i]
-    #     tablevar$setRow(rowNo = var, values = row)
-    #   }
-    #
-    #   for (ind in seq_along(individus_gui)) {
-    #     row <- list(individus = if (is.null(self$options$individus))
-    #       individus_gui[ind] else rownames(quoiind)[ind])
-    #     for (i in seq_len(nFactors_out))
-    #       row[[paste0("dim", i)]] <- quoiind[ind, i]
-    #     tableind$setRow(rowNo = ind, values = row)
-    #   }
-    # },
-
     .printTables = function(quoi) {
 
       # Ne calculer que si au moins un des deux tableaux est demandé
@@ -1050,11 +992,6 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       if (!show_ind && !show_var) return()
 
       table <- self$PCAResult
-      individus_gui <- if (!is.null(self$options$individus))
-        as.character(self$data[[self$options$individus]])
-      else
-        as.character(seq_len(nrow(self$data)))
-
       if (quoi == "coord") {
         quoivar  <- table$var$coord
         quoiind  <- table$ind$coord
@@ -1097,7 +1034,7 @@ PCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         for (i in seq_len(nFactors_out))
           tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
         for (ind in seq_len(nrow(quoiind))) {
-          row <- list(individus = individus_gui[ind])
+          row <- list(individus = rownames(quoiind)[ind])
           for (i in seq_len(nFactors_out))
             row[[paste0("dim", i)]] <- quoiind[ind, i]
           tableind$setRow(rowNo = ind, values = row)

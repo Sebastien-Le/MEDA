@@ -11,13 +11,13 @@ items:
     title: CA cache
     type: Preformatted
     visible: false
-    clearWith: [data, activecol, illustrativecol, indiv]
+    clearWith: [donnees, activecol, illustrativecol, indiv]
 
   - name: classifCache
     title: Classification cache
     type: Preformatted
     visible: false
-    clearWith: [data, activecol, illustrativecol, indiv, ncp, nbclust]
+    clearWith: [donnees, activecol, illustrativecol, indiv, ncp, nbclust]
 
   - name: instructions
     title: Instructions
@@ -30,7 +30,7 @@ items:
     width: 600
     height: 500
     renderFun: .plotrow
-    clearWith: [data, activecol, illustrativecol, indiv, ncp, nbfact, abs, ord, limcoscol, limcosrow]
+    clearWith: [donnees, activecol, illustrativecol, indiv, ncp, nbfact, abs, ord, limcoscol, limcosrow]
 
   - name: ploticol
     title: Representation of the Columns
@@ -38,7 +38,7 @@ items:
     width: 600
     height: 500
     renderFun: .plotcol
-    clearWith: [data, activecol, illustrativecol, indiv, ncp, nbfact, abs, ord, limcoscol, limcosrow, addillucol]
+    clearWith: [donnees, activecol, illustrativecol, indiv, ncp, nbfact, abs, ord, limcoscol, limcosrow, addillucol]
 
   - name: plotell
     title: Superimposed Representation with Ellipses
@@ -46,7 +46,7 @@ items:
     width: 600
     height: 500
     renderFun: .plotell
-    clearWith: [data, activecol, illustrativecol, indiv, ncp, nbfact, abs, ord, limcoscol, limcosrow, ellipsecol, ellipserow, addillucol]
+    clearWith: [donnees, activecol, illustrativecol, indiv, ncp, nbfact, abs, ord, limcoscol, limcosrow, ellipsecol, ellipserow, addillucol]
 
   - name: xsqgroup
     title: Chi-Squared Test
@@ -175,7 +175,7 @@ items:
     width: 600
     height: 500
     renderFun: .plotclassif
-    clearWith: [data, activecol, illustrativecol, indiv, ncp, nbclust, abs, ord, graphclassif]
+    clearWith: [donnees, activecol, illustrativecol, indiv, ncp, nbclust, abs, ord, graphclassif]
 
   - name: newvar
     type: Output
@@ -183,7 +183,7 @@ items:
     measureType: continuous
     initInRun: true
     clearWith:
-      - data
+      - donnees
       - activecol
       - illustrativecol
       - indiv
@@ -196,7 +196,7 @@ items:
     measureType: nominal
     initInRun: true
     clearWith:
-      - data
+      - donnees
       - activecol
       - illustrativecol
       - indiv

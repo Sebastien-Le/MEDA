@@ -5,7 +5,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
   active = list(
     dataProcessed = function() {
       # dataProcessed is an in-run cache only. Data changes are handled by
-      # jamovi through clearWith: data on persistent result states.
+      # jamovi through clearWith: donnees on persistent result states.
       if (is.null(private$.dataProcessed))
         private$.dataProcessed <- private$.buildData()
       private$.dataProcessed
@@ -809,11 +809,6 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       max_dim    <- ncol(table$row$coord)
       nbfact_gui <- min(self$options$nbfact, max_dim)
       
-      row_gui <- if (!is.null(self$options$indiv))
-        as.character(self$data[[self$options$indiv]])
-      else
-        as.character(seq_len(nrow(self$data)))
-      
       if (quoi == "coord") {
         quoivar  <- table$col$coord
         quoiind  <- table$row$coord
@@ -854,7 +849,7 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         for (i in seq_len(nbfact_gui))
           tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
         for (ind in seq_len(nrow(quoiind))) {
-          row <- list(row = row_gui[ind])
+          row <- list(row = rownames(quoiind)[ind])
           for (i in seq_len(nbfact_gui))
             row[[paste0("dim", i)]] <- quoiind[ind, i]
           tableind$setRow(rowNo = ind, values = row)
