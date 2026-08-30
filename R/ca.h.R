@@ -257,7 +257,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="CA cache",
                 visible=FALSE,
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv")))
@@ -267,7 +267,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Classification cache",
                 visible=FALSE,
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -286,7 +286,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotrow",
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -304,7 +304,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotcol",
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -323,7 +323,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotell",
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -515,7 +515,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 height=500,
                 renderFun=".plotclassif",
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -531,7 +531,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="continuous",
                 initInRun=TRUE,
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv",
@@ -544,7 +544,7 @@ CAResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 measureType="nominal",
                 initInRun=TRUE,
                 clearWith=list(
-                    "data",
+                    "donnees",
                     "activecol",
                     "illustrativecol",
                     "indiv",

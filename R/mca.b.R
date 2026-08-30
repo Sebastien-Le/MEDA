@@ -842,11 +842,6 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
       
       nFactors_out <- min(self$options$nFactors, ncol(table$ind$coord))
       
-      individus_gui <- if (!is.null(self$options$individus))
-        as.character(self$data[[self$options$individus]])
-      else
-        as.character(seq_len(nrow(self$data)))
-      
       if (quoi == "coord") {
         quoivar  <- table$var$coord
         quoiind  <- table$ind$coord
@@ -887,7 +882,7 @@ MCAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         for (i in seq_len(nFactors_out))
           tableind$addColumn(name = paste0("dim", i), title = paste0("Dim.", i), type = "number")
         for (ind in seq_len(nrow(quoiind))) {
-          row <- list(individus = individus_gui[ind])
+          row <- list(individus = rownames(quoiind)[ind])
           for (i in seq_len(nFactors_out))
             row[[paste0("dim", i)]] <- quoiind[ind, i]
           tableind$setRow(rowNo = ind, values = row)

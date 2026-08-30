@@ -243,33 +243,6 @@
   as.integer(axes)
 }
 
-.meda_selected_data_signature <- function(data, variables) {
-  variables <- unique(as.character(unlist(variables, use.names = FALSE)))
-  variables <- variables[!is.na(variables) & nzchar(variables)]
-  if (length(variables) == 0L || is.null(data))
-    return(NULL)
-
-  snapshot <- tryCatch({
-    columns <- data[, variables, drop = FALSE]
-    if (ncol(columns) != length(variables))
-      return(NULL)
-    columns <- data.frame(columns, check.names = FALSE)
-    colnames(columns) <- variables
-    list(columns = columns, row.names = rownames(columns))
-  }, error = function(e) NULL)
-  if (is.null(snapshot))
-    return(NULL)
-
-  bytes <- as.integer(serialize(snapshot, connection = NULL, version = 2))
-  index <- seq_along(bytes)
-  hash1 <- sum((bytes + 1) * ((index %% 65521) + 1)) %% 2147483647
-  hash2 <- sum(
-    (bytes + 1) * (((index * 17) %% 65519) + 1)
-  ) %% 2147483629
-  paste(length(bytes), sprintf("%.0f", hash1), sprintf("%.0f", hash2),
-        sep = ":")
-}
-
 .meda_hcpc_coordinates <- function(coordinates, ncp, nbclust,
                                    label = "Clustering") {
   coordinates <- tryCatch(

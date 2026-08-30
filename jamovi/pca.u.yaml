@@ -112,6 +112,7 @@ children:
               - type: TextBox
                 name: habillage
                 format: number
+                enable: (qualisup)
           - type: Label
             label: Variable Graphic Options
             children:
