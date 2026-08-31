@@ -658,19 +658,28 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
           code,
           "",
           "# Hierarchical clustering on the retained CA coordinates",
+          "# Preserve CA row masses when expressing inertia in the retained space.",
           "# nb.clust = -1 lets HCPC choose the number of clusters.",
           paste0(
             "coord_hcpc_ca <- as.data.frame(res_ca$row$coord[, ",
             r_literal(as.integer(seq_len(n_classif))),
             ", drop = FALSE])"
-          )
+          ),
+          "row_weights_hcpc_ca <- res_ca$call$marge.row * sum(res_ca$call$X)",
+          "res_pca_hcpc_ca <- FactoMineR::PCA(",
+          "  coord_hcpc_ca,",
+          "  scale.unit = FALSE,",
+          "  row.w = row_weights_hcpc_ca,",
+          "  ncp = Inf,",
+          "  graph = FALSE",
+          ")"
         )
         code <- add_call(
           code,
           "res_hcpc",
           "FactoMineR::HCPC",
           c(
-            "coord_hcpc_ca",
+            "res_pca_hcpc_ca",
             paste0("nb.clust = ", r_literal(nbclust)),
             "graph = FALSE",
             "description = FALSE"
@@ -708,7 +717,8 @@ CAClass <- if (requireNamespace('jmvcore')) R6::R6Class(
         res$row$coord,
         self$options$ncp,
         self$nbclust,
-        "CA clustering"
+        "CA clustering",
+        row_weights = res$call$marge.row * sum(res$call$X)
       )
     },
     

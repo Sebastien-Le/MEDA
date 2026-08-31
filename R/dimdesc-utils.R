@@ -244,7 +244,8 @@
 }
 
 .meda_hcpc_coordinates <- function(coordinates, ncp, nbclust,
-                                   label = "Clustering") {
+                                   label = "Clustering",
+                                   row_weights = NULL) {
   coordinates <- tryCatch(
     as.data.frame(coordinates, check.names = FALSE),
     error = function(e) NULL
@@ -283,9 +284,36 @@
   if (nbclust == -1L && nrow(coordinates) < 4L)
     jmvcore::reject("Automatic clustering requires at least four observations")
 
+  hcpc_input <- coordinates
+
+  if (!is.null(row_weights)) {
+    row_weights <- suppressWarnings(as.numeric(row_weights))
+    if (length(row_weights) != nrow(coordinates) ||
+        any(!is.finite(row_weights)) || any(row_weights <= 0))
+      jmvcore::reject(paste0(label, " failed: invalid row weights"))
+
+    hcpc_input <- tryCatch(
+      FactoMineR::PCA(
+        coordinates,
+        scale.unit = FALSE,
+        row.w = row_weights,
+        ncp = Inf,
+        graph = FALSE
+      ),
+      error = function(e) {
+        jmvcore::reject(paste0(
+          label, " failed during weighted PCA: ", conditionMessage(e)
+        ))
+        NULL
+      }
+    )
+    if (is.null(hcpc_input))
+      return(NULL)
+  }
+
   result <- tryCatch(
     FactoMineR::HCPC(
-      coordinates,
+      hcpc_input,
       nb.clust = nbclust,
       graph = FALSE,
       description = FALSE
